@@ -22,17 +22,29 @@
 # THE SOFTWARE.
 #
 
-import pytest
+# import pytest
 from pymeasure.test import expected_protocol
 from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
 
 
-def test_id():
-    """Verify the communication of the device type."""
-    with expected_protocol(
-        ptwUNIDOS,
-        [("*IDN?", "Change me"),],
-    ) as inst:
-        assert inst.id == "Change me"
+class TestPTWUnidosStatus:
+    def test_id():
+        """Verify the communication of the device type."""
+        with expected_protocol(
+            ptwUNIDOS,
+            [("PTW", None),
+             ("", "")],
+        ) as inst:
+            assert inst.id == "Change me"
 
 
+class TestPTWUnidosSettings:
+    pass
+
+
+class TestPTWUnidosMeasurement:
+    pass
+
+
+class TestPTWUnidosResult:
+    pass
