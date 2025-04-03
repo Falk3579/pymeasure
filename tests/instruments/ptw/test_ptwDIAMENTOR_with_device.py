@@ -22,5 +22,16 @@
 # THE SOFTWARE.
 #
 
-from .ptwUNIDOS import ptwUNIDOS
-from .ptwDIAMENTOR import ptwDIAMENTOR
+import pytest
+from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
+
+# pytest.skip('Only works with connected hardware', allow_module_level=True)
+# from pyvisa.errors import VisaIOError
+
+############
+# FIXTURES #
+############
+
+class TestPTWUnidos:
+    """Unit tests for PTW UNIDOS dosemeter."""
+    pass

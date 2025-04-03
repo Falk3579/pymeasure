@@ -10,3 +10,4 @@ This section contains specific documentation on the PTW Freiburg GmbH instrument
    :maxdepth: 2
 
    ptwUNIDOS
+   ptwDIAMENTOR

@@ -20,7 +20,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-#
 
-from .ptwUNIDOS import ptwUNIDOS
-from .ptwDIAMENTOR import ptwDIAMENTOR
+#
+from pymeasure.instruments import Instrument
+# from pymeasure.instruments.validators import truncated_range
+
+
+class ptwUNIDOS(Instrument):
+    '''A class representing the PTW UNIDOS dosemeter'''
+
+    def __init__(self, adapter, name="Stanford Research Systems SG380 RF Signal Generator",
+                 **kwargs):
+        super().__init__(
+            adapter,
+            name,
+            **kwargs
+        )
