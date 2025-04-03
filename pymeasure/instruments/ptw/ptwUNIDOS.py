@@ -20,19 +20,230 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
 #
+
 from pymeasure.instruments import Instrument
-# from pymeasure.instruments.validators import truncated_range
+from pymeasure.instruments.validators import strict_discrete_set, strict_discrete_range
 
 
 class ptwUNIDOS(Instrument):
-    '''A class representing the PTW UNIDOS dosemeter'''
+    '''A class representing the PTW UNIDOS dosemeter.'''
 
-    def __init__(self, adapter, name="Stanford Research Systems SG380 RF Signal Generator",
+    def __init__(self, adapter, name="PTW UNIDOS dosemeter",
                  **kwargs):
         super().__init__(
             adapter,
             name,
             **kwargs
         )
+
+    def check_errors(self):
+        '''Get device errors.
+
+        Error codes:
+        E;01 Syntax error, unknown command
+        E;02 Command not allowed in this context
+        E;03 Command not allowed at this moment
+        E;08 Parameter error
+             – Value invalid/out of range
+             – Wrong format of the parameter (eg. date in yyy-mm-dd format)
+        E;12 Abort by user
+        E;16 Command to long
+        E;17 Maximum number of parameters exceeded
+        E;18 Empty parameter field
+        E;19 Wrong number of parameters
+        E;20 No user rights, no write permission
+        E;21 Required parameter not found (eg. detector)
+        E;24 Memory erroro: data could not be stored
+        E;28 Unknown parameter
+        E;29 Wrong parameter type
+        E;33 Measurement module defect
+        E;51 Undefined command
+        E;52 Wrong parameter type of the HTTP response
+        E;54 HTTP request denied
+        E;58 Wrong valueof the HTTP response
+        E;96 Timeout
+        '''
+        pass
+
+
+#################
+# ID and status #
+#################
+
+    id = Instrument.Measurement(
+        "PTW",
+        '''Get the dosemeter ID.'''
+        )
+
+    serial_number = Instrument.Measurement(
+        "SER",
+        '''Get the dosemeter serial number.'''
+        )
+
+    status = Instrument.Measurement(
+        "S",
+        '''Get the measurement status.'''
+        )
+
+    mac_address = Instrument.Measurement(
+        "MAC",
+        '''Get the dosemeter MAC address.'''
+        )
+
+    tfi = Instrument.Measurement(
+        "TFI",
+        ''' Get the Telegram Failure Information.
+
+        Information about the last failed command with HTTP request.'''
+        )
+
+##################################
+# Write premission               #
+# TOK request write permission   #
+# TOK;1 check write permission   #
+# TOK;0 release write permission #
+##################################
+
+    def write_enable(self):
+        pass
+
+    write_enabled = Instrument.Control(
+        "TOK",
+        '''Control the write access (boolean)''',
+        validator=strict_discrete_set,
+        mapvalues=True,
+        values={True: 1, False: 0}
+        )
+
+###################
+# Device settings #
+###################
+
+    use_electrical_units = Instrument.Control(
+        "UEL", "",
+        '''Control if electrical units are used (boolean).''',
+        validator=strict_discrete_set,
+        mapvalues=True,
+        values={True: 'true', False: 'false'}
+        )
+
+    range = Instrument.Control(
+        "RGE", "",
+        '''Control the measurement range.''',
+        validator=strict_discrete_range,
+        values=[]
+        )
+
+    voltage = Instrument.Control(
+        '''HV Aktuelle Hochspannung abfragen/setzen
+        Hier werden die Limits des Detektor-Eintrages angewendet. '''
+        )
+    integration_time = Instrument.Control(
+        '''IT Integrationszeit abfragen/setzen                     '''
+        )
+
+    use_autostart = Instrument.Control(
+        '''ASE Autostart abfragen/setzen    (boolean)                       '''
+        )
+
+    use_autoreset = Instrument.Control(
+        '''ASR Autoreset abfragen/setzen             (boolean)              '''
+        )
+
+    autostart_level = Instrument.Control(
+        '''ASL Schwelle für Autostart-Messung abfrage/setzen       '''
+        )
+
+    def clear_history(self):
+        self.write("CHR")
+        '''CHR: Komplette Historie löschen'''
+        pass
+
+###########################
+# Measurement and Control #
+###########################
+
+    def meas(self):
+        '''Start the dose or charge measurement'''
+        self.write("STA")
+
+    def hold(self):
+        '''Set the measurment to HOLD state'''
+        self.write("HLD")
+
+    def reset(self):
+        '''RES Dosis- oder Ladungsmessung und      '''
+        '''Rücksetzen der Messwerte beenden        '''
+        self.write("RES")
+
+    def intervall(self):
+        '''INT Intervallmessung starten            '''
+        self.write("INT")
+
+    def zero(self):
+        '''NUL Nullabgleich starten
+        Antwort wird vor Beendigung der Aktion gesendet.
+        Abgleichsende und -resultat muss mit NUS abgefragt werden.
+        '''
+        pass
+
+    def selftest(self):
+        '''AST Elektrometerfunktionstest starten
+        Antwort wird vor Beendigung der Aktion gesendet.
+        Ende und Resultat der Elektrometerfunktionstests muss mit ASS abgefragt
+        werden.'''
+        pass
+
+
+###########
+# Results #
+###########
+
+    meas_result = Instrument.Measurement(
+        "MV",
+        '''MV Messwerte abfragen   '''
+        )
+
+    range_end = Instrument.Measurement(
+        "MVM",
+        '''MVM Messbereichsendwert der Strommessung für den Messbereich rge abfragen'''
+        )
+
+    resolution = Instrument.Measurement(
+        "MVR",
+        '''MVR Die Messwertauflösung für den Messbereich rge abfragen'''
+        )
+
+    zero_result = Instrument.Measurement(
+        "NUS",
+        '''Get status and result of the zero correction''',
+        )
+
+    selftest_result = Instrument.Measurement(
+        "ASS",
+        '''Get status and result of the selftest'''
+        )
+
+
+######################
+# JSON Configuration #
+######################
+
+'''ATG Administrator-Berechtigung anfordern          '''
+'''ATV Administrator-Berechtigung prüfen             '''
+'''RDA Alle Detektoren auslesen                      '''
+'''RDR Detektor auslesen                             '''
+'''WDR Detektor bearbeiten                           '''
+'''CDR Detektor löschen                              '''
+'''GDR Detektor erstellen                            '''
+'''RMR Messparameter auslesen                        '''
+'''WMR Messparameter bearbeiten                      '''
+'''RSR Systemsettings auslesen                       '''
+'''WSR Systeminformationen bearbeiten                '''
+'''RIR Systeminformationen auslesen                  '''
+'''RHR Verlauf der Messungen auslesen                '''
+'''RAC WLAN Access Point Konfiguration auslesen      '''
+'''WAC WLAN Access Point Konfiguration bearbeiten    '''
+'''REC Ethernet Konfiguration auslesen               '''
+'''WEC Ethernet Konfiguration bearbeiten             '''
