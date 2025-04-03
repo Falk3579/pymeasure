@@ -71,27 +71,27 @@ class ptwUNIDOS(Instrument):
 # ID and status #
 #################
 
-    id = Instrument.Measurement(
+    id = Instrument.measurement(
         "PTW",
         '''Get the dosemeter ID.'''
         )
 
-    serial_number = Instrument.Measurement(
+    serial_number = Instrument.measurement(
         "SER",
         '''Get the dosemeter serial number.'''
         )
 
-    status = Instrument.Measurement(
+    status = Instrument.measurement(
         "S",
         '''Get the measurement status.'''
         )
 
-    mac_address = Instrument.Measurement(
+    mac_address = Instrument.measurement(
         "MAC",
         '''Get the dosemeter MAC address.'''
         )
 
-    tfi = Instrument.Measurement(
+    tfi = Instrument.measurement(
         "TFI",
         ''' Get the Telegram Failure Information.
 
@@ -108,7 +108,7 @@ class ptwUNIDOS(Instrument):
     def write_enable(self):
         pass
 
-    write_enabled = Instrument.Control(
+    write_enabled = Instrument.control(
         "TOK",
         '''Control the write access (boolean)''',
         validator=strict_discrete_set,
@@ -120,7 +120,7 @@ class ptwUNIDOS(Instrument):
 # Device settings #
 ###################
 
-    use_electrical_units = Instrument.Control(
+    use_electrical_units = Instrument.control(
         "UEL", "",
         '''Control if electrical units are used (boolean).''',
         validator=strict_discrete_set,
@@ -128,30 +128,30 @@ class ptwUNIDOS(Instrument):
         values={True: 'true', False: 'false'}
         )
 
-    range = Instrument.Control(
+    range = Instrument.control(
         "RGE", "",
         '''Control the measurement range.''',
         validator=strict_discrete_range,
         values=[]
         )
 
-    voltage = Instrument.Control(
+    voltage = Instrument.control(
         '''HV Aktuelle Hochspannung abfragen/setzen
         Hier werden die Limits des Detektor-Eintrages angewendet. '''
         )
-    integration_time = Instrument.Control(
+    integration_time = Instrument.control(
         '''IT Integrationszeit abfragen/setzen                     '''
         )
 
-    use_autostart = Instrument.Control(
+    use_autostart = Instrument.control(
         '''ASE Autostart abfragen/setzen    (boolean)                       '''
         )
 
-    use_autoreset = Instrument.Control(
+    use_autoreset = Instrument.control(
         '''ASR Autoreset abfragen/setzen             (boolean)              '''
         )
 
-    autostart_level = Instrument.Control(
+    autostart_level = Instrument.control(
         '''ASL Schwelle für Autostart-Messung abfrage/setzen       '''
         )
 
@@ -200,27 +200,27 @@ class ptwUNIDOS(Instrument):
 # Results #
 ###########
 
-    meas_result = Instrument.Measurement(
+    meas_result = Instrument.measurement(
         "MV",
         '''MV Messwerte abfragen   '''
         )
 
-    range_end = Instrument.Measurement(
+    range_end = Instrument.measurement(
         "MVM",
         '''MVM Messbereichsendwert der Strommessung für den Messbereich rge abfragen'''
         )
 
-    resolution = Instrument.Measurement(
+    resolution = Instrument.measurement(
         "MVR",
         '''MVR Die Messwertauflösung für den Messbereich rge abfragen'''
         )
 
-    zero_result = Instrument.Measurement(
+    zero_result = Instrument.measurement(
         "NUS",
         '''Get status and result of the zero correction''',
         )
 
-    selftest_result = Instrument.Measurement(
+    selftest_result = Instrument.measurement(
         "ASS",
         '''Get status and result of the selftest'''
         )
