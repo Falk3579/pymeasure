@@ -22,6 +22,11 @@
 # THE SOFTWARE.
 #
 
+# Tested using SCPI over telnet (via ethernet). call signature:
+# $ pytest test_ptwUNIDOS_with_device.py --device-address 'TCPIP::192.168.2.233::INSTR'
+#
+# tested with a PTW UNIDOS Tango dosemeter
+
 import pytest
 from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
 
@@ -32,6 +37,16 @@ from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
 # FIXTURES #
 ############
 
-class TestPTWUnidos:
+
+@pytest.fixture(scope="module")
+def ptwunidos(connected_device_address):
+    instr = ptwUNIDOS(connected_device_address)
+    # ensure the device is in a defined state, e.g. by resetting it.
+    return instr
+
+
+class TestPTWUnidosWithDevice:
     """Unit tests for PTW UNIDOS dosemeter."""
-    pass
+
+    def test_id(self, ptwunidos):
+        pass
