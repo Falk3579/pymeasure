@@ -23,7 +23,8 @@
 #
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import strict_discrete_set, strict_discrete_range
+from pymeasure.instruments.validators import (strict_discrete_set,
+                                              strict_discrete_range)
 
 
 class ptwUNIDOS(Instrument):
@@ -131,33 +132,33 @@ class ptwUNIDOS(Instrument):
     range = Instrument.control(
         "RGE", "",
         '''Control the measurement range.''',
-        validator=strict_discrete_range,
-        values=[]
+        validator=strict_discrete_set,
+        values=['LONG', 'MEDIUM']
         )
 
     voltage = Instrument.control(
-        "", "",
+        "HV", "",
         '''HV Aktuelle Hochspannung abfragen/setzen
         Hier werden die Limits des Detektor-Eintrages angewendet. '''
         )
 
     integration_time = Instrument.control(
-        "", "",
+        "IT", "",
         '''IT Integrationszeit abfragen/setzen                     '''
         )
 
     use_autostart = Instrument.control(
-        "", "",
+        "ASE", "ASE",
         '''ASE Autostart abfragen/setzen    (boolean)                       '''
         )
 
     use_autoreset = Instrument.control(
-        "", "",
+        "ASR", "ASR",
         '''ASR Autoreset abfragen/setzen             (boolean)              '''
         )
 
     autostart_level = Instrument.control(
-        "", "",
+        "ASL", "ASL",
         '''ASL Schwelle für Autostart-Messung abfrage/setzen       '''
         )
 
@@ -236,20 +237,58 @@ class ptwUNIDOS(Instrument):
 # JSON Configuration #
 ######################
 
+    admin = Instrument.control(
+        "", "",
 '''ATG Administrator-Berechtigung anfordern          '''
 '''ATV Administrator-Berechtigung prüfen             '''
+        )
+
+    read_all = Instrument.control(
 '''RDA Alle Detektoren auslesen                      '''
+        )
+
+    detector = Instrument.control(
+        "", "",
 '''RDR Detektor auslesen                             '''
 '''WDR Detektor bearbeiten                           '''
+        )
+
+    detector_delete = Instrument.control(
+        "", "",
 '''CDR Detektor löschen                              '''
 '''GDR Detektor erstellen                            '''
+        )
+
+    meas_param = Instrument.control(
+        "", "",
 '''RMR Messparameter auslesen                        '''
 '''WMR Messparameter bearbeiten                      '''
+        )
+
+    system_settings = Instrument.measurement(
+        "RSR",
 '''RSR Systemsettings auslesen                       '''
+        )
+
+    system_info = Instrument.control(
+        "", "",
 '''WSR Systeminformationen bearbeiten                '''
 '''RIR Systeminformationen auslesen                  '''
+        )
+
+    meas_history = Instrument.measurement(
+        "RHR",
 '''RHR Verlauf der Messungen auslesen                '''
+        )
+
+    ap_config = Instrument.control(
+        "", "",
 '''RAC WLAN Access Point Konfiguration auslesen      '''
 '''WAC WLAN Access Point Konfiguration bearbeiten    '''
+        )
+
+    lan_config = Instrument.control(
+        "", "",
 '''REC Ethernet Konfiguration auslesen               '''
 '''WEC Ethernet Konfiguration bearbeiten             '''
+        )
