@@ -111,7 +111,7 @@ class ptwUNIDOS(Instrument):
 
     write_enabled = Instrument.control(
         "TOK", "TOK",
-        '''Control the write access (boolean)''',
+        '''Control the write access (boolean).''',
         validator=strict_discrete_set,
         mapvalues=True,
         values={True: 1, False: 0}
@@ -159,7 +159,7 @@ class ptwUNIDOS(Instrument):
 
     autostart_level = Instrument.control(
         "ASL", "ASL",
-        '''ASL Schwelle für Autostart-Messung abfrage/setzen       '''
+        '''ASL Schwelle für Autostart-Messung abfrage/setzen'''
         )
 
     def clear_history(self):
@@ -239,56 +239,57 @@ class ptwUNIDOS(Instrument):
 
     admin = Instrument.control(
         "", "",
-'''ATG Administrator-Berechtigung anfordern          '''
-'''ATV Administrator-Berechtigung prüfen             '''
+        '''ATG Administrator-Berechtigung anfordern
+        ATV Administrator-Berechtigung prüfen'''
         )
 
-    read_all = Instrument.control(
-'''RDA Alle Detektoren auslesen                      '''
+    read_all = Instrument.measurement(
+        "", "",
+        '''RDA Alle Detektoren auslesen'''
         )
 
     detector = Instrument.control(
         "", "",
-'''RDR Detektor auslesen                             '''
-'''WDR Detektor bearbeiten                           '''
+        '''RDR Detektor auslesen
+        WDR Detektor bearbeiten'''
         )
 
     detector_delete = Instrument.control(
         "", "",
-'''CDR Detektor löschen                              '''
-'''GDR Detektor erstellen                            '''
+        '''CDR Detektor löschen
+        GDR Detektor erstellen'''
         )
 
     meas_param = Instrument.control(
         "", "",
-'''RMR Messparameter auslesen                        '''
-'''WMR Messparameter bearbeiten                      '''
+        '''RMR Messparameter auslesen
+        WMR Messparameter bearbeiten'''
         )
 
     system_settings = Instrument.measurement(
         "RSR",
-'''RSR Systemsettings auslesen                       '''
+        '''RSR Systemsettings auslesen'''
         )
 
     system_info = Instrument.control(
         "", "",
-'''WSR Systeminformationen bearbeiten                '''
-'''RIR Systeminformationen auslesen                  '''
+        '''WSR Systeminformationen bearbeiten
+        RIR Systeminformationen auslesen'''
         )
 
     meas_history = Instrument.measurement(
         "RHR",
-'''RHR Verlauf der Messungen auslesen                '''
+        '''RHR Verlauf der Messungen auslesen'''
         )
 
     ap_config = Instrument.control(
         "", "",
-'''RAC WLAN Access Point Konfiguration auslesen      '''
-'''WAC WLAN Access Point Konfiguration bearbeiten    '''
+        '''RAC WLAN Access Point Konfiguration auslesen
+        WAC WLAN Access Point Konfiguration bearbeiten'''
         )
 
     lan_config = Instrument.control(
         "", "",
-'''REC Ethernet Konfiguration auslesen               '''
-'''WEC Ethernet Konfiguration bearbeiten             '''
+        '''REC Ethernet Konfiguration auslesen
+        WEC Ethernet Konfiguration bearbeiten'''
         )
