@@ -109,7 +109,7 @@ class ptwUNIDOS(Instrument):
         pass
 
     write_enabled = Instrument.control(
-        "TOK",
+        "TOK", "TOK",
         '''Control the write access (boolean)''',
         validator=strict_discrete_set,
         mapvalues=True,
@@ -136,22 +136,28 @@ class ptwUNIDOS(Instrument):
         )
 
     voltage = Instrument.control(
+        "", "",
         '''HV Aktuelle Hochspannung abfragen/setzen
         Hier werden die Limits des Detektor-Eintrages angewendet. '''
         )
+
     integration_time = Instrument.control(
+        "", "",
         '''IT Integrationszeit abfragen/setzen                     '''
         )
 
     use_autostart = Instrument.control(
+        "", "",
         '''ASE Autostart abfragen/setzen    (boolean)                       '''
         )
 
     use_autoreset = Instrument.control(
+        "", "",
         '''ASR Autoreset abfragen/setzen             (boolean)              '''
         )
 
     autostart_level = Instrument.control(
+        "", "",
         '''ASL Schwelle für Autostart-Messung abfrage/setzen       '''
         )
 
