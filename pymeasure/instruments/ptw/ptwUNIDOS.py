@@ -205,43 +205,61 @@ class ptwUNIDOS(Instrument):
         )
 
     def clear_history(self):
-        self.write("CHR")
-        '''CHR: Komplette Historie löschen'''
-        pass
+        Instrument.setting(
+            "CHR",
+            '''Clear the complete device history.''',
+            check_set_errors=True
+            )
 
 ###########################
 # Measurement and Control #
 ###########################
 
     def meas(self):
-        '''Start the dose or charge measurement'''
-        self.ask("STA")
+        Instrument.setting(
+            "STA",
+            '''Start the dose or charge measurement''',
+            check_set_errors=True
+            )
 
     def hold(self):
-        '''Set the measurment to HOLD state'''
-        self.write("HLD")
+        Instrument.setting(
+            "HLD",
+            '''Set the measurment to HOLD state''',
+            check_set_errors=True
+            )
 
     def reset(self):
-        '''RES Dosis- oder Ladungsmessung und      '''
-        '''Rücksetzen der Messwerte beenden        '''
-        self.ask("RES")
+        Instrument.setting(
+            "RES",
+            '''RES Dosis- oder Ladungsmessung und
+            Rücksetzen der Messwerte beenden        ''',
+            check_set_errors=True
+            )
 
     def intervall(self):
         '''INT Intervallmessung starten            '''
         self.write("INT")
 
     def zero(self):
-        '''NUL Nullabgleich starten
-        Antwort wird vor Beendigung der Aktion gesendet.
-        Abgleichsende und -resultat muss mit NUS abgefragt werden.
-        '''
+        Instrument.setting(
+            'NUL',
+            '''NUL Nullabgleich starten
+            Antwort wird vor Beendigung der Aktion gesendet.
+            Abgleichsende und -resultat muss mit NUS abgefragt werden.
+            ''',
+            check_set_errors=True
+            )
 
     def selftest(self):
-        self.ask("AST")
-        '''AST Elektrometerfunktionstest starten
-        Antwort wird vor Beendigung der Aktion gesendet.
-        Ende und Resultat der Elektrometerfunktionstests muss mit ASS abgefragt
-        werden.'''
+        Instrument.setting(
+            "AST",
+            '''AST Elektrometerfunktionstest starten
+            Antwort wird vor Beendigung der Aktion gesendet.
+            Ende und Resultat der Elektrometerfunktionstests muss mit ASS abgefragt
+            werden.''',
+            check_set_errors=True
+            )
 
 
 ###########
@@ -279,7 +297,7 @@ class ptwUNIDOS(Instrument):
 ######################
 
     admin = Instrument.control(
-        "", "",
+        "ATG", "ATV",
         '''ATG Administrator-Berechtigung anfordern
         ATV Administrator-Berechtigung prüfen'''
         )
@@ -290,30 +308,30 @@ class ptwUNIDOS(Instrument):
         )
 
     detector = Instrument.control(
-        "RDR", "RDR",
+        "RDR", "WDR",
         '''RDR Detektor auslesen
         WDR Detektor bearbeiten'''
         )
 
     detector_delete = Instrument.control(
-        "", "",
+        "CDR", "GDR",
         '''CDR Detektor löschen
         GDR Detektor erstellen'''
         )
 
     meas_param = Instrument.control(
-        "RMR", "RMR",
+        "RMR", "WMR",
         '''RMR Messparameter auslesen
         WMR Messparameter bearbeiten'''
         )
 
     system_settings = Instrument.measurement(
         "RSR",
-        '''RSR Systemsettings auslesen'''
+        '''Get the system settings.'''
         )
 
     system_info = Instrument.control(
-        "RIR", "RIR",
+        "RIR", "WSR",
         '''WSR Systeminformationen bearbeiten
         RIR Systeminformationen auslesen'''
         )
@@ -324,13 +342,13 @@ class ptwUNIDOS(Instrument):
         )
 
     ap_config = Instrument.control(
-        "", "",
+        "RAC", "WAC",
         '''RAC WLAN Access Point Konfiguration auslesen
         WAC WLAN Access Point Konfiguration bearbeiten'''
         )
 
     lan_config = Instrument.control(
-        "", "",
+        "REC", "WEC",
         '''REC Ethernet Konfiguration auslesen
         WEC Ethernet Konfiguration bearbeiten'''
         )
