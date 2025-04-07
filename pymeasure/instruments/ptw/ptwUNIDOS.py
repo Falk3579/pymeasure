@@ -22,50 +22,87 @@
 # THE SOFTWARE.
 #
 
+
+import logging
+
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import (strict_discrete_set,
-                                              strict_discrete_range)
+                                              truncated_range)
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
 
 
 class ptwUNIDOS(Instrument):
     '''A class representing the PTW UNIDOS dosemeter.'''
 
     def __init__(self, adapter, name="PTW UNIDOS dosemeter",
+                 timeout=2500,
+                 read_termination='\r\n',
                  **kwargs):
         super().__init__(
             adapter,
             name,
+            timeout=timeout,
+            includeSCPI=False,
+            read_termination=read_termination,
             **kwargs
         )
 
-    def check_errors(self):
-        '''Get device errors.
+    def read(self):
+        '''Read the response and check for errors.
 
-        Error codes:
-        E;01 Syntax error, unknown command
-        E;02 Command not allowed in this context
-        E;03 Command not allowed at this moment
-        E;08 Parameter error
-             – Value invalid/out of range
-             – Wrong format of the parameter (eg. date in yyy-mm-dd format)
-        E;12 Abort by user
-        E;16 Command to long
-        E;17 Maximum number of parameters exceeded
-        E;18 Empty parameter field
-        E;19 Wrong number of parameters
-        E;20 No user rights, no write permission
-        E;21 Required parameter not found (eg. detector)
-        E;24 Memory erroro: data could not be stored
-        E;28 Unknown parameter
-        E;29 Wrong parameter type
-        E;33 Measurement module defect
-        E;51 Undefined command
-        E;52 Wrong parameter type of the HTTP response
-        E;54 HTTP request denied
-        E;58 Wrong valueof the HTTP response
-        E;96 Timeout
-        '''
-        pass
+        The command is stripped from the response.'''
+
+        got = super().read()
+
+        if got.startswith('E'):
+            error_code = got.replace(';', '').strip()
+
+            errors = {
+                'E01': 'Syntax error, unknown command',
+                'E02': 'Command not allowed in this context',
+                'E03': 'Command not allowed at this moment',
+                'E08': 'Parameter error: value invalid/out of range or \
+                        wrong format of the parameter',
+                'E12': 'Abort by user',
+                'E16': 'Command to long',
+                'E17': 'Maximum number of parameters exceeded',
+                'E18': 'Empty parameter field',
+                'E19': 'Wrong number of parameters',
+                'E20': 'No user rights, no write permission',
+                'E21': 'Required parameter not found (eg. detector)',
+                'E24': 'Memory error: data could not be stored',
+                'E28': 'Unknown parameter',
+                'E29': 'Wrong parameter type',
+                'E33': 'Measurement module defect',
+                'E51': 'Undefined command',
+                'E52': 'Wrong parameter type of the HTTP response',
+                'E54': 'HTTP request denied',
+                'E58': 'Wrong valueof the HTTP response',
+                'E96': 'Timeout'
+                }
+
+            if error_code in errors.keys():
+                error_text = f"{error_code}: {errors[error_code]}"
+                raise ValueError(error_text)
+            else:
+                raise ConnectionError(f"Unknown read error. Received: {got}")
+
+        else:
+            command, sep, response = got.partition(';')
+            return response.replace(';', ',')
+
+    def check_set_errors(self):
+        '''Check for errors after sending a command.'''
+
+        try:
+            self.read()
+        except Exception as exc:
+            log.exception("Sending a command failed.", exc_info=exc)
+            raise
+        else:
+            return []
 
 
 #################
@@ -79,7 +116,8 @@ class ptwUNIDOS(Instrument):
 
     serial_number = Instrument.measurement(
         "SER",
-        '''Get the dosemeter serial number.'''
+        '''Get the dosemeter serial number.''',
+        cast=int
         )
 
     status = Instrument.measurement(
@@ -110,11 +148,11 @@ class ptwUNIDOS(Instrument):
         pass
 
     write_enabled = Instrument.control(
-        "TOK", "TOK",
+        "TOK", "TOK;1",
         '''Control the write access (boolean).''',
-        validator=strict_discrete_set,
-        mapvalues=True,
-        values={True: 1, False: 0}
+        # validator=strict_discrete_set,
+        # map_values=True,
+        # values={True: 1, False: 0}
         )
 
 ###################
@@ -122,44 +160,48 @@ class ptwUNIDOS(Instrument):
 ###################
 
     use_electrical_units = Instrument.control(
-        "UEL", "",
+        "UEL", "UEL:%s",
         '''Control if electrical units are used (boolean).''',
         validator=strict_discrete_set,
-        mapvalues=True,
+        map_values=True,
         values={True: 'true', False: 'false'}
         )
 
     range = Instrument.control(
-        "RGE", "",
+        "RGE", "RGE;%s",
         '''Control the measurement range.''',
         validator=strict_discrete_set,
-        values=['LONG', 'MEDIUM']
+        values=['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH']
         )
 
     voltage = Instrument.control(
-        "HV", "",
+        "HV", "HV;%d",
         '''HV Aktuelle Hochspannung abfragen/setzen
-        Hier werden die Limits des Detektor-Eintrages angewendet. '''
+        Hier werden die Limits des Detektor-Eintrages angewendet. ''',
+        validator=truncated_range,
+        values=[100, 500]
         )
 
     integration_time = Instrument.control(
-        "IT", "",
-        '''IT Integrationszeit abfragen/setzen                     '''
+        "IT", "IT;%s",
+        '''IT Integrationszeit abfragen/setzen'''
         )
 
     use_autostart = Instrument.control(
-        "ASE", "ASE",
-        '''ASE Autostart abfragen/setzen    (boolean)                       '''
+        "ASE", "ASE;%d",
+        '''ASE Autostart abfragen/setzen    (boolean)'''
         )
 
     use_autoreset = Instrument.control(
         "ASR", "ASR",
-        '''ASR Autoreset abfragen/setzen             (boolean)              '''
+        '''ASR Autoreset abfragen/setzen    (boolean)'''
         )
 
     autostart_level = Instrument.control(
         "ASL", "ASL",
-        '''ASL Schwelle für Autostart-Messung abfrage/setzen'''
+        '''ASL Schwelle für Autostart-Messung abfrage/setzen''',
+        validator=strict_discrete_set,
+        values=['LOW', 'MEDIUM', 'HIGH']
         )
 
     def clear_history(self):
@@ -173,7 +215,7 @@ class ptwUNIDOS(Instrument):
 
     def meas(self):
         '''Start the dose or charge measurement'''
-        self.write("STA")
+        self.ask("STA")
 
     def hold(self):
         '''Set the measurment to HOLD state'''
@@ -182,7 +224,7 @@ class ptwUNIDOS(Instrument):
     def reset(self):
         '''RES Dosis- oder Ladungsmessung und      '''
         '''Rücksetzen der Messwerte beenden        '''
-        self.write("RES")
+        self.ask("RES")
 
     def intervall(self):
         '''INT Intervallmessung starten            '''
@@ -193,14 +235,13 @@ class ptwUNIDOS(Instrument):
         Antwort wird vor Beendigung der Aktion gesendet.
         Abgleichsende und -resultat muss mit NUS abgefragt werden.
         '''
-        pass
 
     def selftest(self):
+        self.ask("AST")
         '''AST Elektrometerfunktionstest starten
         Antwort wird vor Beendigung der Aktion gesendet.
         Ende und Resultat der Elektrometerfunktionstests muss mit ASS abgefragt
         werden.'''
-        pass
 
 
 ###########
@@ -244,12 +285,12 @@ class ptwUNIDOS(Instrument):
         )
 
     read_all = Instrument.measurement(
-        "", "",
-        '''RDA Alle Detektoren auslesen'''
+        "RDA",
+        '''Get all detectors RDA Alle Detektoren auslesen'''
         )
 
     detector = Instrument.control(
-        "", "",
+        "RDR", "RDR",
         '''RDR Detektor auslesen
         WDR Detektor bearbeiten'''
         )
@@ -261,7 +302,7 @@ class ptwUNIDOS(Instrument):
         )
 
     meas_param = Instrument.control(
-        "", "",
+        "RMR", "RMR",
         '''RMR Messparameter auslesen
         WMR Messparameter bearbeiten'''
         )
@@ -272,7 +313,7 @@ class ptwUNIDOS(Instrument):
         )
 
     system_info = Instrument.control(
-        "", "",
+        "RIR", "RIR",
         '''WSR Systeminformationen bearbeiten
         RIR Systeminformationen auslesen'''
         )
