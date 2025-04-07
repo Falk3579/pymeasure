@@ -38,14 +38,12 @@ class ptwUNIDOS(Instrument):
 
     def __init__(self, adapter, name="PTW UNIDOS dosemeter",
                  timeout=2500,
-                 read_termination='\r\n',
                  **kwargs):
         super().__init__(
             adapter,
             name,
-            timeout=timeout,
+            read_termination='\r\n',
             includeSCPI=False,
-            read_termination=read_termination,
             **kwargs
         )
 
@@ -104,14 +102,116 @@ class ptwUNIDOS(Instrument):
         else:
             return []
 
+###########
+# Methods #
+###########
 
-#################
-# ID and status #
-#################
+    def clear_history(self):
+        '''Clear the complete device history.'''
+        self.ask("CHR")
+
+    def hold(self):
+        '''Set the measurment to HOLD state''',
+        self.ask("HLD")
+
+    def intervall(self):
+        '''Execute an intervall measurement.'''
+        self.ask("INT")
+
+    def measure(self):
+        '''Start the dose or charge measurement''',
+        self.ask("STA")
+
+    def reset(self):
+        '''Reset the dose and charge measurement values.''',
+        self.ask("RES")
+
+    def selftest(self):
+        '''Execute the electrometer selftest.
+
+        The function returns before the end of the selftest.
+        End and result of the self test have to be requested by
+        the :selftest_result: property.'''
+        self.ask("AST")
+
+##################################
+# Write premission               #
+# TOK request write permission   #
+# TOK;1 check write permission   #
+# TOK;0 release write permission #
+##################################
+
+    def write_enable(self):
+
+        pass
+
+    def zero(self):
+        '''Execute the zero correction measurement.
+
+        The function returns before the end of the zero correction
+        measurement. End and result of the zero correction measurement
+        have to be requested by the :zero_result: property.'''
+        self.ask('NUL')
+
+
+##############
+# Properties #
+##############
+
+    autostart_level = Instrument.control(
+        "ASL", "ASL;%s",
+        '''Control the threshold level of autostart measurements''',
+        validator=strict_discrete_set,
+        values=['LOW', 'MEDIUM', 'HIGH'],
+        check_set_errors=True
+        )
 
     id = Instrument.measurement(
         "PTW",
-        '''Get the dosemeter ID.'''
+        '''Get the dosemeter ID.
+
+        Name, REF number, firmware version, hardware revision'''
+        )
+
+    integration_time = Instrument.control(
+        "IT", "IT;%s",
+        '''Control the integration time.''',
+        check_set_errors=True
+        )
+
+    mac_address = Instrument.measurement(
+        "MAC",
+        '''Get the dosemeter MAC address.'''
+        )
+
+    meas_result = Instrument.measurement(
+        "MV",
+        '''Get the measurement results.'''
+        )
+
+    range = Instrument.control(
+        "RGE", "RGE;%s",
+        '''Control the measurement range.''',
+        validator=strict_discrete_set,
+        values=['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH'],
+        check_set_errors=True
+        )
+
+    range_max = Instrument.measurement(
+        "MVM",
+        '''Get the max value of the current measurement range.'''
+        )
+
+    range_res = Instrument.measurement(
+        "MVR",
+        '''Get the resolution of the current measurement range.'''
+        )
+
+    selftest_result = Instrument.measurement(
+        "ASS",
+        '''Get status and result of the dosemeter selftest.
+
+        NotYet, Running, Passed, Failed,'''
         )
 
     serial_number = Instrument.measurement(
@@ -125,11 +225,6 @@ class ptwUNIDOS(Instrument):
         '''Get the measurement status.'''
         )
 
-    mac_address = Instrument.measurement(
-        "MAC",
-        '''Get the dosemeter MAC address.'''
-        )
-
     tfi = Instrument.measurement(
         "TFI",
         ''' Get the Telegram Failure Information.
@@ -137,218 +232,56 @@ class ptwUNIDOS(Instrument):
         Information about the last failed command with HTTP request.'''
         )
 
-##################################
-# Write premission               #
-# TOK request write permission   #
-# TOK;1 check write permission   #
-# TOK;0 release write permission #
-##################################
-
-    def write_enable(self):
-        pass
-
-    write_enabled = Instrument.control(
-        "TOK", "TOK;1",
-        '''Control the write access (boolean).''',
-        # validator=strict_discrete_set,
-        # map_values=True,
-        # values={True: 1, False: 0}
+    use_autostart = Instrument.control(
+        "ASE", "ASE;%d",
+        '''Control the measurement autostart (boolean).''',
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 'true', False: 'false'},
+        check_set_errors=True
         )
 
-###################
-# Device settings #
-###################
+    use_autoreset = Instrument.control(
+        "ASR", "ASR;%d",
+        '''Control the measurement auto reset (boolean).''',
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 'true', False: 'false'},
+        check_set_errors=True
+        )
 
     use_electrical_units = Instrument.control(
         "UEL", "UEL:%s",
-        '''Control if electrical units are used (boolean).''',
+        '''Control whether electrical units are used (boolean).''',
         validator=strict_discrete_set,
         map_values=True,
-        values={True: 'true', False: 'false'}
-        )
-
-    range = Instrument.control(
-        "RGE", "RGE;%s",
-        '''Control the measurement range.''',
-        validator=strict_discrete_set,
-        values=['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH']
+        values={True: 'true', False: 'false'},
+        check_set_errors=True
         )
 
     voltage = Instrument.control(
         "HV", "HV;%d",
-        '''HV Aktuelle Hochspannung abfragen/setzen
-        Hier werden die Limits des Detektor-Eintrages angewendet. ''',
+        '''Control the detector voltage.
+
+        The Limits of the detector are applied.''',
         validator=truncated_range,
-        values=[100, 500]
+        values=[100, 500],
+        check_set_errors=True
         )
 
-    integration_time = Instrument.control(
-        "IT", "IT;%s",
-        '''IT Integrationszeit abfragen/setzen'''
-        )
-
-    use_autostart = Instrument.control(
-        "ASE", "ASE;%d",
-        '''ASE Autostart abfragen/setzen    (boolean)'''
-        )
-
-    use_autoreset = Instrument.control(
-        "ASR", "ASR",
-        '''ASR Autoreset abfragen/setzen    (boolean)'''
-        )
-
-    autostart_level = Instrument.control(
-        "ASL", "ASL",
-        '''ASL Schwelle für Autostart-Messung abfrage/setzen''',
+    write_enabled = Instrument.control(
+        "TOK;1", "TOK%s",
+        '''Control write permission (boolean).''',
         validator=strict_discrete_set,
-        values=['LOW', 'MEDIUM', 'HIGH']
-        )
-
-    def clear_history(self):
-        Instrument.setting(
-            "CHR",
-            '''Clear the complete device history.''',
-            check_set_errors=True
-            )
-
-###########################
-# Measurement and Control #
-###########################
-
-    def meas(self):
-        Instrument.setting(
-            "STA",
-            '''Start the dose or charge measurement''',
-            check_set_errors=True
-            )
-
-    def hold(self):
-        Instrument.setting(
-            "HLD",
-            '''Set the measurment to HOLD state''',
-            check_set_errors=True
-            )
-
-    def reset(self):
-        Instrument.setting(
-            "RES",
-            '''RES Dosis- oder Ladungsmessung und
-            Rücksetzen der Messwerte beenden        ''',
-            check_set_errors=True
-            )
-
-    def intervall(self):
-        '''INT Intervallmessung starten            '''
-        self.write("INT")
-
-    def zero(self):
-        Instrument.setting(
-            'NUL',
-            '''NUL Nullabgleich starten
-            Antwort wird vor Beendigung der Aktion gesendet.
-            Abgleichsende und -resultat muss mit NUS abgefragt werden.
-            ''',
-            check_set_errors=True
-            )
-
-    def selftest(self):
-        Instrument.setting(
-            "AST",
-            '''AST Elektrometerfunktionstest starten
-            Antwort wird vor Beendigung der Aktion gesendet.
-            Ende und Resultat der Elektrometerfunktionstests muss mit ASS abgefragt
-            werden.''',
-            check_set_errors=True
-            )
-
-
-###########
-# Results #
-###########
-
-    meas_result = Instrument.measurement(
-        "MV",
-        '''MV Messwerte abfragen   '''
-        )
-
-    range_end = Instrument.measurement(
-        "MVM",
-        '''MVM Messbereichsendwert der Strommessung für den Messbereich rge abfragen'''
-        )
-
-    resolution = Instrument.measurement(
-        "MVR",
-        '''MVR Die Messwertauflösung für den Messbereich rge abfragen'''
+        values=[True, False],
+        set_process=lambda v: '' if (v) else f";{int(v)}",
+        get_process=lambda v: True if (v[1]=='true') else False,
+        check_set_errors=True
         )
 
     zero_result = Instrument.measurement(
         "NUS",
-        '''Get status and result of the zero correction''',
-        )
+        '''Get status and result of the zero correction measurement.
 
-    selftest_result = Instrument.measurement(
-        "ASS",
-        '''Get status and result of the selftest'''
-        )
-
-
-######################
-# JSON Configuration #
-######################
-
-    admin = Instrument.control(
-        "ATG", "ATV",
-        '''ATG Administrator-Berechtigung anfordern
-        ATV Administrator-Berechtigung prüfen'''
-        )
-
-    read_all = Instrument.measurement(
-        "RDA",
-        '''Get all detectors RDA Alle Detektoren auslesen'''
-        )
-
-    detector = Instrument.control(
-        "RDR", "WDR",
-        '''RDR Detektor auslesen
-        WDR Detektor bearbeiten'''
-        )
-
-    detector_delete = Instrument.control(
-        "CDR", "GDR",
-        '''CDR Detektor löschen
-        GDR Detektor erstellen'''
-        )
-
-    meas_param = Instrument.control(
-        "RMR", "WMR",
-        '''RMR Messparameter auslesen
-        WMR Messparameter bearbeiten'''
-        )
-
-    system_settings = Instrument.measurement(
-        "RSR",
-        '''Get the system settings.'''
-        )
-
-    system_info = Instrument.control(
-        "RIR", "WSR",
-        '''WSR Systeminformationen bearbeiten
-        RIR Systeminformationen auslesen'''
-        )
-
-    meas_history = Instrument.measurement(
-        "RHR",
-        '''RHR Verlauf der Messungen auslesen'''
-        )
-
-    ap_config = Instrument.control(
-        "RAC", "WAC",
-        '''RAC WLAN Access Point Konfiguration auslesen
-        WAC WLAN Access Point Konfiguration bearbeiten'''
-        )
-
-    lan_config = Instrument.control(
-        "REC", "WEC",
-        '''REC Ethernet Konfiguration auslesen
-        WEC Ethernet Konfiguration bearbeiten'''
+        status, time remaining, total time''',
         )
