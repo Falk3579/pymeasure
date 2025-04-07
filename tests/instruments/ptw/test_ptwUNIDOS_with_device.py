@@ -23,7 +23,7 @@
 #
 
 # Tested using SCPI over telnet (via ethernet). call signature:
-# $ pytest test_ptwUNIDOS_with_device.py --device-address 'TCPIP::192.168.2.233::INSTR'
+# $ pytest test_ptwUNIDOS_with_device.py --device-address 'TCPIP::172.23.19.1::8123::SOCKET'
 #
 # tested with a PTW UNIDOS Tango dosemeter
 
