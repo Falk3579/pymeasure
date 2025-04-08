@@ -216,7 +216,7 @@ wrong format of the parameter',
 
     selftest_result = Instrument.measurement(
         "ASS",
-        '''Get status and result of the dosemeter selftest.
+        '''Get the status and result of the dosemeter selftest.
 
         NotYet, Passed, Failed, Aborted, Running''',
         get_process=lambda v: [v[0],  # status
