@@ -37,20 +37,22 @@ class ptwUNIDOS(Instrument):
     '''A class representing the PTW UNIDOS dosemeter.'''
 
     def __init__(self, adapter, name="PTW UNIDOS dosemeter",
-                 timeout=2500,
+                 timeout=5000,
+                 read_termination='\r\n',
+                 encoding='utf8',
                  **kwargs):
         super().__init__(
             adapter,
             name,
-            read_termination='\r\n',
+            read_termination=read_termination,
             includeSCPI=False,
+            timeout=timeout,
+            encoding=encoding,
             **kwargs
         )
 
     def read(self):
-        '''Read the response and check for errors.
-
-        The command is stripped from the response.'''
+        '''Read the response and check for errors.'''
 
         got = super().read()
 
@@ -62,7 +64,7 @@ class ptwUNIDOS(Instrument):
                 'E02': 'Command not allowed in this context',
                 'E03': 'Command not allowed at this moment',
                 'E08': 'Parameter error: value invalid/out of range or \
-                        wrong format of the parameter',
+wrong format of the parameter',
                 'E12': 'Abort by user',
                 'E16': 'Command to long',
                 'E17': 'Maximum number of parameters exceeded',
@@ -88,7 +90,7 @@ class ptwUNIDOS(Instrument):
                 raise ConnectionError(f"Unknown read error. Received: {got}")
 
         else:
-            command, sep, response = got.partition(';')
+            command, sep, response = got.partition(';')  # command is removed from response
             return response.replace(';', ',')
 
     def check_set_errors(self):
@@ -134,17 +136,6 @@ class ptwUNIDOS(Instrument):
         the :selftest_result: property.'''
         self.ask("AST")
 
-##################################
-# Write premission               #
-# TOK request write permission   #
-# TOK;1 check write permission   #
-# TOK;0 release write permission #
-##################################
-
-    def write_enable(self):
-
-        pass
-
     def zero(self):
         '''Execute the zero correction measurement.
 
@@ -152,7 +143,6 @@ class ptwUNIDOS(Instrument):
         measurement. End and result of the zero correction measurement
         have to be requested by the :zero_result: property.'''
         self.ask('NUL')
-
 
 ##############
 # Properties #
@@ -170,13 +160,16 @@ class ptwUNIDOS(Instrument):
         "PTW",
         '''Get the dosemeter ID.
 
-        Name, REF number, firmware version, hardware revision'''
+        Name, type number, firmware version, hardware revision'''
         )
 
     integration_time = Instrument.control(
         "IT", "IT;%s",
         '''Control the integration time.''',
-        check_set_errors=True
+        validator=truncated_range,
+        values=[1, 3599999],
+        check_set_errors=True,
+        cast=int
         )
 
     mac_address = Instrument.measurement(
@@ -186,7 +179,14 @@ class ptwUNIDOS(Instrument):
 
     meas_result = Instrument.measurement(
         "MV",
-        '''Get the measurement results.'''
+        '''Get the measurement results.''',
+        get_process=lambda v: [v[0],  # status
+                               float(str(v[1]) + str(v[2])),  # charge/dose value
+                               float(str(v[5]) + str(v[6])),  # current/doserate value
+                               v[9],   # timebase for doserate
+                               v[10],  # measurement time
+                               v[12],  # voltage
+                               v[14]]  # flags
         )
 
     range = Instrument.control(
@@ -199,19 +199,32 @@ class ptwUNIDOS(Instrument):
 
     range_max = Instrument.measurement(
         "MVM",
-        '''Get the max value of the current measurement range.'''
+        '''Get the max value of the current measurement range.''',
+        get_process=lambda v: [v[0],  # range
+                               float(str(v[1]) + str(v[2])),  # current/doserate value
+                               v[5]],  # timebase for doserate
         )
 
     range_res = Instrument.measurement(
         "MVR",
-        '''Get the resolution of the current measurement range.'''
+        '''Get the resolution of the current measurement range.''',
+        get_process=lambda v: [v[0],  # range
+                               float(str(v[1]) + str(v[2])),  # charge/dose value
+                               float(str(v[5]) + str(v[6])),  # current/doserate value
+                               v[9]],  # timebase for doserate
         )
 
     selftest_result = Instrument.measurement(
         "ASS",
         '''Get status and result of the dosemeter selftest.
 
-        NotYet, Running, Passed, Failed,'''
+        NotYet, Passed, Failed, Aborted, Running''',
+        get_process=lambda v: [v[0],  # status
+                               v[1],  # remaining time
+                               v[2],  # total time
+                               float(str(v[4]) + str(v[5])),   # LOW result
+                               float(str(v[9]) + str(v[10])),   # MEDIUM result
+                               float(str(v[14]) + str(v[15]))],  # HIGH for
         )
 
     serial_number = Instrument.measurement(
@@ -233,7 +246,7 @@ class ptwUNIDOS(Instrument):
         )
 
     use_autostart = Instrument.control(
-        "ASE", "ASE;%d",
+        "ASE", "ASE;%s",
         '''Control the measurement autostart (boolean).''',
         validator=strict_discrete_set,
         map_values=True,
@@ -242,7 +255,7 @@ class ptwUNIDOS(Instrument):
         )
 
     use_autoreset = Instrument.control(
-        "ASR", "ASR;%d",
+        "ASR", "ASR;%s",
         '''Control the measurement auto reset (boolean).''',
         validator=strict_discrete_set,
         map_values=True,
@@ -251,7 +264,7 @@ class ptwUNIDOS(Instrument):
         )
 
     use_electrical_units = Instrument.control(
-        "UEL", "UEL:%s",
+        "UEL", "UEL;%s",
         '''Control whether electrical units are used (boolean).''',
         validator=strict_discrete_set,
         map_values=True,
@@ -261,11 +274,11 @@ class ptwUNIDOS(Instrument):
 
     voltage = Instrument.control(
         "HV", "HV;%d",
-        '''Control the detector voltage.
+        '''Control the detector voltage in volt (-400, 400).
 
         The Limits of the detector are applied.''',
         validator=truncated_range,
-        values=[100, 500],
+        values=[-400, 400],
         check_set_errors=True
         )
 
@@ -274,8 +287,10 @@ class ptwUNIDOS(Instrument):
         '''Control write permission (boolean).''',
         validator=strict_discrete_set,
         values=[True, False],
-        set_process=lambda v: '' if (v) else f";{int(v)}",
-        get_process=lambda v: True if (v[1]=='true') else False,
+        set_process=lambda v: '' if (v) else f";{int(v)}",  # 'TOK' = request write permission
+                                                            # 'TOK;0' = release write permision
+                                                            # 'TOK;1' = get status
+        get_process=lambda v: True if (v[1] == 'true') else False,
         check_set_errors=True
         )
 
@@ -283,5 +298,6 @@ class ptwUNIDOS(Instrument):
         "NUS",
         '''Get status and result of the zero correction measurement.
 
-        status, time remaining, total time''',
+        status, time remaining, total time ~82sec
+        NotYet, Passed, Failed, Aborted, Running''',
         )
