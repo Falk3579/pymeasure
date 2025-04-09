@@ -68,11 +68,11 @@ class TestPTWUnidos:
     def test_mac_address(self, unidos):
         assert len(unidos.mac_address) == 17
 
-    # @pytest.mark.parametrize("range", RANGES)
-    # def test_range(self, unidos, range):
-        # unidos.range = range
-        # sleep(1)
-        # assert unidos.range == range
+    @pytest.mark.parametrize("range", RANGES)
+    def test_range(self, unidos, range):
+        unidos.range = range
+        sleep(1)
+        assert unidos.range == range
 
     def test_measure_hold(self, unidos):
         unidos.measure()
