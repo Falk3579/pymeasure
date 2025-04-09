@@ -76,11 +76,11 @@ class TestPTWUnidos:
 
     def test_measure_hold(self, unidos):
         unidos.measure()
+        sleep(1)
         assert unidos.status == 'MEAS'
-        sleep(1)
         unidos.hold()
-        assert unidos.status == 'HOLD'
         sleep(1)
+        assert unidos.status == 'HOLD'
 
     def test_status(self, unidos):
         assert unidos.status in ['RES', 'MEAS', 'HOLD', 'INT', 'INTHLD', 'ZERO',
