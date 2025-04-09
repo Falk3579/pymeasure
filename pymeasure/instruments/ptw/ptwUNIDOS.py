@@ -24,6 +24,7 @@
 
 
 import logging
+import json
 
 from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import (strict_discrete_set,
@@ -200,7 +201,7 @@ wrong format of the parameter',
         "PTW",
         '''Get the dosemeter ID.
 
-        Returns a list [Name, type number, firmware version, hardware revision]'''
+        Returns a list [name, type number, firmware version, hardware revision]'''
         )
 
     integration_time = Instrument.control(
@@ -258,7 +259,7 @@ wrong format of the parameter',
         "MVR",
         '''Get the resolution of the current measurement range.
 
-        Returns a list []''',
+        Returns a list [range, charge/dose value, current/doserate value, timebase for doserate]''',
         get_process=lambda v: [v[0],  # range
                                float(str(v[1]) + str(v[2])),  # charge/dose value
                                float(str(v[5]) + str(v[6])),  # current/doserate value
@@ -269,13 +270,14 @@ wrong format of the parameter',
         "ASS",
         '''Get the dosemeter selftest status and result.
 
-        NotYet, Passed, Failed, Aborted, Running''',
+        Returns a list [status, remaining time, total time,
+        LOW result, MEDIUM result, HIGH result]''',
         get_process=lambda v: [v[0],  # status
                                v[1],  # remaining time
                                v[2],  # total time
                                float(str(v[4]) + str(v[5])),   # LOW result
                                float(str(v[9]) + str(v[10])),   # MEDIUM result
-                               float(str(v[14]) + str(v[15]))],  # HIGH for
+                               float(str(v[14]) + str(v[15]))],  # HIGH result
         )
 
     serial_number = Instrument.measurement(
@@ -295,7 +297,7 @@ wrong format of the parameter',
 
     tfi = Instrument.measurement(
         "TFI",
-        ''' Get the telegram failure information.
+        '''Get the telegram failure information.
 
         Information about the last failed command with HTTP request.'''
         )
@@ -339,7 +341,11 @@ wrong format of the parameter',
 
     write_enabled = Instrument.control(
         "TOK;1", "TOK%s",
-        '''Control write permission (boolean).''',
+        '''Control the write permission (boolean).
+
+        The result of the request/release has to be checked afterwards.
+        If the request fails check that the UNIDOS is in viewer mode
+        (closed lock symbol on the display).''',
         validator=strict_discrete_set,
         values=[True, False],
         set_process=lambda v: '' if (v) else f";{int(v)}",  # 'TOK' = request write permission
@@ -353,7 +359,53 @@ wrong format of the parameter',
         "NUS",
         '''Get the status and result of the zero correction measurement.
 
-        Returns a list [status, time remaining, total time]
-        ~82sec
-        NotYet, Passed, Failed, Aborted, Running''',
+        Returns a list [status, time remaining, total time]'''
+        )
+
+    detectors = Instrument.measurement(
+        "RDA",
+        '''Get information of all detectors.
+
+        Returns a list of dictionaries.''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
+        )
+
+    history = Instrument.measurement(
+        "RHR",
+        '''Get the measurement history.
+
+        Returns a list of dictionaries.''',
+        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        )
+
+    meas_parameters = Instrument.measurement(
+        "RMR",
+        '''Get the measurement parameters.
+
+        Returns a list of dictionaries.''',
+        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        )
+
+    system_settings = Instrument.measurement(
+        "RSR",
+        '''Get the system settings.''',
+        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        )
+
+    system_information = Instrument.measurement(
+        "RIR",
+        '''Get the system information.''',
+        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        )
+
+    wlan_config = Instrument.measurement(
+        "RAC",
+        '''Get the WLAN access point configuration.''',
+        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        )
+
+    lan_config = Instrument.measurement(
+        "REC",
+        '''Get the ethernet configuration.''',
+        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
         )
