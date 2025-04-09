@@ -104,6 +104,32 @@ wrong format of the parameter',
         else:
             return []
 
+    def errorflags_to_text(self, flags):
+        '''Convert the error flags to the error message.
+        Several errors can occur in parallel.'''
+
+        err_txt = ['Overload at current measurement',
+                   'Overload at charge measurement',
+                   'HV-Error at current measurement',
+                   'HV-Error at charge measurement',
+                   'Low signal at current measurement',
+                   'Low signal at charge measurement',
+                   'Low auto signal',
+                   None,
+                   'Radiation safety warning at current measurement',
+                   'Radiation safety warning at charge measurement',
+                   'PTW internal',
+                   'Uncalibrated']
+
+        err_msg = []
+        err_code = int(flags, 0)
+
+        for n in range(len(err_txt)):
+            if err_code & (2**n):
+                err_msg.append(err_txt[n])
+
+        return err_msg
+
 ###########
 # Methods #
 ###########
@@ -162,7 +188,9 @@ wrong format of the parameter',
 
     autostart_level = Instrument.control(
         "ASL", "ASL;%s",
-        '''Control the threshold level of autostart measurements''',
+        '''Control the threshold level of autostart measurements.
+
+        String strictly in ['LOW', 'MEDIUM', 'HIGH']''',
         validator=strict_discrete_set,
         values=['LOW', 'MEDIUM', 'HIGH'],
         check_set_errors=True
@@ -172,12 +200,14 @@ wrong format of the parameter',
         "PTW",
         '''Get the dosemeter ID.
 
-        Name, type number, firmware version, hardware revision'''
+        Returns a list [Name, type number, firmware version, hardware revision]'''
         )
 
     integration_time = Instrument.control(
         "IT", "IT;%s",
-        '''Control the integration time.''',
+        '''Control the integration time in seconds.
+
+        Integer strictly from 1 to 3599999''',
         validator=truncated_range,
         values=[1, 3599999],
         check_set_errors=True,
@@ -191,19 +221,24 @@ wrong format of the parameter',
 
     meas_result = Instrument.measurement(
         "MV",
-        '''Get the measurement results.''',
+        '''Get the measurement results.
+
+        Returns a list [status, charge/dose value, current/doserate value,
+        timebase for doserate, measurement time, detector voltage, error flags]''',
         get_process=lambda v: [v[0],  # status
                                float(str(v[1]) + str(v[2])),  # charge/dose value
                                float(str(v[5]) + str(v[6])),  # current/doserate value
                                v[9],   # timebase for doserate
                                v[10],  # measurement time
-                               v[12],  # voltage
-                               v[14]]  # flags
+                               v[12],  # detector voltage
+                               v[14]]  # error flags 0x0 ... 0xffff
         )
 
     range = Instrument.control(
         "RGE", "RGE;%s",
-        '''Control the measurement range.''',
+        '''Control the measurement range.
+
+        String strictly in ['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH']''',
         validator=strict_discrete_set,
         values=['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH'],
         check_set_errors=True
@@ -211,7 +246,9 @@ wrong format of the parameter',
 
     range_max = Instrument.measurement(
         "MVM",
-        '''Get the max value of the current measurement range.''',
+        '''Get the max value of the current measurement range.
+
+        Returns a list [range, max. current/doserate value, timebase for doserate]''',
         get_process=lambda v: [v[0],  # range
                                float(str(v[1]) + str(v[2])),  # current/doserate value
                                v[5]],  # timebase for doserate
@@ -219,7 +256,9 @@ wrong format of the parameter',
 
     range_res = Instrument.measurement(
         "MVR",
-        '''Get the resolution of the current measurement range.''',
+        '''Get the resolution of the current measurement range.
+
+        Returns a list []''',
         get_process=lambda v: [v[0],  # range
                                float(str(v[1]) + str(v[2])),  # charge/dose value
                                float(str(v[5]) + str(v[6])),  # current/doserate value
@@ -228,7 +267,7 @@ wrong format of the parameter',
 
     selftest_result = Instrument.measurement(
         "ASS",
-        '''Get the status and result of the dosemeter selftest.
+        '''Get the dosemeter selftest status and result.
 
         NotYet, Passed, Failed, Aborted, Running''',
         get_process=lambda v: [v[0],  # status
@@ -247,19 +286,23 @@ wrong format of the parameter',
 
     status = Instrument.measurement(
         "S",
-        '''Get the measurement status.'''
+        '''Get the measurement status.
+
+        Returns a string: RES, MEAS, HOLD, INT, INTHLD, ZERO,
+        AUTO, AUTO_MEAS, AUTO_HOLD, EOM, WAIT,
+        INIT, ERROR, SELF_TEST or TST'''
         )
 
     tfi = Instrument.measurement(
         "TFI",
-        ''' Get the Telegram Failure Information.
+        ''' Get the telegram failure information.
 
         Information about the last failed command with HTTP request.'''
         )
 
     use_autostart = Instrument.control(
         "ASE", "ASE;%s",
-        '''Control the measurement autostart (boolean).''',
+        '''Control the measurement autostart function (boolean).''',
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'true', False: 'false'},
@@ -268,7 +311,7 @@ wrong format of the parameter',
 
     use_autoreset = Instrument.control(
         "ASR", "ASR;%s",
-        '''Control the measurement auto reset (boolean).''',
+        '''Control the measurement auto reset function (boolean).''',
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'true', False: 'false'},
@@ -286,7 +329,7 @@ wrong format of the parameter',
 
     voltage = Instrument.control(
         "HV", "HV;%d",
-        '''Control the detector voltage in volt (-400, 400).
+        '''Control the detector voltage in Volts (float strictly from -400 to 400).
 
         The Limits of the detector are applied.''',
         validator=truncated_range,
@@ -308,8 +351,9 @@ wrong format of the parameter',
 
     zero_result = Instrument.measurement(
         "NUS",
-        '''Get status and result of the zero correction measurement.
+        '''Get the status and result of the zero correction measurement.
 
-        status, time remaining, total time ~82sec
+        Returns a list [status, time remaining, total time]
+        ~82sec
         NotYet, Passed, Failed, Aborted, Running''',
         )
