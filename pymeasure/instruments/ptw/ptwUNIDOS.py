@@ -108,24 +108,32 @@ wrong format of the parameter',
 # Methods #
 ###########
 
-    def clear_history(self):
-        '''Clear the complete device history.'''
+    def clear(self):
+        '''Clear the complete device history.
+        
+        Write permission is required.'''
         self.ask("CHR")
 
     def hold(self):
-        '''Set the measurment to HOLD state''',
+        '''Set the measurment to HOLD state.
+
+        Write permission is required.'''
         self.ask("HLD")
 
     def intervall(self):
-        '''Execute an intervall measurement.'''
+        '''Execute an intervall measurement.
+
+        Write permission is required.'''        
         self.ask("INT")
 
     def measure(self):
-        '''Start the dose or charge measurement''',
+        '''Start the dose or charge measurement'''
         self.ask("STA")
 
     def reset(self):
-        '''Reset the dose and charge measurement values.''',
+        '''Reset the dose and charge measurement values.
+        
+        Write permission is required.'''
         self.ask("RES")
 
     def selftest(self):
