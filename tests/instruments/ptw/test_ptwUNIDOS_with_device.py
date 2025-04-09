@@ -23,15 +23,15 @@
 #
 
 # Tested using SCPI over telnet (via ethernet). call signature:
-# $ pytest test_ptwUNIDOS_with_device.py --device-address 'TCPIP::172.23.19.1::8123::SOCKET'
+# $ pytest test_ptwUNIDOS_with_device.py --device-address "TCPIP::172.23.19.1::8123::SOCKET"
+# make sure the lock symbol on the display is closed so that write access is possible
 #
 # tested with a PTW UNIDOS Tango dosemeter
 
+
 import pytest
 from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
-
-# pytest.skip('Only works with connected hardware', allow_module_level=True)
-# from pyvisa.errors import VisaIOError
+from time import sleep
 
 ############
 # FIXTURES #
@@ -39,14 +39,50 @@ from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
 
 
 @pytest.fixture(scope="module")
-def ptwunidos(connected_device_address):
+def unidos(connected_device_address):
     instr = ptwUNIDOS(connected_device_address)
+    instr.write_enabled = 1
     # ensure the device is in a defined state, e.g. by resetting it.
     return instr
 
 
-class TestPTWUnidosWithDevice:
+class TestPTWUnidos:
     """Unit tests for PTW UNIDOS dosemeter."""
 
-    def test_id(self, ptwunidos):
-        pass
+    RANGES = ['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH']
+
+    def test_id(self, unidos):
+        name, type_nr, fw_ver, hw_rev = unidos.id
+        assert 'UNIDOS' in name
+        assert len(type_nr) == 7
+        assert len(fw_ver) > 0
+        assert len(hw_rev) == 3
+
+    def test_reset(self, unidos):
+        unidos.reset()
+        assert unidos.status == 'RES'
+
+    def test_write_enabled(self, unidos):
+        assert unidos.write_enabled is True
+
+    def test_mac_address(self, unidos):
+        assert len(unidos.mac_address) == 17
+
+    # @pytest.mark.parametrize("range", RANGES)
+    # def test_range(self, unidos, range):
+        # unidos.range = range
+        # sleep(1)
+        # assert unidos.range == range
+
+    def test_measure_hold(self, unidos):
+        unidos.measure()
+        assert unidos.status == 'MEAS'
+        sleep(1)
+        unidos.hold()
+        assert unidos.status == 'HOLD'
+        sleep(1)
+
+    def test_status(self, unidos):
+        assert unidos.status in ['RES', 'MEAS', 'HOLD', 'INT', 'INTHLD', 'ZERO',
+                                 'AUTO', 'AUTO_MEAS', 'AUTO_HOLD', 'EOM', 'WAIT',
+                                 'INIT', 'ERROR', 'SELF_TEST', 'TST']
