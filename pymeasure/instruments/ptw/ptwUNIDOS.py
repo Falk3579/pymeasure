@@ -84,7 +84,7 @@ wrong format of the parameter',
                 }
 
             if error_code in errors.keys():
-                error_text = f"{error_code}: {errors[error_code]}"
+                error_text = f"{error_code}, {errors[error_code]}"
                 raise ValueError(error_text)
             else:
                 raise ConnectionError(f"Unknown read error. Received: {got}")
@@ -110,7 +110,7 @@ wrong format of the parameter',
 
     def clear(self):
         '''Clear the complete device history.
-        
+
         Write permission is required.'''
         self.ask("CHR")
 
@@ -123,16 +123,18 @@ wrong format of the parameter',
     def intervall(self):
         '''Execute an intervall measurement.
 
-        Write permission is required.'''        
+        Write permission is required.'''
         self.ask("INT")
 
     def measure(self):
-        '''Start the dose or charge measurement'''
+        '''Start the dose or charge measurement.
+
+        Write permission is required.'''
         self.ask("STA")
 
     def reset(self):
         '''Reset the dose and charge measurement values.
-        
+
         Write permission is required.'''
         self.ask("RES")
 
@@ -141,7 +143,8 @@ wrong format of the parameter',
 
         The function returns before the end of the selftest.
         End and result of the self test have to be requested by
-        the :selftest_result: property.'''
+        the :selftest_result: property.
+        Write permission is required.'''
         self.ask("AST")
 
     def zero(self):
@@ -149,7 +152,8 @@ wrong format of the parameter',
 
         The function returns before the end of the zero correction
         measurement. End and result of the zero correction measurement
-        have to be requested by the :zero_result: property.'''
+        have to be requested by the :zero_result: property.
+        Write permission is required.'''
         self.ask('NUL')
 
 ##############
