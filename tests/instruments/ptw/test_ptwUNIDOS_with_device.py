@@ -33,6 +33,10 @@ import pytest
 from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
 from time import sleep
 
+
+RANGES = ['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH']
+LEVELS = ['LOW', 'MEDIUM', 'HIGH']
+
 ############
 # FIXTURES #
 ############
@@ -42,14 +46,21 @@ from time import sleep
 def unidos(connected_device_address):
     instr = ptwUNIDOS(connected_device_address)
     instr.write_enabled = 1
-    # ensure the device is in a defined state, e.g. by resetting it.
     return instr
 
-@pytest.mark.skip('skip for now')
-class TestPTWUnidos:
-    """Unit tests for PTW UNIDOS dosemeter."""
 
-    RANGES = ['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH']
+# @pytest.mark.skip('skip for now')
+class TestPTWUnidosProperties:
+    """Tests for PTW UNIDOS dosemeter properties."""
+
+    def test_write_enabled(self, unidos):
+        assert unidos.write_enabled is True
+
+    @pytest.mark.parametrize("level", LEVELS)
+    def test_autostart_level(self, unidos, level):
+        unidos.autostart_level = level
+        sleep(1)
+        assert unidos.autostart_level == level
 
     def test_id(self, unidos):
         name, type_nr, fw_ver, hw_rev = unidos.id
@@ -58,38 +69,117 @@ class TestPTWUnidos:
         assert len(fw_ver) > 0
         assert len(hw_rev) == 3
 
-    def test_reset(self, unidos):
-        unidos.reset()
-        assert unidos.status == 'RES'
-
-    def test_write_enabled(self, unidos):
-        assert unidos.write_enabled is True
+    @pytest.mark.parametrize("time", [1, 10])
+    def test_integration_time(self, unidos, time):
+        unidos.integration_time = time
+        assert unidos.integration_time == time
 
     def test_mac_address(self, unidos):
         assert len(unidos.mac_address) == 17
 
+    def test_meas_result(self, unidos):
+        result = unidos.meas_result
+        assert type(result['status']) is str
+
     @pytest.mark.parametrize("range", RANGES)
     def test_range(self, unidos, range):
         unidos.range = range
-        sleep(1)
+        sleep(2)
         assert unidos.range == range
 
-    def test_measure_hold(self, unidos):
-        unidos.measure()
-        sleep(1)
-        assert unidos.status == 'MEAS'
-        unidos.hold()
-        sleep(1)
-        assert unidos.status == 'HOLD'
+    def test_range_max(self, unidos):
+        result = unidos.range_max
+        assert result['range'] in RANGES
+        assert type(result['current']) is float
+        assert type(result['doserate']) is float
+        assert type(result['timebase']) is str
+
+    def test_range_res(self, unidos):
+        res = unidos.range_res
+        assert res['range'] in RANGES
+        assert type(res['charge']) is float
+        assert type(res['dose']) is float
+        assert type(res['current']) is float
+        assert type(res['doserate']) is float
+        assert type(res['timebase']) is str
+
+    def test_selftest_result(self, unidos):
+        result = unidos.selftest_result
+        assert type(result['status']) is str
+        assert type(result['time_remaining']) is float
+        assert type(result['time_total']) is float
+        assert type(result['LOW']) is float
+        assert type(result['MEDIUM']) is float
+        assert type(result['HIGH']) is float
+
+    def test_serial_number(self, unidos):
+        assert type(unidos.serial_number) is int
 
     def test_status(self, unidos):
         assert unidos.status in ['RES', 'MEAS', 'HOLD', 'INT', 'INTHLD', 'ZERO',
                                  'AUTO', 'AUTO_MEAS', 'AUTO_HOLD', 'EOM', 'WAIT',
                                  'INIT', 'ERROR', 'SELF_TEST', 'TST']
 
+    def test_tfi(self, unidos):
+        assert type(unidos.tfi) is str
+
+    @pytest.mark.parametrize("state", [True, False])
+    def test_use_autostart(self, unidos, state):
+        unidos.use_autostart = state
+        assert unidos.use_autostart == state
+
+    @pytest.mark.parametrize("state", [True, False])
+    def test_use_autoreset(self, unidos, state):
+        unidos.use_autoreset = state
+        assert unidos.use_autoreset == state
+
+    @pytest.mark.parametrize("state", [True, False])
+    def test_use_electrical_units(self, unidos, state):
+        unidos.use_electrical_units = state
+        assert unidos.use_electrical_units == state
+
+    @pytest.mark.parametrize("voltage", [0, -1, 1])
+    def test_voltage(self, unidos, voltage):
+        unidos.voltage = voltage
+        assert unidos.voltage == voltage
+
+    def test_zero_result(self, unidos):
+        result = unidos.zero_result
+        assert type(result['status']) is str
+        assert type(result['time_remaining']) is float
+        assert type(result['time_total']) is float
+
+
+class TestPTWUnidosMethods:
+    """Tests for PTW UNIDOS dosemeter methods."""
+
+    def test_reset(self, unidos):
+        unidos.reset()
+        assert unidos.status == 'RES'
+
+    def test_measure_hold(self, unidos):
+        unidos.measure()
+        sleep(5)
+        assert unidos.status == 'MEAS'
+        unidos.hold()
+        sleep(1)
+        assert unidos.status == 'HOLD'
+
+    def test_clear(self, unidos):
+        assert len(unidos.meas_history) > 0  # a measurement should exist from the test before
+        unidos.clear()
+        assert len(unidos.meas_history) == 0
+
+    @pytest.mark.parametrize("time", [2, 10])
+    def test_intervall(self, unidos, time):
+        unidos.intervall(time)
+        sleep(0.1 * time)
+        assert unidos.status in ['INT']
+        assert unidos.integration_time == time
+
 
 class TestPTWUnidosJSON:
-    '''test for the JSON configuration structure'''
+    '''Tests for the JSON configuration structure'''
 
     def test_read_detectors(self, unidos):
         detectors = unidos.read_detectors
@@ -104,7 +194,7 @@ class TestPTWUnidosJSON:
 
     def test_meas_parameters(self, unidos):
         assert type(unidos.meas_parameters) is dict
-        
+
     def test_system_settings(self, unidos):
         assert type(unidos.system_settings) is dict
 
