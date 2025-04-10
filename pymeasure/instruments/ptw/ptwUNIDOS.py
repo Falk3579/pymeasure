@@ -38,7 +38,7 @@ class ptwUNIDOS(Instrument):
     '''A class representing the PTW UNIDOS dosemeter.'''
 
     def __init__(self, adapter, name="PTW UNIDOS dosemeter",
-                 timeout=5000,
+                 timeout=20000,
                  read_termination='\r\n',
                  encoding='utf8',
                  **kwargs):
@@ -224,15 +224,17 @@ wrong format of the parameter',
         "MV",
         '''Get the measurement results.
 
-        Returns a list [status, charge/dose value, current/doserate value,
+        Returns a dictionary [status, charge/dose value, current/doserate value,
         timebase for doserate, measurement time, detector voltage, error flags]''',
-        get_process=lambda v: [v[0],  # status
-                               float(str(v[1]) + str(v[2])),  # charge/dose value
-                               float(str(v[5]) + str(v[6])),  # current/doserate value
-                               v[9],   # timebase for doserate
-                               v[10],  # measurement time
-                               v[12],  # detector voltage
-                               v[14]]  # error flags 0x0 ... 0xffff
+        get_process=lambda v: {'status': v[0],
+                               'charge': float(str(v[1]) + str(v[2])),
+                               'dose': float(str(v[1]) + str(v[2])),
+                               'current': float(str(v[5]) + str(v[6])),
+                               'doserate': float(str(v[5]) + str(v[6])),
+                               'timebase': v[9],   # timebase for doserate
+                               'time': v[10],  # measurement time
+                               'voltage': v[12],  # detector voltage
+                               'error': v[14]}  # error flags 0x0 ... 0xffff
         )
 
     range = Instrument.control(
@@ -249,21 +251,25 @@ wrong format of the parameter',
         "MVM",
         '''Get the max value of the current measurement range.
 
-        Returns a list [range, max. current/doserate value, timebase for doserate]''',
-        get_process=lambda v: [v[0],  # range
-                               float(str(v[1]) + str(v[2])),  # current/doserate value
-                               v[5]],  # timebase for doserate
+        Returns a dictionary {range, current, doserate, timebase}''',
+        get_process=lambda v: {'range': v[0],
+                               'current': float(str(v[1]) + str(v[2])),
+                               'doserate': float(str(v[1]) + str(v[2])),
+                               'timebase': v[5]},  # timebase for doserate
         )
 
     range_res = Instrument.measurement(
         "MVR",
         '''Get the resolution of the current measurement range.
 
-        Returns a list [range, charge/dose value, current/doserate value, timebase for doserate]''',
-        get_process=lambda v: [v[0],  # range
-                               float(str(v[1]) + str(v[2])),  # charge/dose value
-                               float(str(v[5]) + str(v[6])),  # current/doserate value
-                               v[9]],  # timebase for doserate
+        Returns a dictionary [range, charge/dose value, current/doserate value,
+        timebase for doserate]''',
+        get_process=lambda v: {'range': v[0],
+                               'charge': float(str(v[1]) + str(v[2])),
+                               'dose': float(str(v[1]) + str(v[2])),
+                               'current': float(str(v[5]) + str(v[6])),
+                               'doserate': float(str(v[5]) + str(v[6])),
+                               'timebase': v[9]},  # timebase for doserate
         )
 
     selftest_result = Instrument.measurement(
@@ -272,12 +278,12 @@ wrong format of the parameter',
 
         Returns a list [status, remaining time, total time,
         LOW result, MEDIUM result, HIGH result]''',
-        get_process=lambda v: [v[0],  # status
-                               v[1],  # remaining time
-                               v[2],  # total time
-                               float(str(v[4]) + str(v[5])),   # LOW result
-                               float(str(v[9]) + str(v[10])),   # MEDIUM result
-                               float(str(v[14]) + str(v[15]))],  # HIGH result
+        get_process=lambda v: {'status': v[0],
+                               'time_remaining': v[1],
+                               'time_total': v[2],
+                               'LOW': float(str(v[4]) + str(v[5])),
+                               'MED': float(str(v[9]) + str(v[10])),
+                               'HIGH': float(str(v[14]) + str(v[15]))}
         )
 
     serial_number = Instrument.measurement(
@@ -359,7 +365,10 @@ wrong format of the parameter',
         "NUS",
         '''Get the status and result of the zero correction measurement.
 
-        Returns a list [status, time remaining, total time]'''
+        Returns a list [status, time remaining, total time]''',
+        get_process=lambda v: {'status': v[0],
+                               'time_remaining': v[1],
+                               'time_total': v[2]}
         )
 
 ###################################
@@ -388,7 +397,7 @@ wrong format of the parameter',
         '''Get the measurement history.
 
         Returns a list of dictionaries.''',
-        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
+        get_process=lambda v: json.loads(','.join(v)) if v != '[]' else []
         )
 
     meas_parameters = Instrument.measurement(
