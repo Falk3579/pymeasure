@@ -282,7 +282,7 @@ wrong format of the parameter',
                                'time_remaining': v[1],
                                'time_total': v[2],
                                'LOW': float(str(v[4]) + str(v[5])),
-                               'MED': float(str(v[9]) + str(v[10])),
+                               'MEDIUM': float(str(v[9]) + str(v[10])),
                                'HIGH': float(str(v[14]) + str(v[15]))}
         )
 

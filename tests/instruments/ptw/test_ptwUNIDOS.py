@@ -27,6 +27,7 @@ from pymeasure.test import expected_protocol
 from pymeasure.instruments.ptw.ptwUNIDOS import ptwUNIDOS
 from pymeasure.instruments.validators import truncated_range
 
+# JSON and methods are tested with the device
 
 def test_autostart_level():
     """Verify the communication of the autostart_level getter/setter."""
@@ -77,8 +78,24 @@ def test_meas_result():
         [('MV', 'MV;RES;0.0;E-12;p;C;0.0;E-12;p;A;;0.0;ms;200;V;0x0'),
          ('MV', 'MV;RES;2.6;E-3;m;Gy;5.6;E-09;n;Gy;min;3000.0;ms;300.0;V;0x0')]
     ) as inst:
-        assert inst.meas_result == ['RES', 0.0, 0.0, '', 0.0, 200.0, '0x0']
-        assert inst.meas_result == ['RES', 2.6E-3, 5.6E-9, 'min', 3000, 300.0, '0x0']
+        assert inst.meas_result == {'status': 'RES',
+                                    'charge': 0,
+                                    'dose': 0,
+                                    'current': 0,
+                                    'doserate': 0,
+                                    'timebase': '',
+                                    'time': 0,
+                                    'voltage': 200,
+                                    'error': '0x0'}
+        assert inst.meas_result == {'status': 'RES',
+                                    'charge': 2.6E-3,
+                                    'dose': 2.6E-3,
+                                    'current': 5.6E-9,
+                                    'doserate': 5.6E-9,
+                                    'timebase': 'min',
+                                    'time': 3000,
+                                    'voltage': 300,
+                                    'error': '0x0'}
 
 
 def test_range():
@@ -98,7 +115,10 @@ def test_range_max():
         ptwUNIDOS,
         [("MVM", "MVM;MEDIUM;1.65;E-06;µ;Gy;min")]
     ) as inst:
-        assert inst.range_max == ['MEDIUM', 1.65e-06, 'min']
+        assert inst.range_max == {'range': 'MEDIUM',
+                                  'current': 1.65e-06,
+                                  'doserate': 1.65e-06,
+                                  'timebase': 'min'}
 
 
 def test_range_res():
@@ -107,7 +127,12 @@ def test_range_res():
         ptwUNIDOS,
         [("MVR", "MVR;MEDIUM;0.5;E-12;p;Gy;0.003;E-09;n;Gy;min")]
     ) as inst:
-        assert inst.range_res == ['MEDIUM', 5e-13, 3e-12, 'min']
+        assert inst.range_res == {'range': 'MEDIUM',
+                                  'charge': 5e-13,
+                                  'dose': 5e-13,
+                                  'current': 3e-12,
+                                  'doserate': 3e-12,
+                                  'timebase': 'min'}
 
 
 def test_selftest_result():
@@ -116,7 +141,12 @@ def test_selftest_result():
         ptwUNIDOS,
         [("ASS", "ASS;Passed;0;89000;Low; 136.6;E-12;p;C;Med; 1.500;E-09;n;C;High; 13.50;E-09;n;C")]
     ) as inst:
-        assert inst.selftest_result == ['Passed', 0.0, 89000.0, 1.366e-10, 1.5e-09, 1.35e-08]
+        assert inst.selftest_result == {'status': 'Passed',
+                                        'time_remaining': 0,
+                                        'time_total': 89000,
+                                        'LOW': 1.366e-10,
+                                        'MEDIUM': 1.5e-09,
+                                        'HIGH': 1.35e-08}
 
 
 def test_serial_number():
@@ -213,4 +243,6 @@ def test_zero_result():
         ptwUNIDOS,
         [('NUS', 'NUS;Passed;0;82000')]
     ) as inst:
-        assert inst.zero_result == ['Passed', 0.0, 82000.0]
+        assert inst.zero_result == {'status': 'Passed',
+                                    'time_remaining': 0.0,
+                                    'time_total': 82000.0}
