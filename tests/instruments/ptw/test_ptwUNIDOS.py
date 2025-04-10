@@ -29,6 +29,7 @@ from pymeasure.instruments.validators import truncated_range
 
 # JSON and methods are tested with the device
 
+
 def test_autostart_level():
     """Verify the communication of the autostart_level getter/setter."""
     with expected_protocol(
