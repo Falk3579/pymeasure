@@ -147,10 +147,12 @@ wrong format of the parameter',
         Write permission is required.'''
         self.ask("HLD")
 
-    def intervall(self):
+    def intervall(self, intervall=None):
         '''Execute an intervall measurement.
 
         Write permission is required.'''
+        if intervall is not None:
+            self.integration_time = intervall
         self.ask("INT")
 
     def measure(self):
@@ -206,7 +208,7 @@ wrong format of the parameter',
 
     integration_time = Instrument.control(
         "IT", "IT;%s",
-        '''Control the integration time in seconds.
+        '''Control the time of the interval measurement in seconds.
 
         Integer strictly from 1 to 3599999''',
         validator=truncated_range,
