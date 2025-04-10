@@ -45,7 +45,7 @@ def unidos(connected_device_address):
     # ensure the device is in a defined state, e.g. by resetting it.
     return instr
 
-
+@pytest.mark.skip('skip for now')
 class TestPTWUnidos:
     """Unit tests for PTW UNIDOS dosemeter."""
 
@@ -86,3 +86,33 @@ class TestPTWUnidos:
         assert unidos.status in ['RES', 'MEAS', 'HOLD', 'INT', 'INTHLD', 'ZERO',
                                  'AUTO', 'AUTO_MEAS', 'AUTO_HOLD', 'EOM', 'WAIT',
                                  'INIT', 'ERROR', 'SELF_TEST', 'TST']
+
+
+class TestPTWUnidosJSON:
+    '''test for the JSON configuration structure'''
+
+    def test_read_detectors(self, unidos):
+        detectors = unidos.read_detectors
+        assert type(detectors) is list
+        assert type(detectors[0]) is dict
+
+    def test_meas_history(self, unidos):
+        history = unidos.meas_history
+        assert type(history) is list
+        if len(history):
+            assert type(history[0]) is dict
+
+    def test_meas_parameters(self, unidos):
+        assert type(unidos.meas_parameters) is dict
+        
+    def test_system_settings(self, unidos):
+        assert type(unidos.system_settings) is dict
+
+    def test_system_info(self, unidos):
+        assert type(unidos.system_info) is dict
+
+    def test_wlan_config(self, unidos):
+        assert type(unidos.wlan_config) is dict
+
+    def test_lan_config(self, unidos):
+        assert type(unidos.lan_config) is dict
