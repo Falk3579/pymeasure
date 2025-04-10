@@ -362,7 +362,20 @@ wrong format of the parameter',
         Returns a list [status, time remaining, total time]'''
         )
 
-    detectors = Instrument.measurement(
+###################################
+# JSON configuration structure    #
+# only read access is implemented #
+###################################
+
+    def read_detector(self, guid):
+        '''Read the properties of the requested detector.
+
+        Returns a dictionary.'''
+        got = self.ask(f"RDR;{guid}")
+        guid_, sep, d_rec = got.partition(',')  # remove guid from response
+        return json.loads(d_rec)  # str -> dict
+
+    read_detectors = Instrument.measurement(
         "RDA",
         '''Get information of all detectors.
 
@@ -370,42 +383,50 @@ wrong format of the parameter',
         get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
-    history = Instrument.measurement(
+    meas_history = Instrument.measurement(
         "RHR",
         '''Get the measurement history.
 
         Returns a list of dictionaries.''',
-        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
     meas_parameters = Instrument.measurement(
         "RMR",
         '''Get the measurement parameters.
 
-        Returns a list of dictionaries.''',
-        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        Returns a dictionary.''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
     system_settings = Instrument.measurement(
         "RSR",
-        '''Get the system settings.''',
-        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        '''Get the system settings.
+
+        Returns a dictionary.''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
-    system_information = Instrument.measurement(
+    system_info = Instrument.measurement(
         "RIR",
-        '''Get the system information.''',
-        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        '''Get the system information.
+
+        Returns a dictionary.''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
     wlan_config = Instrument.measurement(
         "RAC",
-        '''Get the WLAN access point configuration.''',
-        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        '''Get the WLAN access point configuration.
+
+        Returns a dictionary.''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
     lan_config = Instrument.measurement(
         "REC",
-        '''Get the ethernet configuration.''',
-        get_process=lambda v: json.loads(','.join(v))  # return a dictonary
+        '''Get the ethernet configuration.
+
+        Returns a dictionary.''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
