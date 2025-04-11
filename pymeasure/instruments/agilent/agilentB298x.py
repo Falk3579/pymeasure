@@ -93,17 +93,17 @@ class Trigger(Channel):
         ":ARM:SOUR?", ":ARM:SOUR %s",
         """Control the arm source for the specified device action.
 
-        - **AINT**: automatically selects the arm source most suitable for the
+        - **AINT** automatically selects the arm source most suitable for the
           present operating mode by using internal algorithms.
-        - **BUS**: selects the remote interface trigger command such as the group
+        - **BUS** selects the remote interface trigger command such as the group
           execute trigger (GET) and the *TRG command.
-        - **TIM**: selects a signal internally generated every interval set by the
+        - **TIM** selects a signal internally generated every interval set by the
           arm_timer command.
-        - **INTn**: selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN**: selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn**: selects a signal from the GPIO pin n, which is an input port of the
+        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
+        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
+        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
           Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN**: selects the BNC Trigger In.
+        - **TIN** selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -122,11 +122,11 @@ class Trigger(Channel):
         """Control the trigger output for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
 
-        - **INTn**: selects the internal bus 1 or 2.
-        - **LAN**: selects a LAN port.
-        - **EXTn**: selects the GPIO pin n, which is an output port of the Digital I/O
+        - **INTn** selects the internal bus 1 or 2.
+        - **LAN** selects a LAN port.
+        - **EXTn** selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
-        **TOUT**: selects the BNC Trigger Out.
+        **TOUT** selects the BNC Trigger Out.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -183,17 +183,17 @@ class Trigger(Channel):
         ":TRIG:SOUR?", ":TRIG:SOUR %s",
         """Control the trigger source for the specified device action.
 
-        - **AINT**: automatically selects the trigger source most suitable for the
+        - **AINT** automatically selects the trigger source most suitable for the
             present operating mode by using internal algorithms.
-        - **BUS**: selects the remote interface trigger command such as the group
+        - **BUS** selects the remote interface trigger command such as the group
             execute trigger (GET) and the *TRG command.
-        - **TIM**: selects a signal internally generated every interval set by the
+        - **TIM** selects a signal internally generated every interval set by the
             arm_timer command.
-        - **INTn: selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN**: selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn**: selects a signal from the GPIO pin n, which is an input port of the
+        - **INTn selects a signal from the internal bus 1 or 2, respectively.
+        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
+        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
             Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN**: selects the BNC Trigger In.
+        - **TIN** selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
