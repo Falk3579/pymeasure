@@ -1,6 +1,5 @@
 name: PyMeasure CI
 on:
-  workflow_dispatch:
   push:
     branches:
       - master
