@@ -387,7 +387,7 @@ wrong format of the parameter',
             d_rec = self.ask("RDA")
         else:
             guid, comma, d_rec = self.ask(f"RDR;{guid}").partition(',')
-        
+
         return json.loads(d_rec)  # str -> dict
 
     meas_history = Instrument.measurement(

@@ -49,7 +49,6 @@ def unidos(connected_device_address):
     return instr
 
 
-@pytest.mark.skip('skip for now')
 class TestPTWUnidosProperties:
     """Tests for PTW UNIDOS dosemeter properties."""
 
@@ -149,7 +148,7 @@ class TestPTWUnidosProperties:
         assert type(result['time_remaining']) is float
         assert type(result['time_total']) is float
 
-# @pytest.mark.skip('skip for now')
+
 class TestPTWUnidosMethods:
     """Tests for PTW UNIDOS dosemeter methods."""
 
