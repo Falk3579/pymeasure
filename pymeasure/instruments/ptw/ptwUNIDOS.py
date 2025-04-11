@@ -378,21 +378,17 @@ wrong format of the parameter',
 # only read access is implemented #
 ###################################
 
-    def read_detector(self, guid):
+    def read_detector(self, guid='ALL'):
         '''Read the properties of the requested detector.
 
-        Returns a dictionary.'''
-        got = self.ask(f"RDR;{guid}")
-        guid_, sep, d_rec = got.partition(',')  # remove guid from response
+        If guid is not given, all detectors are returned.
+        Returns a dictionary or a list of dictionaries.'''
+        if guid.upper() in ['', 'ALL']:
+            d_rec = self.ask("RDA")
+        else:
+            guid, comma, d_rec = self.ask(f"RDR;{guid}").partition(',')
+        
         return json.loads(d_rec)  # str -> dict
-
-    read_detectors = Instrument.measurement(
-        "RDA",
-        '''Get information of all detectors.
-
-        Returns a list of dictionaries.''',
-        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
-        )
 
     meas_history = Instrument.measurement(
         "RHR",

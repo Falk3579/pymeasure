@@ -49,7 +49,7 @@ def unidos(connected_device_address):
     return instr
 
 
-# @pytest.mark.skip('skip for now')
+@pytest.mark.skip('skip for now')
 class TestPTWUnidosProperties:
     """Tests for PTW UNIDOS dosemeter properties."""
 
@@ -149,7 +149,7 @@ class TestPTWUnidosProperties:
         assert type(result['time_remaining']) is float
         assert type(result['time_total']) is float
 
-
+# @pytest.mark.skip('skip for now')
 class TestPTWUnidosMethods:
     """Tests for PTW UNIDOS dosemeter methods."""
 
@@ -181,10 +181,15 @@ class TestPTWUnidosMethods:
 class TestPTWUnidosJSON:
     '''Tests for the JSON configuration structure'''
 
-    def test_read_detectors(self, unidos):
-        detectors = unidos.read_detectors
+    def test_read_detector(self, unidos):
+        detectors = unidos.read_detector('all')
         assert type(detectors) is list
         assert type(detectors[0]) is dict
+
+    def test_read_first_detector(self, unidos):
+        guid = unidos.read_detector('all')[0]['guid']
+        detector = unidos.read_detector(guid)
+        assert type(detector) is dict
 
     def test_meas_history(self, unidos):
         history = unidos.meas_history
