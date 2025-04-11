@@ -286,13 +286,13 @@ class Battery(Channel):
     level = Channel.measurement(
         "?",
         """Get the percentage of the remaining battery capacity (int).""",
-        get_process=lambda v: int(v),  # convert to integer
+        cast=int,
     )
 
     cycles = Channel.measurement(
         ":CYCL?",
         """Get the battery cycle count (int).""",
-        get_process=lambda v: int(v),  # convert to integer
+        cast=int,
     )
 
     selftest_passed = Channel.measurement(
