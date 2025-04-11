@@ -41,6 +41,7 @@ class Trigger(Channel):
 
     def abor(self, action='ALL'):
         """Aborts the specified device action."""
+
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":ABOR:{action}")
 
@@ -48,13 +49,14 @@ class Trigger(Channel):
         """Sends an immediate arm trigger for the specified device action.
 
         When the status of the specified device action is initiated, the arm trigger
-        causes a layer change from arm to trigger.
-        """
+        causes a layer change from arm to trigger."""
+
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":ARM:{action}")
 
     def init(self, action='ALL'):
         """Init trigger."""
+
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
 
@@ -101,8 +103,7 @@ class Trigger(Channel):
         LAN:  selects the LXI trigger specified by the arm_source_lan_id command.
         EXTn: selects a signal from the GPIO pin n, which is an input port of the
               Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        TIN:  selects the BNC Trigger In.
-        """,
+        TIN:  selects the BNC Trigger In.""",
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
                 'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
