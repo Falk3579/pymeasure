@@ -218,7 +218,6 @@ class TestagilentB298xTrigger:
         ) as inst:
             inst.trigger.init(state)
 
-
     @pytest.mark.parametrize("state", ['OFF', 'ONCE'])
     def test_arm_bypass_once(self, state):
         """Verify the communication of the arm_bypass_once getter/setter."""
@@ -230,9 +229,7 @@ class TestagilentB298xTrigger:
         ) as inst:
             inst.trigger.arm_bypass_once = mapping[state]
             assert inst.trigger.arm_bypass_once == mapping[state]
-        
-        
-        
+
     # def test_arm_count(self):
 
     # def test_arm_delay(self):
@@ -245,10 +242,8 @@ class TestagilentB298xTrigger:
 
     # def test_arm_output_enabled(self):
 
-
     # def test_test_is_idle(self):
 
-    
     @pytest.mark.parametrize("state", ['OFF', 'ONCE'])
     def test_bypass_once(self, state):
         """Verify the communication of the arm bypass_once getter/setter."""
@@ -260,8 +255,6 @@ class TestagilentB298xTrigger:
         ) as inst:
             inst.trigger.bypass_once = mapping[state]
             assert inst.trigger.bypass_once == mapping[state]
-
-
 
     # def test_count(self):
 

@@ -43,13 +43,6 @@ def agilentB298x(connected_device_address):
     return instr
 
 
-<<<<<<< Updated upstream
-class TestResetandID:
-    def test_reset(self, agilentB298x):
-        agilentB298x.clear()
-        agilentB298x.reset()
-        assert len(agilentB298x.check_errors()) == 0
-=======
 @pytest.fixture
 def resetted_b298x_with_input_enabled(agilentB298x):
     agilentB298x.clear()
@@ -64,7 +57,6 @@ class TestAgilentB298xResetAndID:
         agilentB298x.clear()
         agilentB298x.reset()
         assert len(agilentB298x.check_errors()) == 0
->>>>>>> Stashed changes
 
     def test_device_id(self, agilentB298x):
         vendor, device_id, serial_number, firmware_version = agilentB298x.id.split(',')
@@ -101,19 +93,11 @@ class TestagilentB298xTrigger:
         assert len(resetted_b298x_with_input_enabled.check_errors()) == 0
 
 
-<<<<<<< Updated upstream
-class TestagilentB298xSource:
-    """Test of the source functions for B2985 and B2987."""
-
-    def test_enabled(self, agilentB298x):
-        enabled = agilentB298x.source.enabled
-=======
 class TestAgilentB298xOutput:
     """Test of the source functions for B2985 and B2987."""
 
     def test_enabled(self, agilentB298x):
         enabled = agilentB298x.output.enabled
->>>>>>> Stashed changes
         assert enabled in [True, False]
 
 

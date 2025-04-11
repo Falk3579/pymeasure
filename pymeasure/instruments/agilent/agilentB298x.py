@@ -426,32 +426,6 @@ class AgilentB298x(SCPIMixin, Instrument):
         )
 
 
-class AgilentB298xBattery(Channel):
-    """A class representing the B298x battery functions."""
-
-    def insert_id(self, command):
-        return f":SYST:BATT{command}"
-
-    level = Channel.measurement(
-        "?",
-        """Get the percentage of the remaining battery capacity (int).""",
-        get_process=lambda v: int(v),  # convert to integer
-    )
-
-    cycles = Channel.measurement(
-        ":CYCL?",
-        """Get the battery cycle count (int).""",
-        get_process=lambda v: int(v),  # convert to integer
-    )
-
-    selftest_passed = Channel.measurement(
-        ":TEST?",
-        """Get the battery self-test result (boolean).""",
-        map_values=True,
-        values={True: 0, False: 1}  # 0: passed, 1: failed
-    )
-
-
 ##########################
 # Instrument definitions #
 ##########################
