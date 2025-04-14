@@ -213,7 +213,6 @@ wrong format of the parameter',
 
         :type: str, strictly in ``LOW``, ``MEDIUM``, ``HIGH``
         ''',
-        set_process=lambda v: v.upper(),
         validator=strict_discrete_set,
         values=['LOW', 'MEDIUM', 'HIGH'],
         check_set_errors=True
@@ -281,7 +280,6 @@ wrong format of the parameter',
 
         :type: str, strictly in ``VERY_LOW``, ``LOW``, ``MEDIUM``, ``HIGH``
         ''',
-        set_process=lambda v: v.upper(),
         validator=strict_discrete_set,
         values=['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH'],
         check_set_errors=True

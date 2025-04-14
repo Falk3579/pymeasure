@@ -29,16 +29,20 @@ from pymeasure.instruments.validators import truncated_range
 
 # JSON and methods are tested with the device
 
+RANGES = ['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH']
+LEVELS = ['LOW', 'MEDIUM', 'HIGH']
 
-def test_autostart_level():
+
+@pytest.mark.parametrize("level", LEVELS)
+def test_autostart_level(level):
     """Verify the communication of the autostart_level getter/setter."""
     with expected_protocol(
         ptwUNIDOS,
-        [('ASL;LOW', 'ASL;LOW'),
-         ('ASL', 'ASL;MEDIUM')],
+        [(f'ASL;{level}', f'ASL;{level}'),
+         ('ASL', f'ASL;{level}')],
     ) as inst:
-        inst.autostart_level = 'LOW'
-        assert inst.autostart_level == 'MEDIUM'
+        inst.autostart_level = level
+        assert inst.autostart_level == level
 
 
 def test_id():
@@ -99,15 +103,16 @@ def test_meas_result():
                                     'error': '0x0'}
 
 
-def test_range():
+@pytest.mark.parametrize("range", RANGES)
+def test_range(range):
     """Verify the communication of the range getter/setter."""
     with expected_protocol(
         ptwUNIDOS,
-        [("RGE;MEDIUM", "RGE;MEDIUM"),
-         ("RGE", "RGE;HIGH")],
+        [(f"RGE;{range}", f"RGE;{range}"),
+         ("RGE", f"RGE;{range}")],
     ) as inst:
-        inst.range = 'MEDIUM'
-        assert inst.range == 'HIGH'
+        inst.range = range
+        assert inst.range == range
 
 
 def test_range_max():
