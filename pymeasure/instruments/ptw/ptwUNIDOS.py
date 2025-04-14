@@ -54,7 +54,8 @@ class ptwUNIDOS(Instrument):
 
     def read(self):
         '''Overwrites the :meth:`Instrument.read <pymeasure.instruments.Instrument.read>` to
-        replace semicolon by comma and check the response for errors.'''
+        replace semicolon by comma and check the response for errors.
+        '''
 
         got = super().read()
 
@@ -109,7 +110,8 @@ wrong format of the parameter',
     def errorflags_to_text(self, flags):
         '''Convert the error flags to the error message(s).
 
-        :param str flags: '''
+        :param str flags:
+        '''
 
         err_txt = ['Overload at current measurement',
                    'Overload at charge measurement',
@@ -140,13 +142,15 @@ wrong format of the parameter',
     def clear(self):
         '''Clear the complete measurement history.
 
-        .. note:: Write permission is required.'''
+        .. note:: Write permission is required.
+        '''
         self.ask("CHR")
 
     def hold(self):
         '''Set the measurment to HOLD state.
 
-        .. note:: Write permission is required.'''
+        .. note:: Write permission is required.
+        '''
         self.ask("HLD")
 
     def intervall(self, intervall=None):
@@ -157,7 +161,8 @@ wrong format of the parameter',
         If *intervall* is not specified a measurement with the current setting of the
         :attr:`integration_time` is executed.
 
-        .. note:: Write permission is required.'''
+        .. note:: Write permission is required.
+        '''
         if intervall is not None:
             self.integration_time = intervall
         self.ask("INT")
@@ -165,13 +170,15 @@ wrong format of the parameter',
     def measure(self):
         '''Start the dose or charge measurement.
 
-        .. note:: Write permission is required.'''
+        .. note:: Write permission is required.
+        '''
         self.ask("STA")
 
     def reset(self):
         '''Reset the dose and charge measurement values.
 
-        .. note:: Write permission is required.'''
+        .. note:: Write permission is required.
+        '''
         self.ask("RES")
 
     def selftest(self):
@@ -181,17 +188,19 @@ wrong format of the parameter',
         End and result of the self test have to be requested by
         the :attr:`selftest_result` property.
 
-        .. note:: Write permission is required.'''
+        .. note:: Write permission is required.
+        '''
         self.ask("AST")
 
     def zero(self):
         '''Execute a zero correction measurement.
 
         The function returns before the end of the zero correction
-        measurement. End and result of the zero correction measurement
-        have to be requested by the :attr:`zero_result` property.
+        measurement. The end of the zero correction measurement
+        has to be requested by the :attr:`zero_status` property.
 
-        .. note:: Write permission is required.'''
+        .. note:: Write permission is required.
+        '''
         self.ask('NUL')
 
 ##############
@@ -202,7 +211,8 @@ wrong format of the parameter',
         "ASL", "ASL;%s",
         '''Control the threshold level of autostart measurements.
 
-        :type: str, strictly in ``LOW``, ``MEDIUM``, ``HIGH``''',
+        :type: str, strictly in ``LOW``, ``MEDIUM``, ``HIGH``
+        ''',
         set_process=lambda v: v.upper(),
         validator=strict_discrete_set,
         values=['LOW', 'MEDIUM', 'HIGH'],
@@ -213,14 +223,18 @@ wrong format of the parameter',
         "PTW",
         '''Get the dosemeter ID.
 
-        :type: list of str [name, type number, firmware version, hardware revision]'''
+        :type: list of str
+
+        .. [name, type number, firmware version, hardware revision]
+        '''
         )
 
     integration_time = Instrument.control(
         "IT", "IT;%s",
         '''Control the time of the interval measurement in seconds.
 
-        :type: int, strictly from ``1`` to ``3599999``''',
+        :type: int, strictly from ``1`` to ``3599999``
+        ''',
         validator=truncated_range,
         values=[1, 3599999],
         check_set_errors=True,
@@ -231,7 +245,8 @@ wrong format of the parameter',
         "MAC",
         '''Get the dosemeter MAC address.
 
-        :type: str'''
+        :type: str
+        '''
         )
 
     meas_result = Instrument.measurement(
@@ -264,7 +279,8 @@ wrong format of the parameter',
         "RGE", "RGE;%s",
         '''Control the measurement range.
 
-        :type: str, strictly in ``VERY_LOW``, ``LOW, MEDIUM``, ``HIGH``''',
+        :type: str, strictly in ``VERY_LOW``, ``LOW``, ``MEDIUM``, ``HIGH``
+        ''',
         set_process=lambda v: v.upper(),
         validator=strict_discrete_set,
         values=['VERY_LOW', 'LOW', 'MEDIUM', 'HIGH'],
@@ -331,7 +347,8 @@ wrong format of the parameter',
         "SER",
         '''Get the dosemeter serial number.
 
-        :type: int''',
+        :type: int
+        ''',
         cast=int
         )
 
@@ -339,23 +356,31 @@ wrong format of the parameter',
         "S",
         '''Get the measurement status.
 
-        :type: str (``RES``, ``MEAS``, ``HOLD``, ``INT``, ``INTHLD``, ``ZERO``,
-                 ``AUTO``, ``AUTO_MEAS``, ``AUTO_HOLD``, ``EOM``, ``WAIT``,
-                 ``INIT``, ``ERROR``, ``SELF_TEST`` or ``TST``)'''
+        :type: str
+
+        The status string has of one of the following values: ``RES``,
+        ``MEAS``, ``HOLD``, ``INT``, ``INTHLD``, ``ZERO``, ``AUTO``,
+        ``AUTO_MEAS``, ``AUTO_HOLD``, ``EOM``, ``WAIT``, ``INIT``,
+        ``ERROR``, ``SELF_TEST`` or ``TST``
+        '''
         )
 
     tfi = Instrument.measurement(
         "TFI",
         '''Get the telegram failure information.
 
-        Provides information about the last failed command with HTTP request.
+        :type: str
 
-        :type: str'''
+        The property provides information about the last failed command with HTTP request.
+        '''
         )
 
     use_autostart = Instrument.control(
         "ASE", "ASE;%s",
-        '''Control the measurement autostart function (bool).''',
+        '''Control the measurement autostart function.
+
+        :type: bool
+        ''',
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'true', False: 'false'},
@@ -364,7 +389,10 @@ wrong format of the parameter',
 
     use_autoreset = Instrument.control(
         "ASR", "ASR;%s",
-        '''Control the measurement auto reset function (bool).''',
+        '''Control the measurement auto reset function.
+
+        :type: bool
+        ''',
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'true', False: 'false'},
@@ -373,7 +401,10 @@ wrong format of the parameter',
 
     use_electrical_units = Instrument.control(
         "UEL", "UEL;%s",
-        '''Control whether electrical units are used (bool).''',
+        '''Control whether electrical units are used.
+
+        :type: bool
+        ''',
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'true', False: 'false'},
@@ -383,9 +414,10 @@ wrong format of the parameter',
     voltage = Instrument.control(
         "HV", "HV;%d",
         '''Control the detector voltage in Volts.
-        The Limits of the detector are applied.
 
-        :type: int,  strictly from ``-400`` to ``400`` or within detector limits
+        :type: int,  strictly from ``-400`` to ``400`` and within detector limits
+
+        The Limits of the detector are applied.
         ''',
         validator=truncated_range,
         values=[-400, 400],
@@ -395,7 +427,9 @@ wrong format of the parameter',
 
     write_enabled = Instrument.control(
         "TOK;1", "TOK%s",
-        '''Control the write permission (bool).
+        '''Control the write permission.
+
+        :type: bool
         The result of the request/release has to be checked afterwards.
 
         .. important:: The UNIDOS has to be in viewer mode (closed lock symbol on the display).
@@ -409,9 +443,9 @@ wrong format of the parameter',
         check_set_errors=True
         )
 
-    zero_result = Instrument.measurement(
+    zero_status = Instrument.measurement(
         "NUS",
-        '''Get the status and result of the zero correction measurement.
+        '''Get the status of the zero correction measurement.
 
         :type: dict
         :dict keys:  ``status``,
@@ -434,7 +468,34 @@ wrong format of the parameter',
         :param str guid: optional, id of the detector. A list of all
             detectors is returned if ommitted.
 
-        :type: dict or list of dict'''
+        :type: dict or list of dict
+        :dict keys: ``calibrationFactor``,
+                    ``calibrationFactorUnit``,
+                    ``calibrationLab``,
+                    ``calibrationProcedure``,
+                    ``calibrationTemp``,
+                    ``calibrationType``,
+                    ``calibrationUser``,
+                    ``comment``,
+                    ``guid``,
+                    ``manufacturer``,
+                    ``maxHv``,
+                    ``measuredQuantity``,
+                    ``minHv``,
+                    ``name``,
+                    ``nominalHv``,
+                    ``polarity``,
+                    ``radiationQuality``,
+                    ``range``,
+                    ``serialNumber``,
+                    ``testDate``,
+                    ``testLimits``,
+                    ``testResult``,
+                    ``testTarget``,
+                    ``timebase``,
+                    ``type``,
+                    ``typeNumber``
+        '''
 
         if guid.upper() in ['', 'ALL']:
             d_rec = self.ask("RDA")
@@ -443,11 +504,30 @@ wrong format of the parameter',
 
         return json.loads(d_rec)  # str -> dict
 
+    lan_config = Instrument.measurement(
+        "REC",
+        '''Get the ethernet configuration.
+
+        :type: dict
+        :dict keys: ``dns``,
+                    ``ipv4``,
+                    ``ipv6``
+        ''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
+        )
+
     meas_history = Instrument.measurement(
         "RHR",
         '''Get the measurement history.
 
-        :type: list of dict''',
+        :type: list of dict
+        :dict keys: ``date``,
+                    ``detector``,
+                    ``dose``,
+                    ``flags``,
+                    ``id``,
+                    ``kTotal``
+        ''',
         get_process=lambda v: json.loads(','.join(v)) if v != '[]' else []
         )
 
@@ -455,15 +535,22 @@ wrong format of the parameter',
         "RMR",
         '''Get the measurement parameters.
 
-        :type: dict''',
-        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
-        )
-
-    system_settings = Instrument.measurement(
-        "RSR",
-        '''Get the system settings.
-
-        :type: dict''',
+        :type: dict
+        :dict keys: ``correction``,
+                    ``detectorGuid``,
+                    ``highResolution``,
+                    ``hv``,
+                    ``integrationTime``,
+                    ``isElectrical``,
+                    ``limitDose``,
+                    ``limitDoseEnabled``,
+                    ``limitDoseRate``,
+                    ``limitDoseRateEnabled``,
+                    ``range``,
+                    ``triggerAuto``,
+                    ``triggerReset``,
+                    ``triggerSensitivity``
+        ''',
         get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
@@ -471,7 +558,38 @@ wrong format of the parameter',
         "RIR",
         '''Get the system information.
 
-        :type: dict''',
+        :type: dict
+        :dict keys: ``calibrationDate``,
+                    ``debugBuild``,
+                    ``features``,
+                    ``hardwareVersion``,
+                    ``hostname``,
+                    ``lastTest``,
+                    ``macAddress``,
+                    ``nextCalibration``,
+                    ``serialNumber``,
+                    ``softwareVersion``,
+                    ``testTemperature``,
+                    ``typeNumber``
+        ''',
+        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
+        )
+
+    system_settings = Instrument.measurement(
+        "RSR",
+        '''Get the system settings.
+
+        :type: dict
+        :dict keys: ``brightness``,
+                    ``date``,
+                    ``keyboardSound``,
+                    ``locale``,
+                    ``mark``,
+                    ``startAsMaster``,
+                    ``time``,
+                    ``timezone``,
+                    ``volume``
+        ''',
         get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
 
@@ -479,14 +597,9 @@ wrong format of the parameter',
         "RAC",
         '''Get the WLAN access point configuration.
 
-        :type: dict''',
-        get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
-        )
-
-    lan_config = Instrument.measurement(
-        "REC",
-        '''Get the ethernet configuration.
-
-        :type: dict''',
+        :type: dict
+        :dict keys: ``enabled``,
+                    ``ssid``
+        ''',
         get_process=lambda v: json.loads(','.join(v))  # list -> str -> dict
         )
