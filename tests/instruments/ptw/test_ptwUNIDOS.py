@@ -145,9 +145,9 @@ def test_selftest_result():
         assert inst.selftest_result == {'status': 'Passed',
                                         'time_remaining': 0,
                                         'time_total': 89000,
-                                        'LOW': 1.366e-10,
-                                        'MEDIUM': 1.5e-09,
-                                        'HIGH': 1.35e-08}
+                                        'low': 1.366e-10,
+                                        'medium': 1.5e-09,
+                                        'high': 1.35e-08}
 
 
 def test_serial_number():
@@ -238,12 +238,12 @@ def test_write_enabled():
         assert inst.write_enabled is False
 
 
-def test_zero_result():
-    """Verify the communication of the zero_result getter."""
+def test_zero_status():
+    """Verify the communication of the zero_status getter."""
     with expected_protocol(
         ptwUNIDOS,
         [('NUS', 'NUS;Passed;0;82000')]
     ) as inst:
-        assert inst.zero_result == {'status': 'Passed',
+        assert inst.zero_status == {'status': 'Passed',
                                     'time_remaining': 0.0,
                                     'time_total': 82000.0}

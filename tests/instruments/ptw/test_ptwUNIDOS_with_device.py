@@ -142,8 +142,8 @@ class TestPTWUnidosProperties:
         unidos.voltage = voltage
         assert unidos.voltage == voltage
 
-    def test_zero_result(self, unidos):
-        result = unidos.zero_result
+    def test_zero_status(self, unidos):
+        result = unidos.zero_status
         assert type(result['status']) is str
         assert type(result['time_remaining']) is float
         assert type(result['time_total']) is float
