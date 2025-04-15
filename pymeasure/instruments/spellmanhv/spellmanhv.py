@@ -24,6 +24,8 @@
 
 from pymeasure.instruments import Instrument
 
+# https://github.com/wholden/SpellmanUSB
+# https://www.spellmanhv.com/en/high-voltage-power-supplies/XRV
 
 class SpellmanHV(Instrument):
     """
