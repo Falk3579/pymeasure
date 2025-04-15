@@ -22,4 +22,4 @@
 # THE SOFTWARE.
 #
 
-from .ptwUNIDOS import ptwUNIDOS
+from .ptwDIAMENTOR import ptwDIAMENTOR
