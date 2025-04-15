@@ -22,20 +22,13 @@
 # THE SOFTWARE.
 #
 
-from pymeasure.instruments import Instrument
+import pytest
+
+from pymeasure.instruments.spellmanhv.spellmanhv import SpellmanHV
 
 
-class Spellmann(Instrument):
-    """
-    A class representing the Spellmann high voltage power supply.
-    """
-
-    def __init__(self, adapter, name="Spellmann HV Power Supply", **kwargs):
-        super().__init__(
-            adapter, name, **kwargs
-        )
-
-    # dummy
-    dummy = Instrument.measurement("MEAS:VOLT:",
-                                   "Get DC voltage, in Volts",
-                                   )
+@pytest.fixture(scope="module")
+def spellmann(connected_device_address):
+    instr = SpellmanHV(connected_device_address)
+    instr.reset_to_defaults()
+    return instr

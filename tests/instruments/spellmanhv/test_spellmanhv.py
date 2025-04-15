@@ -23,12 +23,12 @@
 #
 
 from pymeasure.test import expected_protocol
-from pymeasure.instruments.spellmann.spellmann import Spellmann
+from pymeasure.instruments.spellmann.spellmanhv import SpellmanHV
 
 
 def test_init():
     with expected_protocol(
-        Spellmann,
+        SpellmanHV,
         [(b"EOI ON", None), (b"FRUN OFF", None)],
     ):
         pass  # Verify the expected communication.

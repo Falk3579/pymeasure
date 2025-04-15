@@ -22,4 +22,20 @@
 # THE SOFTWARE.
 #
 
-from .spellmann import Spellmann
+from pymeasure.instruments import Instrument
+
+
+class SpellmanHV(Instrument):
+    """
+    A class representing the Spellmann high voltage power supply.
+    """
+
+    def __init__(self, adapter, name="Spellman HV Power Supply", **kwargs):
+        super().__init__(
+            adapter, name, **kwargs
+        )
+
+    # dummy
+    dummy = Instrument.measurement("MEAS:VOLT:",
+                                   "Get DC voltage, in Volts",
+                                   )

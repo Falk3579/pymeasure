@@ -22,13 +22,4 @@
 # THE SOFTWARE.
 #
 
-import pytest
-
-from pymeasure.instruments.spellmann.spellmann import Spellmann
-
-
-@pytest.fixture(scope="module")
-def spellmann(connected_device_address):
-    instr = Spellmann(connected_device_address)
-    instr.reset_to_defaults()
-    return instr
+from .spellmanhv import SpellmanHV
