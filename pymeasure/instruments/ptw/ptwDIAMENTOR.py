@@ -52,7 +52,7 @@ class ptwDIAMENTOR(Instrument):
 
     def read(self):
         '''Overwrites the :meth:`Instrument.read <pymeasure.instruments.Instrument.read>` to
-        replace semicolon by comma and check the response for errors.
+        check the response for errors.
         '''
 
         got = super().read()
@@ -103,10 +103,6 @@ class ptwDIAMENTOR(Instrument):
 
     def selftest(self):
         '''Execute the DIAMENTOR selftest.
-
-        The function returns before the end of the selftest.
-        End and result of the self test have to be requested by
-        the :attr:`selftest_result` property.
         '''
         self.ask("TST")
 
@@ -132,7 +128,7 @@ class ptwDIAMENTOR(Instrument):
         "PTW",
         '''Get the DIAMENTOR firmware version.
 
-        :type: str
+        :return: str
         '''
         )
 
@@ -141,14 +137,14 @@ class ptwDIAMENTOR(Instrument):
         '''Get the measurement results of dose-area-product (DAP) and
         dose-area-product rate.
 
-        :type: dict
+        :return: dict
 
         :dict keys: ``dap``,
                     ``dap_rate``,
                     ``time``,
                     ``crc``
 
-        The units of dap and dap_rate depend on property U
+        The units of dap and dap_rate depend on the :attr:`dap_unit` property.
         Time is in seconds.
         ''',
         get_process=lambda v: {'dap': v[0][1:],
@@ -162,7 +158,7 @@ class ptwDIAMENTOR(Instrument):
         "SER",
         '''Get the DIAMENTOR serial number.
 
-        :type: int
+        :return: int
         ''',
         get_process=lambda v: int(v[3:])
         )
