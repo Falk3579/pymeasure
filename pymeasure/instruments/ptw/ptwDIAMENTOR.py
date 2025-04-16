@@ -37,7 +37,7 @@ class ptwDIAMENTOR(Instrument):
     '''A class representing the PTW DIAMENTOR dosemeters.'''
 
     def __init__(self, adapter, name="PTW DIAMENTOR dosemeter",
-                 timeout=20000,
+                 timeout=2000,
                  read_termination='\r\n',
                  encoding='utf8',
                  **kwargs):
@@ -59,15 +59,14 @@ class ptwDIAMENTOR(Instrument):
         got = super().read()
 
         if got.startswith('E'):
-            error_code = got.replace(';', '').strip()
 
             errors = {
-                'E01': 'Syntax error, unknown command',
-                'E04': 'Charge overflow',
-                'E05': 'Max. input current exceeded.',
-                'E06': 'Chamber voltage is out of range.',
-                'E07': 'Parameter is write protected.',
-                'E09': 'Parameter is out of range.',
+                'E1': 'Syntax error, unknown command',
+                'E4': 'Charge overflow',
+                'E5': 'Max. input current exceeded.',
+                'E6': 'Chamber voltage is out of range.',
+                'E7': 'Parameter is write protected.',
+                'E9': 'Parameter is out of range.',
                 'E23': 'Error while writing/reading EEPROM',
                 'E24': 'DIAMENTOR is not calibrated electrically.',
                 'E25': 'Input-Buffer-Overrun',
@@ -81,8 +80,7 @@ class ptwDIAMENTOR(Instrument):
                 raise ConnectionError(f"Unknown read error. Received: {got}")
 
         else:
-            command, sep, response = got.partition(';')  # command is removed from response
-            return response.replace(';', ',')
+            return got
 
     def check_set_errors(self):
         '''Check for errors after sending a command.'''
@@ -95,33 +93,6 @@ class ptwDIAMENTOR(Instrument):
         else:
             return []
 
-    def errorflags_to_text(self, flags):
-        '''Convert the error flags to the error message(s).
-
-        :param str flags:
-        '''
-
-        err_txt = ['Overload at current measurement',
-                   'Overload at charge measurement',
-                   'HV-Error at current measurement',
-                   'HV-Error at charge measurement',
-                   'Low signal at current measurement',
-                   'Low signal at charge measurement',
-                   'Low auto signal',
-                   None,
-                   'Radiation safety warning at current measurement',
-                   'Radiation safety warning at charge measurement',
-                   'PTW internal',
-                   'Uncalibrated']
-
-        err_msg = []
-        err_code = int(flags, 0)
-
-        for n in range(len(err_txt)):
-            if err_code & (2**n):
-                err_msg.append(err_txt[n])
-
-        return err_msg
 
 ###########
 # Methods #
@@ -153,7 +124,7 @@ class ptwDIAMENTOR(Instrument):
 
     id = Instrument.measurement(
         "PTW",
-        '''Get the dosemeter ID.
+        '''Get the DIAMENTOR firmware version.
 
         :type: str
         '''
@@ -161,7 +132,7 @@ class ptwDIAMENTOR(Instrument):
 
     serial_number = Instrument.measurement(
         "SER",
-        '''Get the dosemeter serial number.
+        '''Get the DIAMENTOR serial number.
 
         :type: int
         ''',
