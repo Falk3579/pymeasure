@@ -185,10 +185,12 @@ class ptwDIAMENTOR(Instrument):
         "U", "U%d",
         '''Control the DAP unit.
 
-        1: cGycm²
-        2: Gycm²
-        3: µGym²
-        4: Rcm²
+        :type: int strictly from ``1`` to ``4``
+        
+        ``1`` cGycm²
+        ``2`` Gycm²
+        ``3`` µGym²
+        ``4`` Rcm²
         ''',
         validator=truncated_range,
         values=[1, 4],
