@@ -67,14 +67,14 @@ class ptwDIAMENTOR(Instrument):
                 'E6': 'Chamber voltage is out of range.',
                 'E7': 'Parameter is write protected.',
                 'E9': 'Parameter is out of range.',
-                'E23': 'Error while writing/reading EEPROM',
+                'E23': 'EEPROM reading/writing error',
                 'E24': 'DIAMENTOR is not calibrated electrically.',
                 'E25': 'Input-Buffer-Overrun',
-                'E26': 'Malfunction of the firmware'
+                'E26': 'Firmware malfunction'
                 }
 
-            if error_code in errors.keys():
-                error_text = f"{error_code}, {errors[error_code]}"
+            if got in errors.keys():
+                error_text = f"{got}, {errors[got]}"
                 raise ValueError(error_text)
             else:
                 raise ConnectionError(f"Unknown read error. Received: {got}")
@@ -93,27 +93,21 @@ class ptwDIAMENTOR(Instrument):
         else:
             return []
 
-
 ###########
 # Methods #
 ###########
 
-
     def reset(self):
         '''Reset the dose and charge measurement values.
-
-        .. note:: Write permission is required.
         '''
         self.ask("RES")
 
     def selftest(self):
-        '''Execute the dosemeter selftest.
+        '''Execute the DIAMENTOR selftest.
 
         The function returns before the end of the selftest.
         End and result of the self test have to be requested by
         the :attr:`selftest_result` property.
-
-        .. note:: Write permission is required.
         '''
         self.ask("TST")
 
@@ -121,6 +115,19 @@ class ptwDIAMENTOR(Instrument):
 # Properties #
 ##############
 
+    pressure = Instrument.control(
+        "PRE", "PRE%04d",
+        '''Control the atmospheric pressure in hPa.
+
+        :type: int strictly from ``500`` to ``1500``
+
+        It is used for the air density correction.
+        ''',
+        validator=truncated_range,
+        values=[500, 1500],
+        check_set_errors=True,
+        get_process=lambda v: int(v[3:])
+        )
 
     id = Instrument.measurement(
         "PTW",
@@ -136,5 +143,19 @@ class ptwDIAMENTOR(Instrument):
 
         :type: int
         ''',
-        cast=int
+        get_process=lambda v: int(v[3:])
+        )
+
+    temperature = Instrument.control(
+        "TMPA", "TMPA%02d",
+        '''Control the DIAMENTOR chamber temperature in degC.
+
+        :type: int strictly from ``0`` to ``70``
+
+        It is used for the air density correction.
+        ''',
+        validator=truncated_range,
+        values=[0, 70],
+        check_set_errors=True,
+        get_process=lambda v: int(v[4:])
         )

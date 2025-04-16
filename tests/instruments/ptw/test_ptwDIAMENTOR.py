@@ -25,13 +25,45 @@
 import pytest
 from pymeasure.test import expected_protocol
 from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
-from pymeasure.instruments.validators import truncated_range
 
 
 def test_id():
     """Verify the communication of the ID getter."""
     with expected_protocol(
-        ptwUNIDOS,
-        [('PTW', 'PTW;CRS 1.2.4')],
+        ptwDIAMENTOR,
+        [('PTW', 'CRS 1.2.4')],
     ) as inst:
-        assert inst.id == ['CRS 1.2.4']
+        assert inst.id == 'CRS 1.2.4'
+
+
+@pytest.mark.parametrize("temperature", [0, 1, 30])
+def test_temperature(temperature):
+    """Verify the communication of the temperature getter/setter."""
+    with expected_protocol(
+        ptwDIAMENTOR,
+        [(f"TMPA{temperature:02d}", f"TMPA{temperature:02d}"),
+         ('TMPA', f"TMPA{temperature:02d}")]
+    ) as inst:
+        inst.temperature = temperature
+        assert inst.temperature == temperature
+
+
+@pytest.mark.parametrize("pressure", [500, 1500])
+def test_pressure(pressure):
+    """Verify the communication of the pressure getter/setter."""
+    with expected_protocol(
+        ptwDIAMENTOR,
+        [(f"PRE{pressure:04d}", f"PRE{pressure:04d}"),
+         ('PRE', f"PRE{pressure:04d}")]
+    ) as inst:
+        inst.pressure = pressure
+        assert inst.pressure == pressure
+
+
+def test_serial_number():
+    """Verify the communication of the serial number getter."""
+    with expected_protocol(
+        ptwDIAMENTOR,
+        [("SER", "SER345678")]
+    ) as inst:
+        assert inst.serial_number == 345678

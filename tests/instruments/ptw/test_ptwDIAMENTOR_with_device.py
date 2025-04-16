@@ -29,7 +29,6 @@
 
 import pytest
 from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
-from time import sleep
 
 
 ############
