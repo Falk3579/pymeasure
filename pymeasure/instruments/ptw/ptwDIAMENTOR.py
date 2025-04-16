@@ -33,7 +33,7 @@ log.addHandler(logging.NullHandler())
 
 
 class ptwDIAMENTOR(Instrument):
-    '''A class representing the PTW DIAMENTOR dosemeters.'''
+    '''A class representing the PTW DIAMENTOR DAP dosemeters.'''
 
     def __init__(self, adapter, name="PTW DIAMENTOR dosemeter",
                  timeout=2000,
@@ -118,7 +118,7 @@ class ptwDIAMENTOR(Instrument):
         "PRE", "PRE%04d",
         '''Control the atmospheric pressure in hPa.
 
-        :type: int strictly from ``500`` to ``1500``
+        :type: int, strictly from ``500`` to ``1500``
 
         It is used for the air density correction.
         ''',
@@ -171,7 +171,7 @@ class ptwDIAMENTOR(Instrument):
         "TMPA", "TMPA%02d",
         '''Control the DIAMENTOR chamber temperature in degC.
 
-        :type: int strictly from ``0`` to ``70``
+        :type: int, strictly from ``0`` to ``70``
 
         It is used for the air density correction.
         ''',
@@ -185,12 +185,12 @@ class ptwDIAMENTOR(Instrument):
         "U", "U%d",
         '''Control the DAP unit.
 
-        :type: int strictly from ``1`` to ``4``
-        
-        ``1`` cGycm²
-        ``2`` Gycm²
-        ``3`` µGym²
-        ``4`` Rcm²
+        :type: int, strictly from ``1`` to ``4``
+
+            - ``1``: cGycm²
+            - ``2``: Gycm²
+            - ``3``: µGym²
+            - ``4``: Rcm²
         ''',
         validator=truncated_range,
         values=[1, 4],

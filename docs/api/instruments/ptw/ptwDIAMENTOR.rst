@@ -1,6 +1,6 @@
-########################
-PTW DIAMENTOR dosemeters
-########################
+############################
+PTW DIAMENTOR DAP dosemeters
+############################
 
 .. autoclass:: pymeasure.instruments.ptw.ptwDIAMENTOR
     :members:
