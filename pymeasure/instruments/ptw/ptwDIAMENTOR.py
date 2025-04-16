@@ -26,8 +26,7 @@
 import logging
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import (strict_discrete_set,
-                                              truncated_range)
+from pymeasure.instruments.validators import truncated_range
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -137,6 +136,28 @@ class ptwDIAMENTOR(Instrument):
         '''
         )
 
+    meas_result = Instrument.measurement(
+        "M",
+        '''Get the measurement results of dose-area-product (DAP) and
+        dose-area-product rate.
+
+        :type: dict
+
+        :dict keys: ``dap``,
+                    ``dap_rate``,
+                    ``time``,
+                    ``crc``
+
+        The units of dap and dap_rate depend on property U
+        Time is in seconds.
+        ''',
+        get_process=lambda v: {'dap': v[0][1:],
+                               'dap_rate': v[1],
+                               'time': 60*int(v[2]) + int(v[3]),
+                               'crc': v[8]
+                               }
+        )
+
     serial_number = Instrument.measurement(
         "SER",
         '''Get the DIAMENTOR serial number.
@@ -158,4 +179,19 @@ class ptwDIAMENTOR(Instrument):
         values=[0, 70],
         check_set_errors=True,
         get_process=lambda v: int(v[4:])
+        )
+
+    dap_unit = Instrument.control(
+        "U", "U%d",
+        '''Control the DAP unit.
+
+        1: cGycm²
+        2: Gycm²
+        3: µGym²
+        4: Rcm²
+        ''',
+        validator=truncated_range,
+        values=[1, 4],
+        check_set_errors=True,
+        get_process=lambda v: int(v[1:])
         )

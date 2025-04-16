@@ -67,3 +67,14 @@ def test_serial_number():
         [("SER", "SER345678")]
     ) as inst:
         assert inst.serial_number == 345678
+
+
+@pytest.mark.parametrize("dap_unit", [1, 2, 4])
+def test_dap_unit(dap_unit):
+    """Verify the communication of the dap_unit getter/setter."""
+    with expected_protocol(
+        ptwDIAMENTOR,
+        [("U1", "U1")]
+    ) as inst:
+        inst.dap_unit = dap_unit
+        assert inst.dap_unit == 345678
