@@ -110,6 +110,22 @@ class ptwDIAMENTOR(Instrument):
 # Properties #
 ##############
 
+    is_calibrated = Instrument.measurement(
+        "CRC",
+        '''Get the calibration status''',
+        map_values=True,
+        values=[True: '0', False: '1'],
+        get_process=lambda v: v[1])
+        )
+
+    is_eeprom_ok = Instrument.measurement(
+        "CRC",
+        '''Get the EEPROM CRC status''',
+        map_values=True,
+        values=[True: '0', False: '1'],
+        get_process=lambda v: v[0][3:])
+        )
+
     pressure = Instrument.control(
         "PRE", "PRE%04d",
         '''Control the atmospheric pressure in hPa.
