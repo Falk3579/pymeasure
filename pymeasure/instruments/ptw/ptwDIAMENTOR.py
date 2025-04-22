@@ -101,14 +101,22 @@ class ptwDIAMENTOR(Instrument):
         '''
         self.ask("RES")
 
-    def selftest(self):
-        '''Execute the DIAMENTOR selftest.
-        '''
-        self.ask("TST")
-
 ##############
 # Properties #
 ##############
+
+    selftest_passed = Instrument.measurement(
+        "TST",
+        '''Execute the DIAMENTOR selftest and return the result.
+
+        :return: bool
+        
+        .. Gives an error if it fails, so False will never be returned.
+        ''',
+        # map_values=True,
+        # values=[True: '0', False: '1'],
+        get_process=lambda v: True if v = '' else False)
+        )
 
     is_calibrated = Instrument.measurement(
         "CRC",
