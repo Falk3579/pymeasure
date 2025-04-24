@@ -33,43 +33,40 @@ log.addHandler(logging.NullHandler())
 
 
 class ptwDIAMENTOR(Instrument):
-    '''A class representing the PTW DIAMENTOR DAP dosemeters.'''
+    """A class representing the PTW DIAMENTOR DAP dosemeters."""
 
-    def __init__(self, adapter, name="PTW DIAMENTOR dosemeter",
-                 timeout=2000,
-                 read_termination='\r\n',
-                 encoding='utf8',
+    def __init__(self, adapter, name="PTW DIAMENTOR DAP dosemeter",
                  **kwargs):
         super().__init__(
             adapter,
             name,
-            read_termination=read_termination,
+            read_termination="\r\n",
             includeSCPI=False,
-            timeout=timeout,
-            encoding=encoding,
+            timeout=2000,
+            encoding="utf8",
             **kwargs
         )
 
     def read(self):
-        '''Overwrites the :meth:`Instrument.read <pymeasure.instruments.Instrument.read>` to
+        """Overwrites the :meth:`Instrument.read <pymeasure.instruments.Instrument.read>` to
         check the response for errors.
-        '''
+        """
 
         got = super().read()
 
-        if got.startswith('E'):
+        if got.startswith("E"):
 
             errors = {
-                'E1': 'Syntax error, unknown command',
-                'E4': 'Charge overflow',
-                'E5': 'Max. input current exceeded.',
-                'E6': 'Chamber voltage is out of range.',
-                'E7': 'Parameter is write protected.',
-                'E9': 'Parameter is out of range.',
-                'E23': 'EEPROM reading/writing error',
-                'E24': 'DIAMENTOR is not calibrated electrically.',
-                'E25': 'Input-Buffer-Overrun',
-                'E26': 'Firmware malfunction'
+                "E1": "Syntax error, unknown command",
+                "E4": "Charge overflow",
+                "E5": "Max. input current exceeded.",
+                "E6": "Chamber voltage is out of range.",
+                "E7": "Parameter is write protected.",
+                "E9": "Parameter is out of range.",
+                "E23": "EEPROM reading/writing error",
+                "E24": "DIAMENTOR is not calibrated electrically.",
+                "E25": "Input-Buffer-Overrun",
+                "E26": "Firmware malfunction"
                 }
 
             if got in errors.keys():
@@ -82,7 +79,7 @@ class ptwDIAMENTOR(Instrument):
             return got
 
     def check_set_errors(self):
-        '''Check for errors after sending a command.'''
+        """Check for errors after sending a command."""
 
         try:
             self.read()
@@ -97,8 +94,8 @@ class ptwDIAMENTOR(Instrument):
 ###########
 
     def reset(self):
-        '''Reset the dose and charge measurement values.
-        '''
+        """Reset the dose and charge measurement values.
+        """
         self.ask("RES")
 
 ##############
@@ -107,41 +104,41 @@ class ptwDIAMENTOR(Instrument):
 
     selftest_passed = Instrument.measurement(
         "TST",
-        '''Execute the DIAMENTOR selftest and return the result.
+        """Execute the DIAMENTOR selftest and return the result.
 
         :return: bool
         
         .. Gives an error if it fails, so False will never be returned.
-        ''',
+        """,
         # map_values=True,
-        # values=[True: '0', False: '1'],
-        get_process=lambda v: True if v = '' else False)
+        # values=[True: "0", False: "1"],
+        get_process=lambda v: True if v = "" else False)
         )
 
     is_calibrated = Instrument.measurement(
         "CRC",
-        '''Get the calibration status''',
+        """Get the calibration status""",
         map_values=True,
-        values=[True: '0', False: '1'],
+        values=[True: "0", False: "1"],
         get_process=lambda v: v[1])
         )
 
     is_eeprom_ok = Instrument.measurement(
         "CRC",
-        '''Get the EEPROM CRC status''',
+        """Get the EEPROM CRC status""",
         map_values=True,
-        values=[True: '0', False: '1'],
+        values=[True: "0", False: "1"],
         get_process=lambda v: v[0][3:])
         )
 
     pressure = Instrument.control(
         "PRE", "PRE%04d",
-        '''Control the atmospheric pressure in hPa.
+        """Control the atmospheric pressure in hPa.
 
         :type: int, strictly from ``500`` to ``1500``
 
         It is used for the air density correction.
-        ''',
+        """,
         validator=truncated_range,
         values=[500, 1500],
         check_set_errors=True,
@@ -150,15 +147,15 @@ class ptwDIAMENTOR(Instrument):
 
     id = Instrument.measurement(
         "PTW",
-        '''Get the DIAMENTOR firmware version.
+        """Get the DIAMENTOR firmware version.
 
         :return: str
-        '''
+        """
         )
 
-    meas_result = Instrument.measurement(
+    measurement_result = Instrument.measurement(
         "M",
-        '''Get the measurement results of dose-area-product (DAP) and
+        """Get the measurement results of dose-area-product (DAP) and
         dose-area-product rate.
 
         :return: dict
@@ -170,31 +167,31 @@ class ptwDIAMENTOR(Instrument):
 
         The units of dap and dap_rate depend on the :attr:`dap_unit` property.
         Time is in seconds.
-        ''',
-        get_process=lambda v: {'dap': v[0][1:],
-                               'dap_rate': v[1],
-                               'time': 60*int(v[2]) + int(v[3]),
-                               'crc': v[8]
+        """,
+        get_process=lambda v: {"dap": v[0][1:],
+                               "dap_rate": v[1],
+                               "time": 60*int(v[2]) + int(v[3]),
+                               "crc": v[8]
                                }
         )
 
     serial_number = Instrument.measurement(
         "SER",
-        '''Get the DIAMENTOR serial number.
+        """Get the DIAMENTOR serial number.
 
         :return: int
-        ''',
+        """,
         get_process=lambda v: int(v[3:])
         )
 
     temperature = Instrument.control(
         "TMPA", "TMPA%02d",
-        '''Control the DIAMENTOR chamber temperature in degC.
+        """Control the DIAMENTOR chamber temperature in degC.
 
         :type: int, strictly from ``0`` to ``70``
 
         It is used for the air density correction.
-        ''',
+        """,
         validator=truncated_range,
         values=[0, 70],
         check_set_errors=True,
@@ -203,7 +200,7 @@ class ptwDIAMENTOR(Instrument):
 
     dap_unit = Instrument.control(
         "U", "U%d",
-        '''Control the DAP unit.
+        """Control the DAP unit.
 
         :type: int, strictly from ``1`` to ``4``
 
@@ -211,7 +208,7 @@ class ptwDIAMENTOR(Instrument):
             - ``2``: Gycm²
             - ``3``: µGym²
             - ``4``: Rcm²
-        ''',
+        """,
         validator=truncated_range,
         values=[1, 4],
         check_set_errors=True,
