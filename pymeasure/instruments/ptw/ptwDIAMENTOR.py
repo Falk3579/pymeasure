@@ -117,7 +117,7 @@ class ptwDIAMENTOR(Instrument):
 
     is_calibrated = Instrument.measurement(
         "CRC",
-        """Get the calibration status (bool)""",
+        """Get the calibration passed status (bool)""",
         map_values=True,
         values=[True: "0", False: "1"],
         get_process=lambda v: v[1])
@@ -156,8 +156,7 @@ class ptwDIAMENTOR(Instrument):
 
     measurement_result = Instrument.measurement(
         "M",
-        """Get the measurement results of dose-area-product (DAP) and
-        dose-area-product rate.
+        """Get the measurement results.
 
         :return: dict
 
@@ -166,7 +165,8 @@ class ptwDIAMENTOR(Instrument):
                     ``time``,
                     ``crc``
 
-        The units of dap and dap_rate depend on the :attr:`dap_unit` property.
+        The result consists of the dose-area-product (DAP) and the  dose-area-product rate.
+        The units of ``dap`` and ``dap_rate`` depend on the :attr:`dap_unit` property.
         Time is in seconds.
         """,
         get_process=lambda v: {"dap": v[0][1:],
