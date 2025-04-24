@@ -144,7 +144,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     measure = Instrument.measurement(
         ":MEAS?",
-        """Measure the defined parameter(s) with a spot (one-shot) measurement."""
+        """Measure the defined parameter(s) with a spot measurement."""
         )
 
     current = Instrument.measurement(
@@ -167,8 +167,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":FUNC?", ":FUNC '%s'",
         """Control the measurement function.
 
-        .. ('CURR', 'CHAR', 'VOLT', 'RES') for electrometers
-        
+        :type: str, strictly ``CURR`` for B2981/3
+        :type: str, strictly in ``CURR``, ``CHAR``, ``VOLT``, ``RES`` for B2985/7
+
         """,
         validator=strict_discrete_set,
         values=['CURR'],
@@ -216,8 +217,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":VOLT:RANG?", ":VOLT:RANG %s",
         """Control the range for voltage measurement.
 
-        (float strictly from 2 to 20) or
-        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
+        :type: float, strictly from ``2`` to ``20``) or
+        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
+
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2, 20]]
@@ -228,13 +230,15 @@ class AgilentB2981(SCPIMixin, Instrument):
 ##################
 
     def abort(self, action='ALL'):
-        """Aborts the specified device action."""
+        """Abort the specified device action."""
 
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":ABOR:{action}")
 
     def arm(self, action='ALL'):
-        """Sends an immediate arm trigger for the specified device action.
+        """Send an immediate arm trigger.
+
+        for the specified device action.
 
         When the status of the specified device action is initiated, the arm trigger
         causes a layer change from arm to trigger.
@@ -259,14 +263,20 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_count = Channel.control(
         ":ARM:COUN?", ":ARM:COUN %s",
-        """Control the arm count for the specified device action""",
+        """Control the arm count.
+
+        for the specified device action.
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
         )
 
     arm_delay = Channel.control(
         ":ARM:DEL?", ":ARM:DEL %s",
-        """Control the arm delay for the specified device action""",
+        """Control the arm delay in seconds.
+
+        for the specified device action.
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
@@ -301,7 +311,12 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_timer = Channel.control(
         ":ARM:TIM?", ":ARM:TIM %s",
-        """Control the timer interval of arm source for the specified device action.""",
+        """Control the timer interval of the arm source in seconds.
+
+        :type: float, strictly from ``1E-5`` to ``1E5``
+        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``
+
+        for the specified device action.""",
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
@@ -345,7 +360,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_bypass_once = Channel.control(
         ":TRIG:BYP?", ":TRIG:BYP %s",
-        """Control the bypass for the event detector in the trigger layer. (bool).""",
+        """Control the bypass for the event detector in the trigger layer (bool).""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -360,7 +375,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         :type: int, strictly from ``1`` to ``100000`` or
         :type: str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
 
-        ``INF`` is equivalent to ``2147483647``
+        ``INF`` is equivalent to 2147483647.
 
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
@@ -451,7 +466,6 @@ class AgilentB2983(AgilentB2981):
     Has battery operation.
     """
 
-    function_values = ['CURR']
     battery = Instrument.ChannelCreator(Battery, "battery")
 
 
@@ -462,12 +476,10 @@ class AgilentB2985(AgilentB2981):
     output = Instrument.ChannelCreator(Output, "output")
 
 
-class AgilentB2987(AgilentB2981):
+class AgilentB2987(AgilentB2985):
     """Agilent/Keysight B2987A/B series Femto/Picoammeter Electrometer/High Resistance Meter.
 
     Has battery operation.
     """
 
-    function_values = ['CURR', 'CHAR', 'VOLT', 'RES']
-    output = Instrument.ChannelCreator(Output, "output")
     battery = Instrument.ChannelCreator(Battery, "battery")
