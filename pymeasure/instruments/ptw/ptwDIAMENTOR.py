@@ -48,10 +48,12 @@ class ptwDIAMENTOR(Instrument):
         )
 
     def read(self):
-        """Overwrites the :meth:`Instrument.read <pymeasure.instruments.Instrument.read>` to
-        check the response for errors.
-        """
+        """Read the device response and check for errors.
 
+        :return: str
+
+        :raises: *ValueError* for error response or *ConnectionError* for an unknown error
+        """
         got = super().read()
 
         if got.startswith("E"):
