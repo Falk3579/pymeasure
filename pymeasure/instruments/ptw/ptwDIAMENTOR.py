@@ -96,8 +96,7 @@ class ptwDIAMENTOR(Instrument):
 ###########
 
     def reset(self):
-        """Reset the dose and charge measurement values.
-        """
+        """Reset the dose and charge measurement values."""
         self.ask("RES")
 
 ##############
@@ -117,7 +116,7 @@ class ptwDIAMENTOR(Instrument):
 
     is_calibrated = Instrument.measurement(
         "CRC",
-        """Get the calibration passed status (bool)""",
+        """Get the calibration passed status (bool).""",
         map_values=True,
         values=[True: "0", False: "1"],
         get_process=lambda v: v[1])
@@ -125,7 +124,7 @@ class ptwDIAMENTOR(Instrument):
 
     is_eeprom_ok = Instrument.measurement(
         "CRC",
-        """Get the EEPROM CRC passed status (bool)""",
+        """Get the EEPROM CRC passed status (bool).""",
         map_values=True,
         values=[True: "0", False: "1"],
         get_process=lambda v: v[0][3:])
