@@ -26,7 +26,7 @@
 import logging
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import truncated_range
+from pymeasure.instruments.validators import strict_range
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -106,10 +106,8 @@ class ptwDIAMENTOR(Instrument):
 
     selftest_passed = Instrument.measurement(
         "TST",
-        """Execute the DIAMENTOR selftest and return the result.
+        """Get the DIAMENTOR selftest result (bool).
 
-        :return: bool
-        
         .. Gives an error if it fails, so False will never be returned.
         """,
         # map_values=True,
@@ -119,7 +117,7 @@ class ptwDIAMENTOR(Instrument):
 
     is_calibrated = Instrument.measurement(
         "CRC",
-        """Get the calibration status""",
+        """Get the calibration status (bool)""",
         map_values=True,
         values=[True: "0", False: "1"],
         get_process=lambda v: v[1])
@@ -127,7 +125,7 @@ class ptwDIAMENTOR(Instrument):
 
     is_eeprom_ok = Instrument.measurement(
         "CRC",
-        """Get the EEPROM CRC status""",
+        """Get the EEPROM CRC passed status (bool)""",
         map_values=True,
         values=[True: "0", False: "1"],
         get_process=lambda v: v[0][3:])
@@ -135,16 +133,17 @@ class ptwDIAMENTOR(Instrument):
 
     pressure = Instrument.control(
         "PRE", "PRE%04d",
-        """Control the atmospheric pressure in hPa.
+        """Control the atmospheric pressure in hPa (int strictly from 500 to 1500).
 
         :type: int, strictly from ``500`` to ``1500``
 
         It is used for the air density correction.
         """,
-        validator=truncated_range,
+        validator=strict_range,
         values=[500, 1500],
         check_set_errors=True,
-        get_process=lambda v: int(v[3:])
+        get_process=lambda v: int(v[3:]),
+        cast=int
         )
 
     id = Instrument.measurement(
@@ -188,21 +187,22 @@ class ptwDIAMENTOR(Instrument):
 
     temperature = Instrument.control(
         "TMPA", "TMPA%02d",
-        """Control the DIAMENTOR chamber temperature in degC.
+        """Control the DIAMENTOR chamber temperature in degC (int strictly from 0 to 70).
 
         :type: int, strictly from ``0`` to ``70``
 
         It is used for the air density correction.
         """,
-        validator=truncated_range,
+        validator=strict_range,
         values=[0, 70],
         check_set_errors=True,
-        get_process=lambda v: int(v[4:])
+        get_process=lambda v: int(v[4:]),
+        cast=int
         )
 
     dap_unit = Instrument.control(
         "U", "U%d",
-        """Control the DAP unit.
+        """Control the DAP unit (int strictly from 1 to 4).
 
         :type: int, strictly from ``1`` to ``4``
 
@@ -211,7 +211,7 @@ class ptwDIAMENTOR(Instrument):
             - ``3``: µGym²
             - ``4``: Rcm²
         """,
-        validator=truncated_range,
+        validator=strict_range,
         values=[1, 4],
         check_set_errors=True,
         get_process=lambda v: int(v[1:])
