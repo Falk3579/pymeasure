@@ -139,7 +139,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
 
-    arm_bypass_once = Channel.control(
+    arm_bypass_once_enabled = Channel.control(
         ":ARM:BYP?", ":ARM:BYP %s",
         """Control the bypass for the event detector in the arm layer (bool).""",
         validator=strict_discrete_set,
@@ -167,13 +167,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
 
-    arm_source_lan_id = Channel.control(
-        ":ARM:SOUR:LAN?", ":ARM:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
-        validator=strict_discrete_set,
-        values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
-        )
-
     arm_source = Channel.control(
         ":ARM:SOUR?", ":ARM:SOUR %s",
         """Control the arm source for the specified device action.
@@ -193,6 +186,13 @@ class AgilentB2981(SCPIMixin, Instrument):
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
                 'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
+        )
+
+    arm_source_lan_id = Channel.control(
+        ":ARM:SOUR:LAN?", ":ARM:SOUR:LAN %s",
+        """Control the source for LAN triggers.""",
+        validator=strict_discrete_set,
+        values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
         )
 
     arm_timer = Channel.control(
@@ -233,7 +233,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         and the arm layer.""",
         validator=strict_discrete_set,
         map_values=True,
-        values={True: [1, 'ON'], False: [0, 'OFF']}
+        values={True: 1, False: 0}
         )
 
     trigger_is_idle = Channel.measurement(
@@ -244,7 +244,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         values={True: 1, False: 0}
         )
 
-    trigger_bypass_once = Channel.control(
+    trigger_bypass_once_enabled = Channel.control(
         ":TRIG:BYP?", ":TRIG:BYP %s",
         """Control the bypass for the event detector in the trigger layer (bool).""",
         validator=strict_discrete_set,
@@ -277,13 +277,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
 
-    trigger_source_lan_id = Channel.control(
-        ":TRIG:SOUR:LAN?", ":TRIG:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
-        validator=strict_discrete_set,
-        values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
-        )
-
     trigger_source = Channel.control(
         ":TRIG:SOUR?", ":TRIG:SOUR %s",
         """Control the trigger source.
@@ -305,6 +298,13 @@ class AgilentB2981(SCPIMixin, Instrument):
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
                 'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
+        )
+
+    trigger_source_lan_id = Channel.control(
+        ":TRIG:SOUR:LAN?", ":TRIG:SOUR:LAN %s",
+        """Control the source for LAN triggers.""",
+        validator=strict_discrete_set,
+        values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
         )
 
     trigger_timer = Channel.control(
@@ -342,7 +342,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         and the trigger layer.""",
         validator=strict_discrete_set,
         map_values=True,
-        values={True: [1, 'ON'], False: [0, 'OFF']}
+        values={True: 1, False: 0}
         )
 
 
