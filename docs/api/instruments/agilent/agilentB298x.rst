@@ -18,10 +18,6 @@ Agilent B2980 Series, Femto/Picoammeter Electrometer/High Resistance Meter
     :members:
     :show-inheritance:
 
-.. autoclass:: pymeasure.instruments.agilent.agilentB298x.Source
-    :members:
-    :show-inheritance:
-
 .. autoclass:: pymeasure.instruments.agilent.agilentB298x.Battery
     :members:
     :show-inheritance:

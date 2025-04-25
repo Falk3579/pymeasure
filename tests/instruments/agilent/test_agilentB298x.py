@@ -155,7 +155,7 @@ class TestAgilentB298xSource:
 
     @pytest.mark.parametrize("state", [0, 1])
     def test_enabled(self, state):
-        """Verify the communication of the enabled getter/setter."""
+        """Verify the communication of the source_enabled getter/setter."""
         with expected_protocol(
             AgilentB2987,
             [(f":OUTP {state}", None),
@@ -166,7 +166,7 @@ class TestAgilentB298xSource:
 
     @pytest.mark.parametrize("state", ['FLO', 'COMM'])
     def test_low_state(self, state):
-        """Verify the communication of the low_state getter/setter."""
+        """Verify the communication of the source_low_state getter/setter."""
         with expected_protocol(
             AgilentB2987,
             [(f":OUTP:LOW {state}", None),
@@ -177,7 +177,7 @@ class TestAgilentB298xSource:
 
     @pytest.mark.parametrize("state", ['ZERO', 'HIZ', 'NORM'])
     def test_off_state(self, state):
-        """Verify the communication of the off_state getter/setter."""
+        """Verify the communication of the source_off_state getter/setter."""
         with expected_protocol(
             AgilentB2987,
             [(f":OUTP:OFF:MODE {state}", None),
@@ -187,7 +187,7 @@ class TestAgilentB298xSource:
             assert state == inst.source_off_state
 
     def test_voltage(self):
-        """Verify the communication of the voltage getter."""
+        """Verify the communication of the source_voltage getter."""
         with expected_protocol(
             AgilentB2987,
             [(":SOUR:VOLT?", 18)]
@@ -196,7 +196,7 @@ class TestAgilentB298xSource:
 
     @pytest.mark.parametrize("state", ['MIN', 1000])
     def test_range(self, state):
-        """Verify the communication of the range getter/setter."""
+        """Verify the communication of the source_voltage_range getter/setter."""
         with expected_protocol(
             AgilentB2987,
             [(f":SOUR:VOLT:RANG {state}", None),
@@ -245,7 +245,7 @@ class TestagilentB298xTrigger:
     # def test_test_is_idle(self):
 
     @pytest.mark.parametrize("state", ['OFF', 'ONCE'])
-    def test_bypass_once(self, state):
+    def test_trigger_bypass_once(self, state):
         """Verify the communication of the arm bypass_once getter/setter."""
         mapping = {'OFF': False, 'ONCE': True}
         with expected_protocol(
@@ -256,17 +256,17 @@ class TestagilentB298xTrigger:
             inst.trigger_bypass_once = mapping[state]
             assert inst.trigger_bypass_once == mapping[state]
 
-    # def test_count(self):
+    # def test_trigger_count(self):
 
-    # def test_delay(self):
+    # def test_trigger_delay(self):
 
-    # def test_source(self):
+    # def test_trigger_source(self):
 
-    # def test_timer(self):
+    # def test_trigger_timer(self):
 
-    # def test_output_signal(self):
+    # def test_trigger_output_signal(self):
 
-    # def test_output_enabled(self):
+    # def test_trigger_output_enabled(self):
 
 
 class TestAgilentB298xBattery:

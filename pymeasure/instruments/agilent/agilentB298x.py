@@ -35,56 +35,6 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class Source(Instrument):
-    """A class representing the B2985/7 source functions."""
-
-    source_enabled = Channel.control(
-        ":OUTP?", ":OUTP %d",
-        """Control the source output (bool).""",
-        validator=strict_discrete_set,
-        map_values=True,
-        values={True: 1, False: 0}
-        )
-
-    source_low_state = Channel.control(
-        ":OUTP:LOW?", ":OUTP:LOW %s",
-        """Control the source low terminal state ('FLO', 'COMM').""",
-        validator=strict_discrete_set,
-        values=['FLO', 'COMM']
-        )
-
-    source_off_state = Channel.control(
-        ":OUTP:OFF:MODE?", ":OUTP:OFF:MODE %s",
-        """Control the source off condition (str).
-
-        (ZERO|HIZ|NORM).
-
-        - **HIGH Z**: • Output relay: off (open)
-                      • The voltage source setting is not changed.
-                      • This status is available only when the 20 V range is used.
-        - **NORMAL**: • Output voltage: 0 V
-                      • Output relay: off (open)
-        - **ZERO**:   • Output voltage: 0 V in the present voltage range
-        """,
-        validator=strict_discrete_set,
-        values=['ZERO', 'HIZ', 'NORM']
-        )
-
-    source_voltage = Channel.control(
-        ":SOUR:VOLT?", ":SOUR:VOLT %g",
-        """Control the source voltage in Volts (float).""",
-        check_set_errors=False
-        )
-
-    source_voltage_range = Channel.control(
-        ":SOUR:VOLT:RANG?", ":SOUR:VOLT:RANG %s",
-        """Control the source voltage range.""",
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF'], [-1000, 1000]],
-        check_set_errors=False
-        )
-
-
 class Battery(Instrument):
     """A class representing the B2983/7 battery functions."""
 
@@ -168,55 +118,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         validator=strict_discrete_set,
         values=['CURR'],
         dynamic=True
-        )
-
-    charge = Instrument.measurement(
-        ":MEAS:CHAR?",
-        """Measure charge with a spot measurement."""
-        )
-
-    charge_range = Instrument.control(
-        ":CHAR:RANG?", ":CHAR:RANG %s",
-        """Control the range for the charge measurement.
-
-        (float strictly from 2E-9 to 2E-6) or
-        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-9, 2E-6]]
-        )
-
-    resistance = Instrument.measurement(
-        ":MEAS:RES?",
-        """Measure resistance with a spot measurement."""
-        )
-
-    resistance_range = Instrument.control(
-        ":RES:RANG?", ":RES:RANG %s",
-        """Control the range for the resistance measurement.
-
-        (float strictly from 1E6 to 1E15) or
-        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [1E6, 1E15]]
-        )
-
-    voltage = Instrument.measurement(
-        ":MEAS:VOLT?",
-        """Measure voltage with a spot (one-shot) measurement."""
-        )
-
-    voltage_range = Instrument.control(
-        ":VOLT:RANG?", ":VOLT:RANG %s",
-        """Control the range for voltage measurement.
-
-        :type: float, strictly from ``2`` to ``20``) or
-        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
-
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2, 20]]
         )
 
 ##################
@@ -461,10 +362,109 @@ class AgilentB2983(AgilentB2981, Battery):
     """
 
 
-class AgilentB2985(AgilentB2981, Source):
+class AgilentB2985(AgilentB2981):
     """Agilent/Keysight B2985A/B series Femto/Picoammeter Electrometer/High Resistance Meter."""
 
     function_values = ['CURR', 'CHAR', 'VOLT', 'RES']
+
+    charge = Instrument.measurement(
+        ":MEAS:CHAR?",
+        """Measure charge with a spot measurement."""
+        )
+
+    charge_range = Instrument.control(
+        ":CHAR:RANG?", ":CHAR:RANG %s",
+        """Control the range for the charge measurement.
+
+        (float strictly from 2E-9 to 2E-6) or
+        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
+        """,
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-9, 2E-6]]
+        )
+
+    resistance = Instrument.measurement(
+        ":MEAS:RES?",
+        """Measure resistance with a spot measurement."""
+        )
+
+    resistance_range = Instrument.control(
+        ":RES:RANG?", ":RES:RANG %s",
+        """Control the range for the resistance measurement.
+
+        (float strictly from 1E6 to 1E15) or
+        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
+        """,
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [1E6, 1E15]]
+        )
+
+    voltage = Instrument.measurement(
+        ":MEAS:VOLT?",
+        """Measure voltage with a spot (one-shot) measurement."""
+        )
+
+    voltage_range = Instrument.control(
+        ":VOLT:RANG?", ":VOLT:RANG %s",
+        """Control the range for voltage measurement.
+
+        :type: float, strictly from ``2`` to ``20``) or
+        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
+
+        """,
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2, 20]]
+        )
+
+####################
+# Source functions #
+####################
+
+    source_enabled = Channel.control(
+        ":OUTP?", ":OUTP %d",
+        """Control the source output (bool).""",
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 1, False: 0}
+        )
+
+    source_low_state = Channel.control(
+        ":OUTP:LOW?", ":OUTP:LOW %s",
+        """Control the source low terminal state ('FLO', 'COMM').""",
+        validator=strict_discrete_set,
+        values=['FLO', 'COMM']
+        )
+
+    source_off_state = Channel.control(
+        ":OUTP:OFF:MODE?", ":OUTP:OFF:MODE %s",
+        """Control the source off condition (str).
+
+        (ZERO|HIZ|NORM).
+
+        - **HIGH Z**: • Output relay: off (open)
+                      • The voltage source setting is not changed.
+                      • This status is available only when the 20 V range is used.
+        - **NORMAL**: • Output voltage: 0 V
+                      • Output relay: off (open)
+        - **ZERO**:   • Output voltage: 0 V in the present voltage range
+        """,
+        validator=strict_discrete_set,
+        values=['ZERO', 'HIZ', 'NORM']
+        )
+
+    source_voltage = Channel.control(
+        ":SOUR:VOLT?", ":SOUR:VOLT %g",
+        """Control the source voltage in Volts (float).""",
+        check_set_errors=False
+        )
+
+    source_voltage_range = Channel.control(
+        ":SOUR:VOLT:RANG?", ":SOUR:VOLT:RANG %s",
+        """Control the source voltage range.""",
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF'], [-1000, 1000]],
+        check_set_errors=False
+        )
 
 
 class AgilentB2987(AgilentB2985, Battery):
