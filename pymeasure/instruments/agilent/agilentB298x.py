@@ -107,25 +107,16 @@ class AgilentB2981(SCPIMixin, Instrument):
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-12, 20E-3]]
         )
 
-    function = Instrument.control(
-        ":FUNC?", ":FUNC '%s'",
-        """Control the measurement function.
-
-        :type: str, strictly ``CURR`` for B2981/3
-        :type: str, strictly in ``CURR``, ``CHAR``, ``VOLT``, ``RES`` for B2985/7
-
-        """,
-        validator=strict_discrete_set,
-        values=['CURR'],
-        dynamic=True
-        )
-
 ##################
 # Trigger system #
 ##################
 
     def abort(self, action='ALL'):
-        """Abort the specified device action."""
+        """Abort the specified device action.
+        
+        :param str action: strictly in 'ALL', 'ACQ', 'TRAN'
+
+        """
 
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":ABOR:{action}")
@@ -365,7 +356,16 @@ class AgilentB2983(AgilentB2981, Battery):
 class AgilentB2985(AgilentB2981):
     """Agilent/Keysight B2985A/B series Femto/Picoammeter Electrometer/High Resistance Meter."""
 
-    function_values = ['CURR', 'CHAR', 'VOLT', 'RES']
+    function = Instrument.control(
+        ":FUNC?", ":FUNC '%s'",
+        """Control the measurement function.
+
+        :type: str, strictly in ``CURR``, ``CHAR``, ``VOLT``, ``RES``
+
+        """,
+        validator=strict_discrete_set,
+        values=['CURR', 'CHAR', 'VOLT', 'RES']
+        )
 
     charge = Instrument.measurement(
         ":MEAS:CHAR?",
