@@ -35,10 +35,10 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class Output(Channel):
+class Source(Instrument):
     """A class representing the B2985/7 source functions."""
 
-    enabled = Channel.control(
+    source_enabled = Channel.control(
         ":OUTP?", ":OUTP %d",
         """Control the source output (bool).""",
         validator=strict_discrete_set,
@@ -46,16 +46,16 @@ class Output(Channel):
         values={True: 1, False: 0}
         )
 
-    low_state = Channel.control(
+    source_low_state = Channel.control(
         ":OUTP:LOW?", ":OUTP:LOW %s",
         """Control the source low terminal state ('FLO', 'COMM').""",
         validator=strict_discrete_set,
         values=['FLO', 'COMM']
         )
 
-    off_state = Channel.control(
+    source_off_state = Channel.control(
         ":OUTP:OFF:MODE?", ":OUTP:OFF:MODE %s",
-        """Control the source off condition.
+        """Control the source off condition (str).
 
         (ZERO|HIZ|NORM).
 
@@ -70,13 +70,13 @@ class Output(Channel):
         values=['ZERO', 'HIZ', 'NORM']
         )
 
-    voltage = Channel.control(
+    source_voltage = Channel.control(
         ":SOUR:VOLT?", ":SOUR:VOLT %g",
-        """Control the source voltage in Volts.""",
+        """Control the source voltage in Volts (float).""",
         check_set_errors=False
         )
 
-    range = Channel.control(
+    source_voltage_range = Channel.control(
         ":SOUR:VOLT:RANG?", ":SOUR:VOLT:RANG %s",
         """Control the source voltage range.""",
         validator=joined_validators(strict_discrete_set, strict_range),
@@ -85,28 +85,22 @@ class Output(Channel):
         )
 
 
-class Battery(Channel):
+class Battery(Instrument):
     """A class representing the B2983/7 battery functions."""
 
-    level = Channel.measurement(
+    battery_level = Channel.measurement(
         ":SYST:BATT?",
-        """Get the percentage of the remaining battery capacity.
-
-        :return: int
-        """,
+        """Get the percentage of the remaining battery capacity (int).""",
         cast=int,
     )
 
-    cycles = Channel.measurement(
+    battery_cycles = Channel.measurement(
         ":SYST:BATT:CYCL?",
-        """Get the battery cycle count.
-
-        :return: int
-        """,
+        """Get the battery cycle count (int).""",
         cast=int,
     )
 
-    selftest_passed = Channel.measurement(
+    battery_selftest_passed = Channel.measurement(
         ":SYST:BATT:TEST?",
         """Get the battery self-test result (bool).""",
         map_values=True,
@@ -248,7 +242,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         self.write(f":ARM:{action}")
 
     def init(self, action='ALL'):
-        """Init trigger."""
+        """Initiate a trigger."""
 
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
@@ -460,26 +454,21 @@ class AgilentB2981(SCPIMixin, Instrument):
         )
 
 
-class AgilentB2983(AgilentB2981):
+class AgilentB2983(AgilentB2981, Battery):
     """Agilent/Keysight B2983A/B series, Femto/Picoammeter.
 
     Has battery operation.
     """
 
-    battery = Instrument.ChannelCreator(Battery, "battery")
 
-
-class AgilentB2985(AgilentB2981):
+class AgilentB2985(AgilentB2981, Source):
     """Agilent/Keysight B2985A/B series Femto/Picoammeter Electrometer/High Resistance Meter."""
 
     function_values = ['CURR', 'CHAR', 'VOLT', 'RES']
-    output = Instrument.ChannelCreator(Output, "output")
 
 
-class AgilentB2987(AgilentB2985):
+class AgilentB2987(AgilentB2985, Battery):
     """Agilent/Keysight B2987A/B series Femto/Picoammeter Electrometer/High Resistance Meter.
 
     Has battery operation.
     """
-
-    battery = Instrument.ChannelCreator(Battery, "battery")

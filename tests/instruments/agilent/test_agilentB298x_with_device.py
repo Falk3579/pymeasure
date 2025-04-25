@@ -101,7 +101,7 @@ class TestAgilentB298xOutput:
         assert enabled in [True, False]
 
 
-class TestagilentB298xBattery:
+class TestAgilentB298xBattery:
     """Test of the battery functions of B2983 and B2987."""
 
     def test_level(self, agilentB298x):

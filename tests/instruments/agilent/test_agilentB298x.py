@@ -27,7 +27,7 @@ from pymeasure.test import expected_protocol
 from pymeasure.instruments.agilent.agilentB298x import AgilentB2987
 
 
-class TestagilentB298x:
+class TestAgilentB298x:
     """Tests of the ammeter functions"""
 
     @pytest.mark.parametrize("state", [0, 1])
@@ -150,7 +150,7 @@ class TestagilentB298x:
             assert state == inst.voltage_range
 
 
-class TestAgilentB298xOutput:
+class TestAgilentB298xSource:
     """Tests of the source functions"""
 
     @pytest.mark.parametrize("state", [0, 1])
@@ -161,8 +161,8 @@ class TestAgilentB298xOutput:
             [(f":OUTP {state}", None),
              (":OUTP?", state)]
         ) as inst:
-            inst.output.enabled = state
-            assert state == inst.output.enabled
+            inst.source_enabled = state
+            assert state == inst.source_enabled
 
     @pytest.mark.parametrize("state", ['FLO', 'COMM'])
     def test_low_state(self, state):
@@ -172,8 +172,8 @@ class TestAgilentB298xOutput:
             [(f":OUTP:LOW {state}", None),
              (":OUTP:LOW?", state)]
         ) as inst:
-            inst.output.low_state = state
-            assert state == inst.output.low_state
+            inst.source_low_state = state
+            assert state == inst.source_low_state
 
     @pytest.mark.parametrize("state", ['ZERO', 'HIZ', 'NORM'])
     def test_off_state(self, state):
@@ -183,8 +183,8 @@ class TestAgilentB298xOutput:
             [(f":OUTP:OFF:MODE {state}", None),
              (":OUTP:OFF:MODE?", state)]
         ) as inst:
-            inst.output.off_state = state
-            assert state == inst.output.off_state
+            inst.source_off_state = state
+            assert state == inst.source_off_state
 
     def test_voltage(self):
         """Verify the communication of the voltage getter."""
@@ -192,7 +192,7 @@ class TestAgilentB298xOutput:
             AgilentB2987,
             [(":SOUR:VOLT?", 18)]
         ) as inst:
-            assert inst.output.voltage == 18
+            assert inst.source_voltage == 18
 
     @pytest.mark.parametrize("state", ['MIN', 1000])
     def test_range(self, state):
@@ -202,8 +202,8 @@ class TestAgilentB298xOutput:
             [(f":SOUR:VOLT:RANG {state}", None),
              (":SOUR:VOLT:RANG?", state)]
         ) as inst:
-            inst.output.range = state
-            assert inst.output.range in ['MIN', 1000]
+            inst.source_voltage_range = state
+            assert inst.source_voltage_range in ['MIN', 1000]
 
 
 class TestagilentB298xTrigger:
@@ -216,7 +216,7 @@ class TestagilentB298xTrigger:
             AgilentB2987,
             [(f":INIT:{state}", None)]
         ) as inst:
-            inst.trigger.init(state)
+            inst.init(state)
 
     @pytest.mark.parametrize("state", ['OFF', 'ONCE'])
     def test_arm_bypass_once(self, state):
@@ -227,8 +227,8 @@ class TestagilentB298xTrigger:
             [(f":ARM:BYP {state}", None),
              (":ARM:BYP?", state)]
         ) as inst:
-            inst.trigger.arm_bypass_once = mapping[state]
-            assert inst.trigger.arm_bypass_once == mapping[state]
+            inst.arm_bypass_once = mapping[state]
+            assert inst.arm_bypass_once == mapping[state]
 
     # def test_arm_count(self):
 
@@ -253,8 +253,8 @@ class TestagilentB298xTrigger:
             [(f":TRIG:BYP {state}", None),
              (":TRIG:BYP?", state)]
         ) as inst:
-            inst.trigger.bypass_once = mapping[state]
-            assert inst.trigger.bypass_once == mapping[state]
+            inst.trigger_bypass_once = mapping[state]
+            assert inst.trigger_bypass_once == mapping[state]
 
     # def test_count(self):
 
@@ -269,30 +269,30 @@ class TestagilentB298xTrigger:
     # def test_output_enabled(self):
 
 
-class TestagilentB298xBattery:
+class TestAgilentB298xBattery:
     """Tests of the battery functions"""
 
     def test_battery_level(self):
-        """Verify the communication of the battery level getter."""
+        """Verify the communication of the battery_level getter."""
         with expected_protocol(
             AgilentB2987,
             [(":SYST:BATT?", 38)]
         ) as inst:
-            assert inst.battery.level == 38
+            assert inst.battery_level == 38
 
     def test_battery_cycles(self):
-        """Verify the communication of the battery cycles getter."""
+        """Verify the communication of the battery_cycles getter."""
         with expected_protocol(
             AgilentB2987,
             [(":SYST:BATT:CYCL?", 42)]
         ) as inst:
-            assert inst.battery.cycles == 42
+            assert inst.battery_cycles == 42
 
     @pytest.mark.parametrize("state", [0, 1])
     def test_battery_selftest_passed(self, state):
-        """Verify the communication of the battery selftest_passed getter."""
+        """Verify the communication of the battery_selftest_passed getter."""
         with expected_protocol(
             AgilentB2987,
             [(":SYST:BATT:TEST?", state)]
         ) as inst:
-            assert inst.battery.selftest_passed is not state
+            assert inst.battery_selftest_passed is not state
