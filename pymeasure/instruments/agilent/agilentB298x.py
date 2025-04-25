@@ -113,8 +113,8 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     def abort(self, action='ALL'):
         """Abort the specified device action.
-        
-        :param str action: strictly in 'ALL', 'ACQ', 'TRAN'
+
+        :param str, optional action: strictly in 'ALL', 'ACQ', 'TRAN'
 
         """
 
@@ -123,6 +123,8 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     def arm(self, action='ALL'):
         """Send an immediate arm trigger.
+
+        :param str, optional action: strictly in 'ALL', 'ACQ', 'TRAN'
 
         for the specified device action.
 
@@ -134,7 +136,11 @@ class AgilentB2981(SCPIMixin, Instrument):
         self.write(f":ARM:{action}")
 
     def init(self, action='ALL'):
-        """Initiate a trigger."""
+        """Initiate a trigger.
+
+        :param str, optional action: strictly in 'ALL', 'ACQ', 'TRAN'
+
+        """
 
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
