@@ -142,6 +142,12 @@ class AgilentB2981(SCPIMixin, Instrument):
         strict_discrete_set(action, ['ALL', 'ACQ'])
         self.write(f":INIT:{action}")
 
+########################################
+# Trigger properties for ACQuire layer #
+########################################
+
+
+
     arm_acquire_bypass_once_enabled = Channel.control(
         ":ARM:ACQ:BYP?", ":ARM:ACQ:BYP %s",
         """Control the bypass for the event detector in the arm layer (bool).""",
@@ -248,124 +254,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         map_values=True,
         values={True: 1, False: 0}
         )
-
-
-
-
-
-
-    arm_all_bypass_once_enabled = Channel.control(
-        ":ARM:ALL:BYP?", ":ARM:ALL:BYP %s",
-        """Control the bypass for the event detector in the arm layer (bool).""",
-        validator=strict_discrete_set,
-        map_values=True,
-        values={True: 'ONCE', False: 'OFF'}
-        )
-
-    arm_all_count = Channel.control(
-        ":ARM:ALL:COUN?", ":ARM:ALL:COUN %s",
-        """Control the arm count for layer 'ACQuire'.
-
-        for the specified device action.
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
-        )
-
-    arm_all_count = Channel.control(
-        ":ARM:ALL:COUN?", ":ARM:ALL:COUN %s",
-        """Control the arm count for layer 'ALL'.
-
-        for the specified device action.
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
-        )
-
-    arm_all_delay = Channel.control(
-        ":ARM:ALL:DEL?", ":ARM:ALL:DEL %s",
-        """Control the arm delay in seconds.
-
-        for the specified device action.
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
-        )
-
-    arm_all_source = Channel.control(
-        ":ARM:ALL:SOUR?", ":ARM:ALL:SOUR %s",
-        """Control the arm source for the specified device action.
-
-        - **AINT** automatically selects the arm source most suitable for the
-          present operating mode by using internal algorithms.
-        - **BUS** selects the remote interface trigger command such as the group
-          execute trigger (GET) and the TRG command.
-        - **TIM** selects a signal internally generated every interval set by the
-          arm_timer command.
-        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
-          Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN** selects the BNC Trigger In.
-        """,
-        validator=strict_discrete_set,
-        values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
-                'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
-        )
-
-    arm_all_source_lan_id = Channel.control(
-        ":ARM:ALL:SOUR:LAN?", ":ARM:ALL:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
-        validator=strict_discrete_set,
-        values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
-        )
-
-    arm_all_timer = Channel.control(
-        ":ARM:ALL:TIM?", ":ARM:ALL:TIM %s",
-        """Control the timer interval of the arm source in seconds.
-
-        :type: float, strictly from ``1E-5`` to ``1E5``
-        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``
-
-        for the specified device action.""",
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
-        )
-
-    arm_all_output_signal = Channel.control(
-        ":ARM:ALL:TOUT:SIGN?", ":ARM:ALL:TOUT:SIGN %s",
-        """Control the trigger output.
-
-        for the status change between the idle state and the
-        arm layer. Multiple trigger output ports can be set.
-
-        - **INTn** selects the internal bus 1 or 2.
-        - **LAN** selects a LAN port.
-        - **EXTn** selects the GPIO pin n, which is an output port of the Digital I/O
-          D-sub connector on the rear panel. n = 1 to 7.
-        - **TOUT** selects the BNC Trigger Out.
-        """,
-        validator=strict_discrete_set,
-        values=['INT1', 'INT2', 'LAN', 'TOUT',
-                'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
-        )
-
-    arm_all_output_enabled = Channel.control(
-        ":ARM:ALL:TOUT?", ":ARM:ALL:TOUT %s",
-        """Control the arm trigger output (bool).
-
-        for the status change between the idle state
-        and the arm layer.""",
-        validator=strict_discrete_set,
-        map_values=True,
-        values={True: 1, False: 0}
-        )
-
-
-
-
-
-
 
     trigger_acquire_is_idle = Channel.measurement(
         ":IDLE:ACQ?",
@@ -476,9 +364,116 @@ class AgilentB2981(SCPIMixin, Instrument):
         values={True: 1, False: 0}
         )
 
+#####################################
+# Trigger properties for ALL layers #
+#####################################
 
+    arm_all_bypass_once_enabled = Channel.control(
+        ":ARM:ALL:BYP?", ":ARM:ALL:BYP %s",
+        """Control the bypass for the event detector in the arm layer (bool).""",
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 'ONCE', False: 'OFF'}
+        )
 
+    arm_all_count = Channel.control(
+        ":ARM:ALL:COUN?", ":ARM:ALL:COUN %s",
+        """Control the arm count for layer 'ACQuire'.
 
+        for the specified device action.
+        """,
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
+        )
+
+    arm_all_count = Channel.control(
+        ":ARM:ALL:COUN?", ":ARM:ALL:COUN %s",
+        """Control the arm count for layer 'ALL'.
+
+        for the specified device action.
+        """,
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
+        )
+
+    arm_all_delay = Channel.control(
+        ":ARM:ALL:DEL?", ":ARM:ALL:DEL %s",
+        """Control the arm delay in seconds.
+
+        for the specified device action.
+        """,
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
+        )
+
+    arm_all_source = Channel.control(
+        ":ARM:ALL:SOUR?", ":ARM:ALL:SOUR %s",
+        """Control the arm source for the specified device action.
+
+        - **AINT** automatically selects the arm source most suitable for the
+          present operating mode by using internal algorithms.
+        - **BUS** selects the remote interface trigger command such as the group
+          execute trigger (GET) and the TRG command.
+        - **TIM** selects a signal internally generated every interval set by the
+          arm_timer command.
+        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
+        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
+        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
+          Digital I/O D-sub connector on the rear panel. n = 1 to 7.
+        - **TIN** selects the BNC Trigger In.
+        """,
+        validator=strict_discrete_set,
+        values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
+                'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
+        )
+
+    arm_all_source_lan_id = Channel.control(
+        ":ARM:ALL:SOUR:LAN?", ":ARM:ALL:SOUR:LAN %s",
+        """Control the source for LAN triggers.""",
+        validator=strict_discrete_set,
+        values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
+        )
+
+    arm_all_timer = Channel.control(
+        ":ARM:ALL:TIM?", ":ARM:ALL:TIM %s",
+        """Control the timer interval of the arm source in seconds.
+
+        :type: float, strictly from ``1E-5`` to ``1E5``
+        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``
+
+        for the specified device action.""",
+        validator=joined_validators(strict_discrete_set, strict_range),
+        values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
+        )
+
+    arm_all_output_signal = Channel.control(
+        ":ARM:ALL:TOUT:SIGN?", ":ARM:ALL:TOUT:SIGN %s",
+        """Control the trigger output.
+
+        for the status change between the idle state and the
+        arm layer. Multiple trigger output ports can be set.
+
+        - **INTn** selects the internal bus 1 or 2.
+        - **LAN** selects a LAN port.
+        - **EXTn** selects the GPIO pin n, which is an output port of the Digital I/O
+          D-sub connector on the rear panel. n = 1 to 7.
+        - **TOUT** selects the BNC Trigger Out.
+        """,
+        validator=strict_discrete_set,
+        values=['INT1', 'INT2', 'LAN', 'TOUT',
+                'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
+        )
+
+    arm_all_output_enabled = Channel.control(
+        ":ARM:ALL:TOUT?", ":ARM:ALL:TOUT %s",
+        """Control the arm trigger output (bool).
+
+        for the status change between the idle state
+        and the arm layer.""",
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 1, False: 0}
+        )
 
     trigger_all_is_idle = Channel.measurement(
         ":IDLE:ALL?",
@@ -702,7 +697,9 @@ class AgilentB2985(AgilentB2981):
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
 
-
+##########################################
+# Trigger properties for TRANsient layer #
+##########################################
 
     arm_transient_bypass_once_enabled = Channel.control(
         ":ARM:TRAN:BYP?", ":ARM:TRAN:BYP %s",
@@ -810,9 +807,6 @@ class AgilentB2985(AgilentB2981):
         map_values=True,
         values={True: 1, False: 0}
         )
-
-
-
 
     trigger_transient_is_idle = Channel.measurement(
         ":IDLE:TRAN?",
@@ -922,9 +916,6 @@ class AgilentB2985(AgilentB2981):
         map_values=True,
         values={True: 1, False: 0}
         )
-
-
-
 
 ####################
 # Source functions #
