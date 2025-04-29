@@ -583,13 +583,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         )
 
 
-
-
-
-
-
-
-
 class AgilentB2983(AgilentB2981, Battery):
     """Agilent/Keysight B2983A/B series, Femto/Picoammeter.
 

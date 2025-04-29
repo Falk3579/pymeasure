@@ -27,6 +27,16 @@ from pymeasure.test import expected_protocol
 from pymeasure.instruments.agilent.agilentB298x import AgilentB2987
 
 
+TRIGGER_LAYERS = {'ALL': 'all',
+                  'ACQ': 'acquire',
+                  'TRAN': 'transient',
+                  }
+
+SUB_SYSTEMS = {'ARM': 'arm',
+               'TRIG': 'trigger',
+               }
+
+
 class TestBattery:
     """Tests of the battery functions"""
 
@@ -119,12 +129,8 @@ class TestAgilentB2981:
 
 @pytest.mark.parametrize("layer", ['ALL', 'ACQ', 'TRAN'])
 class TestAgilentB298xTrigger:
-
-    TRIGGER_LAYERS = {'ALL': 'all',
-                      'ACQ': 'acquire',
-                      'TRAN': 'transient',
-                      }
-
+    """Tests of the trigger methods"""
+    
     def test_abort(self, layer):
         """Verify the communication of the abort method with action."""
         with expected_protocol(
@@ -150,39 +156,111 @@ class TestAgilentB298xTrigger:
             inst.init(layer)
 
     @pytest.mark.parametrize("state", [True, False])
-    def test_arm_bypass_once_enabled(self, layer, state):
-        """Verify the communication of the arm_bypass_once_enabled getter/setter."""
+    def test_trigger_is_idle(self, layer, state):
+        """Verify the communication of the trigger idle getter/setter."""
+        mapping = {True: 1, False: 0}
+        with expected_protocol(
+            AgilentB2987,
+            [(f":IDLE:{layer}?", mapping[state])]
+        ) as inst:
+            assert state == getattr(inst, f"trigger_{TRIGGER_LAYERS[layer]}_is_idle")
 
+
+@pytest.mark.parametrize("layer", ['ALL', 'ACQ', 'TRAN'])
+@pytest.mark.parametrize("sub_system", ['ARM', 'TRIG'])
+class TestAgilentB298xTriggerProperties:
+    """Tests of the trigger properties"""
+
+    @pytest.mark.parametrize("state", [True, False])
+    def test_bypass_once_enabled(self, sub_system, layer, state):
+        """Verify the communication of the arm/trigger_bypass_once_enabled getter/setter."""
         mapping = {True: 'ONCE', False: 'OFF'}
         with expected_protocol(
             AgilentB2987,
-            [(f":ARM:{layer}:BYP {mapping[state]}", None),
-             (f":ARM:{layer}:BYP?", mapping[state])]
+            [(f":{sub_system}:{layer}:BYP {mapping[state]}", None),
+             (f":{sub_system}:{layer}:BYP?", mapping[state])]
         ) as inst:
-            setattr(inst, f"arm_{self.TRIGGER_LAYERS[layer]}_bypass_once_enabled", state)
-            assert state == getattr(inst, f"arm_{self.TRIGGER_LAYERS[layer]}_bypass_once_enabled")
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_bypass_once_enabled", state)
+            assert state == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_bypass_once_enabled")
+
+    @pytest.mark.parametrize("count", [1, 10, 1e3])
+    def test_count(self, sub_system, layer, count):
+        """Verify the communication of the arm/trigger_count getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":{sub_system}:{layer}:COUN {count}", None),
+             (f":{sub_system}:{layer}:COUN?", count)]
+        ) as inst:
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_count", count)
+            assert count == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_count")
+
+    @pytest.mark.parametrize("delay", [0, 10, 1e3, 'MAX'])
+    def test_delay(self, sub_system, layer, delay):
+        """Verify the communication of the arm/trigger_delay getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":{sub_system}:{layer}:DEL {delay}", None),
+             (f":{sub_system}:{layer}:DEL?", delay)]
+        ) as inst:
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_delay", delay)
+            assert delay == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_delay")
+
+    @pytest.mark.parametrize("source", ['AINT', 'BUS', 'EXT2'])
+    def test_source(self, sub_system, layer, source):
+        """Verify the communication of the arm/trigger_source getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":{sub_system}:{layer}:SOUR {source}", None),
+             (f":{sub_system}:{layer}:SOUR?", source)]
+        ) as inst:
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source", source)
+            assert source == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source")
+
+    @pytest.mark.parametrize("lan_id", ['LAN0', 'LAN7'])
+    def test_source_lan_id(self, sub_system, layer, lan_id):
+        """Verify the communication of the arm/trigger_source_lan_id getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":{sub_system}:{layer}:SOUR:LAN {lan_id}", None),
+             (f":{sub_system}:{layer}:SOUR:LAN?", lan_id)]
+        ) as inst:
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source_lan_id", lan_id)
+            assert lan_id == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source_lan_id")
+
+    @pytest.mark.parametrize("timer", ['MIN', 1E-5, 0.12, 100000])
+    def test_timer(self, sub_system, layer, timer):
+        """Verify the communication of the arm/trigger_timer getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":{sub_system}:{layer}:TIM {timer}", None),
+             (f":{sub_system}:{layer}:TIM?", timer)]
+        ) as inst:
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_timer", timer)
+            assert timer == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_timer")
 
 
+    @pytest.mark.parametrize("output_signal", ['INT1', 'TOUT', 'EXT3'])
+    def test_output_signal(self, sub_system, layer, output_signal):
+        """Verify the communication of the arm/trigger_output_signal getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":{sub_system}:{layer}:TOUT:SIGN {output_signal}", None),
+             (f":{sub_system}:{layer}:TOUT:SIGN?", output_signal)]
+        ) as inst:
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_signal", output_signal)
+            assert output_signal == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_signal")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    @pytest.mark.parametrize("state", [True, False])
+    def test_output_enabled(self, sub_system, layer, state):
+        """Verify the communication of the arm/trigger_output_enabled getter/setter."""
+        mapping = {True: 1, False: 0}
+        with expected_protocol(
+            AgilentB2987,
+            [(f":{sub_system}:{layer}:TOUT {mapping[state]}", None),
+             (f":{sub_system}:{layer}:TOUT?", mapping[state])]
+        ) as inst:
+            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_enabled", state)
+            assert state == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_enabled")
 
 
 class TestAgilentB2985:
@@ -260,38 +338,39 @@ class TestAgilentB2985:
 # Source functions #
 ####################
 
-    @pytest.mark.parametrize("state", [0, 1])
+    @pytest.mark.parametrize("state", [True, False])
     def test_source_enabled(self, state):
         """Verify the communication of the source_enabled getter/setter."""
+        mapping = {True: 1, False: 0}
         with expected_protocol(
             AgilentB2987,
-            [(f":OUTP {state}", None),
-             (":OUTP?", state)]
+            [(f":OUTP {mapping[state]}", None),
+             (":OUTP?", mapping[state])]
         ) as inst:
             inst.source_enabled = state
             assert state == inst.source_enabled
 
-    @pytest.mark.parametrize("state", ['FLO', 'COMM'])
-    def test_source_low_state(self, state):
+    @pytest.mark.parametrize("low_state", ['FLO', 'COMM'])
+    def test_source_low_state(self, low_state):
         """Verify the communication of the source_low_state getter/setter."""
         with expected_protocol(
             AgilentB2987,
-            [(f":OUTP:LOW {state}", None),
-             (":OUTP:LOW?", state)]
+            [(f":OUTP:LOW {low_state}", None),
+             (":OUTP:LOW?", low_state)]
         ) as inst:
-            inst.source_low_state = state
-            assert state == inst.source_low_state
+            inst.source_low_state = low_state
+            assert low_state == inst.source_low_state
 
-    @pytest.mark.parametrize("state", ['ZERO', 'HIZ', 'NORM'])
-    def test_source_off_state(self, state):
+    @pytest.mark.parametrize("off_state", ['ZERO', 'HIZ', 'NORM'])
+    def test_source_off_state(self, off_state):
         """Verify the communication of the source_off_state getter/setter."""
         with expected_protocol(
             AgilentB2987,
-            [(f":OUTP:OFF:MODE {state}", None),
-             (":OUTP:OFF:MODE?", state)]
+            [(f":OUTP:OFF:MODE {off_state}", None),
+             (":OUTP:OFF:MODE?", off_state)]
         ) as inst:
-            inst.source_off_state = state
-            assert state == inst.source_off_state
+            inst.source_off_state = off_state
+            assert off_state == inst.source_off_state
 
     @pytest.mark.parametrize("voltage", [0, 3, -2.5, 1000, 1.5e2, -1e3])
     def test_source_voltage(self, voltage):
