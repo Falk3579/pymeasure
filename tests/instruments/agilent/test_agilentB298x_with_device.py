@@ -32,16 +32,19 @@
 
 import pytest
 from pymeasure.instruments.agilent.agilentB298x import AgilentB2987  # B2987 supports all features
+from time import sleep
 # from pyvisa.errors import VisaIOError
 
-DEVICE_ID = 'B2981'  # change to the connected device type
+DEVICE_ID = 'B2987'  # change to the connected device ID
 HAS_SOURCE = ['B2985', 'B2987']
 HAS_BATTERY = ['B2983', 'B2987']
+
 
 @pytest.fixture(scope="module")
 def agilentB298x(connected_device_address):
     instr = AgilentB2987(connected_device_address)
     return instr
+
 
 @pytest.fixture
 def resetted_b298x(agilentB298x):
@@ -49,14 +52,16 @@ def resetted_b298x(agilentB298x):
     agilentB298x.reset()
     return agilentB298x
 
+
 @pytest.fixture
 def b298x_with_input_enabled(agilentB298x):
     agilentB298x.input_enabled = True
     return agilentB298x
 
+
 @pytest.fixture
 def b298x_idle(agilentB298x):
-    idle = agilentB298x.trigger_is_idle
+    agilentB298x.trigger_all_is_idle
     return agilentB298x
 
 
@@ -110,7 +115,6 @@ class TestAgilentB298xAmmeter:
         agilentB298x.init('ACQ')
         assert len(agilentB298x.check_errors()) == 0
 
-
     @pytest.mark.parametrize("count", [1, 10])
     def test_arm_count_acq(self, b298x_idle, count):
         b298x_idle.arm_count = count
@@ -118,16 +122,73 @@ class TestAgilentB298xAmmeter:
         assert count == b298x_idle.arm_count
 
 
-
-
-
 @pytest.mark.skipif(DEVICE_ID not in HAS_SOURCE, reason=f"{DEVICE_ID} has no source")
 class TestAgilentB298xSource:
     """Test of the source functions of B2985 and B2987."""
 
-    def test_enabled(self, agilentB298x):
-        enabled = agilentB298x.source_enabled
-        assert enabled in [True, False]
+    @pytest.mark.parametrize("state", [True, False])
+    def test_enabled(self, agilentB298x, state):
+        agilentB298x.source_enabled = state
+        sleep(1)
+        assert state == agilentB298x.source_enabled
+
+    @pytest.mark.parametrize("low_state", ['FLO', 'COMM'])
+    def test_source_low_state(self, agilentB298x, low_state):
+        agilentB298x.source_low_state = low_state
+        sleep(1)
+        assert low_state == agilentB298x.source_low_state
+
+    @pytest.mark.parametrize("off_state", ['ZERO', 'HIZ', 'NORM'])
+    def test_source_off_state(self, off_state):
+        agilentB298x.source_off_state = off_state
+        assert off_state == agilentB298x.source_off_state
+
+    @pytest.mark.parametrize("voltage", [-20, -5.3, 0.24, 1.25e1, 0])
+    def test_source_voltage(self, agilentB298x, voltage):
+        agilentB298x.source_voltage = voltage
+        assert voltage == agilentB298x.source_voltage
+
+    @pytest.mark.parametrize("range", ['MIN', 'MAX', 'DEF', 1, 20])
+    def test_source_voltage_range(self, agilentB298x, range):
+        RANGES = [20, -1000, 1000]
+        agilentB298x.source_voltage_range = range
+        assert agilentB298x.source_voltage_range in RANGES
+
+
+@pytest.mark.skipif(DEVICE_ID not in HAS_SOURCE, reason=f"{DEVICE_ID} is not an electrometer")
+class TestAgilentB298xElectrometer:
+    """Test of the electrometer functions of B2985 and B2987."""
+
+    @pytest.mark.parametrize("function", ['CURR', 'CHAR', 'VOLT'])
+    def test_function(self, agilentB298x, function):
+        agilentB298x.function = function
+        assert function == agilentB298x.function
+
+    def test_function_res(self, agilentB298x):
+        agilentB298x.function = 'RES'
+        assert ['VOLT', 'CURR', 'RES'] == agilentB298x.function
+
+    def test_charge(self, agilentB298x):
+        agilentB298x.function = 'CHAR'
+        assert type(agilentB298x.charge) is float
+
+    def test_charge_range(self, agilentB298x):
+        assert 2E-9 <= agilentB298x.charge_range <= 2E-6
+
+    def test_resistance(self, agilentB298x):
+        agilentB298x.function = 'RES'
+        assert type(agilentB298x.resistance) is float
+
+    def test_resistance_range(self, agilentB298x):
+        assert 1E6 <= agilentB298x.resistance_range <= 1E15
+
+    def test_voltage(self, agilentB298x):
+        agilentB298x.function = 'VOLT'
+        assert type(agilentB298x.voltage) is float
+
+    def test_voltage_range(self, agilentB298x):
+        assert agilentB298x.voltage_range in [2, 20]
+
 
 @pytest.mark.skipif(DEVICE_ID not in HAS_BATTERY, reason=f"{DEVICE_ID} has no battery")
 class TestAgilentB298xBattery:

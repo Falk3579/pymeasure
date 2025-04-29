@@ -601,7 +601,8 @@ class AgilentB2985(AgilentB2981):
 
         """,
         validator=strict_discrete_set,
-        values=['CURR', 'CHAR', 'VOLT', 'RES']
+        values=['CURR', 'CHAR', 'VOLT', 'RES'],
+        get_process=lambda v: [x.strip('"') for x in v] if type(v) is list else v.strip('"'), 
         )
 
     charge = Instrument.measurement(
@@ -947,15 +948,15 @@ class AgilentB2985(AgilentB2981):
     source_voltage = Channel.control(
         ":SOUR:VOLT?", ":SOUR:VOLT %g",
         """Control the source voltage in Volts (float).""",
-        check_set_errors=False
+        validator=strict_range,
+        values=[-1000, 1000]
         )
 
     source_voltage_range = Channel.control(
         ":SOUR:VOLT:RANG?", ":SOUR:VOLT:RANG %s",
         """Control the source voltage range.""",
         validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF'], [-1000, 1000]],
-        check_set_errors=False
+        values=[['MIN', 'MAX', 'DEF'], [-1000, 1000]]
         )
 
 
