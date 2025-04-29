@@ -652,7 +652,7 @@ class AgilentB2985(AgilentB2981):
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2, 20]]
         )
-        
+
 ################################
 # additional trigger functions #
 ################################

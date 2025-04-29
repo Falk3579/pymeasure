@@ -127,10 +127,11 @@ class TestAgilentB2981:
 # Trigger system #
 ##################
 
+
 @pytest.mark.parametrize("layer", ['ALL', 'ACQ', 'TRAN'])
 class TestAgilentB298xTrigger:
     """Tests of the trigger methods"""
-    
+
     def test_abort(self, layer):
         """Verify the communication of the abort method with action."""
         with expected_protocol(
@@ -180,8 +181,11 @@ class TestAgilentB298xTriggerProperties:
             [(f":{sub_system}:{layer}:BYP {mapping[state]}", None),
              (f":{sub_system}:{layer}:BYP?", mapping[state])]
         ) as inst:
-            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_bypass_once_enabled", state)
-            assert state == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_bypass_once_enabled")
+            setattr(inst,
+                    f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_bypass_once_enabled",
+                    state)
+            assert state == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_bypass_once_enabled")
 
     @pytest.mark.parametrize("count", [1, 10, 1e3])
     def test_count(self, sub_system, layer, count):
@@ -192,7 +196,8 @@ class TestAgilentB298xTriggerProperties:
              (f":{sub_system}:{layer}:COUN?", count)]
         ) as inst:
             setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_count", count)
-            assert count == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_count")
+            assert count == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_count")
 
     @pytest.mark.parametrize("delay", [0, 10, 1e3, 'MAX'])
     def test_delay(self, sub_system, layer, delay):
@@ -203,7 +208,8 @@ class TestAgilentB298xTriggerProperties:
              (f":{sub_system}:{layer}:DEL?", delay)]
         ) as inst:
             setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_delay", delay)
-            assert delay == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_delay")
+            assert delay == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_delay")
 
     @pytest.mark.parametrize("source", ['AINT', 'BUS', 'EXT2'])
     def test_source(self, sub_system, layer, source):
@@ -214,7 +220,8 @@ class TestAgilentB298xTriggerProperties:
              (f":{sub_system}:{layer}:SOUR?", source)]
         ) as inst:
             setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source", source)
-            assert source == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source")
+            assert source == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source")
 
     @pytest.mark.parametrize("lan_id", ['LAN0', 'LAN7'])
     def test_source_lan_id(self, sub_system, layer, lan_id):
@@ -224,8 +231,11 @@ class TestAgilentB298xTriggerProperties:
             [(f":{sub_system}:{layer}:SOUR:LAN {lan_id}", None),
              (f":{sub_system}:{layer}:SOUR:LAN?", lan_id)]
         ) as inst:
-            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source_lan_id", lan_id)
-            assert lan_id == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source_lan_id")
+            setattr(inst,
+                    f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source_lan_id",
+                    lan_id)
+            assert lan_id == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_source_lan_id")
 
     @pytest.mark.parametrize("timer", ['MIN', 1E-5, 0.12, 100000])
     def test_timer(self, sub_system, layer, timer):
@@ -236,8 +246,8 @@ class TestAgilentB298xTriggerProperties:
              (f":{sub_system}:{layer}:TIM?", timer)]
         ) as inst:
             setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_timer", timer)
-            assert timer == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_timer")
-
+            assert timer == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_timer")
 
     @pytest.mark.parametrize("output_signal", ['INT1', 'TOUT', 'EXT3'])
     def test_output_signal(self, sub_system, layer, output_signal):
@@ -247,8 +257,11 @@ class TestAgilentB298xTriggerProperties:
             [(f":{sub_system}:{layer}:TOUT:SIGN {output_signal}", None),
              (f":{sub_system}:{layer}:TOUT:SIGN?", output_signal)]
         ) as inst:
-            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_signal", output_signal)
-            assert output_signal == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_signal")
+            setattr(inst,
+                    f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_signal",
+                    output_signal)
+            assert output_signal == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_signal")
 
     @pytest.mark.parametrize("state", [True, False])
     def test_output_enabled(self, sub_system, layer, state):
@@ -259,8 +272,11 @@ class TestAgilentB298xTriggerProperties:
             [(f":{sub_system}:{layer}:TOUT {mapping[state]}", None),
              (f":{sub_system}:{layer}:TOUT?", mapping[state])]
         ) as inst:
-            setattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_enabled", state)
-            assert state == getattr(inst, f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_enabled")
+            setattr(inst,
+                    f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_enabled",
+                    state)
+            assert state == getattr(inst,
+                   f"{SUB_SYSTEMS[sub_system]}_{TRIGGER_LAYERS[layer]}_output_enabled")
 
 
 class TestAgilentB2985:
