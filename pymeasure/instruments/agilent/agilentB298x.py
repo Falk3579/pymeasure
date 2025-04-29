@@ -146,8 +146,6 @@ class AgilentB2981(SCPIMixin, Instrument):
 # Trigger properties for ACQuire layer #
 ########################################
 
-
-
     arm_acquire_bypass_once_enabled = Channel.control(
         ":ARM:ACQ:BYP?", ":ARM:ACQ:BYP %s",
         """Control the bypass for the event detector in the arm layer (bool).""",
