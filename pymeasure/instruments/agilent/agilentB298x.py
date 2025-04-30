@@ -374,19 +374,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         values={True: 'ONCE', False: 'OFF'}
         )
 
-    arm_all_count = Channel.control(
-        ":ARM:ALL:COUN?", ":ARM:ALL:COUN %s",
-        """Control the arm count for layer 'ACQuire'.
-
-        for the specified device action.
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
-        )
-
-    arm_all_count = Channel.control(
-        ":ARM:ALL:COUN?", ":ARM:ALL:COUN %s",
-        """Control the arm count for layer 'ALL'.
+    arm_all_count = Channel.setting(
+        ":ARM:ALL:COUN %s",
+        """Set the arm count for layer 'ALL'.
 
         for the specified device action.
         """,
@@ -489,9 +479,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         values={True: 'ONCE', False: 'OFF'}
         )
 
-    trigger_all_count = Channel.control(
-        ":TRIG:ALL:COUN?", ":TRIG:ALL:COUN %s",
-        """Control the trigger count.
+    trigger_all_count = Channel.setting(
+        ":TRIG:ALL:COUN %s",
+        """Set the trigger count.
 
         for the specified device action.
 
