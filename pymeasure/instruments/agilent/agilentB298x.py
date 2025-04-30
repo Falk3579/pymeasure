@@ -366,9 +366,9 @@ class AgilentB2981(SCPIMixin, Instrument):
 # Trigger properties for ALL layers #
 #####################################
 
-    arm_all_bypass_once_enabled = Channel.control(
-        ":ARM:ALL:BYP?", ":ARM:ALL:BYP %s",
-        """Control the bypass for the event detector in the arm layer (bool).""",
+    arm_all_bypass_once_enabled = Channel.setting(
+        ":ARM:ALL:BYP %s",
+        """Set the bypass for the event detector in the arm layer (bool).""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -376,7 +376,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_count = Channel.setting(
         ":ARM:ALL:COUN %s",
-        """Set the arm count for layer 'ALL'.
+        """Set the arm counter for layer 'ALL'.
 
         for the specified device action.
         """,
@@ -384,9 +384,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
         )
 
-    arm_all_delay = Channel.control(
-        ":ARM:ALL:DEL?", ":ARM:ALL:DEL %s",
-        """Control the arm delay in seconds.
+    arm_all_delay = Channel.setting(
+        ":ARM:ALL:DEL %s",
+        """Set the arm delay in seconds.
 
         for the specified device action.
         """,
@@ -394,9 +394,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
 
-    arm_all_source = Channel.control(
-        ":ARM:ALL:SOUR?", ":ARM:ALL:SOUR %s",
-        """Control the arm source for the specified device action.
+    arm_all_source = Channel.setting(
+        ":ARM:ALL:SOUR %s",
+        """Set the arm source for the specified device action.
 
         - **AINT** automatically selects the arm source most suitable for the
           present operating mode by using internal algorithms.
@@ -415,16 +415,16 @@ class AgilentB2981(SCPIMixin, Instrument):
                 'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
         )
 
-    arm_all_source_lan_id = Channel.control(
-        ":ARM:ALL:SOUR:LAN?", ":ARM:ALL:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
+    arm_all_source_lan_id = Channel.setting(
+        ":ARM:ALL:SOUR:LAN %s",
+        """Set the source for LAN triggers.""",
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
         )
 
-    arm_all_timer = Channel.control(
-        ":ARM:ALL:TIM?", ":ARM:ALL:TIM %s",
-        """Control the timer interval of the arm source in seconds.
+    arm_all_timer = Channel.setting(
+        ":ARM:ALL:TIM %s",
+        """Set the timer interval of the arm source in seconds.
 
         :type: float, strictly from ``1E-5`` to ``1E5``
         :type: str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -434,9 +434,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
 
-    arm_all_output_signal = Channel.control(
-        ":ARM:ALL:TOUT:SIGN?", ":ARM:ALL:TOUT:SIGN %s",
-        """Control the trigger output.
+    arm_all_output_signal = Channel.setting(
+        ":ARM:ALL:TOUT:SIGN %s",
+        """Set the trigger output.
 
         for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
@@ -452,9 +452,9 @@ class AgilentB2981(SCPIMixin, Instrument):
                 'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
         )
 
-    arm_all_output_enabled = Channel.control(
-        ":ARM:ALL:TOUT?", ":ARM:ALL:TOUT %s",
-        """Control the arm trigger output (bool).
+    arm_all_output_enabled = Channel.setting(
+        ":ARM:ALL:TOUT %s",
+        """Set the arm trigger output (bool).
 
         for the status change between the idle state
         and the arm layer.""",
@@ -471,9 +471,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         values={True: 1, False: 0}
         )
 
-    trigger_all_bypass_once_enabled = Channel.control(
-        ":TRIG:ALL:BYP?", ":TRIG:ALL:BYP %s",
-        """Control the bypass for the event detector in the trigger layer (bool).""",
+    trigger_all_bypass_once_enabled = Channel.setting(
+        ":TRIG:ALL:BYP %s",
+        """Set the bypass for the event detector in the trigger layer (bool).""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -495,18 +495,18 @@ class AgilentB2981(SCPIMixin, Instrument):
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
         )
 
-    trigger_all_delay = Channel.control(
-        ":TRIG:ALL:DEL?", ":TRIG:ALL:DEL %s",
-        """Control the trigger delay.
+    trigger_all_delay = Channel.setting(
+        ":TRIG:ALL:DEL %s",
+        """Set the trigger delay.
 
         for the specified device action.""",
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
 
-    trigger_all_source = Channel.control(
-        ":TRIG:ALL:SOUR?", ":TRIG:ALL:SOUR %s",
-        """Control the trigger source.
+    trigger_all_source = Channel.setting(
+        ":TRIG:ALL:SOUR %s",
+        """Set the trigger source.
 
         for the specified device action.
 
@@ -527,25 +527,25 @@ class AgilentB2981(SCPIMixin, Instrument):
                 'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
         )
 
-    trigger_all_source_lan_id = Channel.control(
-        ":TRIG:ALL:SOUR:LAN?", ":TRIG:ALL:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
+    trigger_all_source_lan_id = Channel.setting(
+        ":TRIG:ALL:SOUR:LAN %s",
+        """Set the source for LAN triggers.""",
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
         )
 
-    trigger_all_timer = Channel.control(
-        ":TRIG:ALL:TIM?", ":TRIG:ALL:TIM %s",
-        """Control the timer interval of arm source.
+    trigger_all_timer = Channel.setting(
+        ":TRIG:ALL:TIM %s",
+        """Set the timer interval of arm source.
 
         for the specified device action.""",
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
 
-    trigger_all_output_signal = Channel.control(
-        ":TRIG:ALL:TOUT:SIGN?", ":TRIG:ALL:TOUT:SIGN %s",
-        """Control the trigger signal output.
+    trigger_all_output_signal = Channel.setting(
+        ":TRIG:ALL:TOUT:SIGN %s",
+        """Set the trigger signal output.
 
         for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
@@ -561,9 +561,9 @@ class AgilentB2981(SCPIMixin, Instrument):
                 'EXT1', 'EXT2', 'EXT3', 'EXT4', 'EXT5', 'EXT6', 'EXT7']
         )
 
-    trigger_all_output_enabled = Channel.control(
-        ":TRIG:ALL:TOUT?", ":TRIG:ALL:TOUT %s",
-        """Control the trigger output (bool).
+    trigger_all_output_enabled = Channel.setting(
+        ":TRIG:ALL:TOUT %s",
+        """Set the trigger output (bool).
 
         for the status change between the idle state
         and the trigger layer.""",
