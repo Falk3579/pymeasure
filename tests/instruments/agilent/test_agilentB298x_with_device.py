@@ -35,9 +35,18 @@ from pymeasure.instruments.agilent.agilentB298x import AgilentB2987  # B2987 sup
 from time import sleep
 # from pyvisa.errors import VisaIOError
 
-DEVICE_ID = 'B2987'  # change to the connected device ID
-HAS_SOURCE = ['B2985', 'B2987']
-HAS_BATTERY = ['B2983', 'B2987']
+TEST_SOURCE = False
+TEST_BATTERY = False
+TEST_AMMETER = False
+TEST_TRIGGER = True
+TRIGGER_LAYERS = {'ALL': 'all',
+                  'ACQ': 'acquire',
+                  'TRAN': 'transient',
+                  }
+
+SUB_SYSTEMS = {'ARM': 'arm',
+               'TRIG': 'trigger',
+               }
 
 
 @pytest.fixture(scope="module")
@@ -58,15 +67,22 @@ def b298x_with_input_enabled(agilentB298x):
     agilentB298x.input_enabled = True
     return agilentB298x
 
+@pytest.fixture
+def b298x_with_source_enabled(agilentB298x):
+    agilentB298x.source_enabled = True
+    return agilentB298x
+
 
 @pytest.fixture
 def b298x_idle(agilentB298x):
     agilentB298x.trigger_all_is_idle
+    agilentB298x.source_enabled = True
+    agilentB298x.input_enabled = True
     return agilentB298x
 
 
-# @pytest.mark.skip(reason="Comment")
-class TestAgilentB298xAmmeter:
+@pytest.mark.skipif(not TEST_AMMETER, reason="Ammeter tests skipped by user")
+class TestAmmeter:
     """Test of the ammeter functions."""
 
     def test_device_id(self, resetted_b298x):
@@ -91,39 +107,48 @@ class TestAgilentB298xAmmeter:
         current = agilentB298x.current
         assert type(current) is float
 
-##################
-# Trigger system #
-##################
 
-    @pytest.mark.parametrize("action", ['ALL', 'ACQ'])
-    def test_abort(self, agilentB298x, action):
-        agilentB298x.abort(action)
+@pytest.mark.skipif(not TEST_TRIGGER, reason="Trigger system tests skipped by user")
+@pytest.mark.parametrize("layer", ['ALL', 'ACQ', 'TRAN'])
+class TestTrigger:
+    """Test of the trigger methods."""
+
+    def test_abort(self, agilentB298x, layer):
+        agilentB298x.abort(layer)
         assert len(agilentB298x.check_errors()) == 0
 
-    # @pytest.mark.parametrize("state", [True, False])
-    # def test_arm_bypass_once_enabled(self, agilentB298x, state):
-        # agilentB298x.arm_bypass_once_enabled = state
-        # assert len(agilentB298x.check_errors()) == 0
-        # assert state == agilentB298x.arm_bypass_once_enabled
-
-    @pytest.mark.parametrize("action", ['ALL', 'ACQ'])
-    def test_arm(self, agilentB298x, action):
-        agilentB298x.arm(action)
+    def test_arm(self, agilentB298x, layer):
+        agilentB298x.arm(layer)
         assert len(agilentB298x.check_errors()) == 0
 
-    def test_init(self, agilentB298x):
-        agilentB298x.init('ACQ')
+    def test_init(self, b298x_idle, agilentB298x, layer):
+        b298x_idle.init(layer)
+        assert len(agilentB298x.check_errors()) == 0
+
+
+@pytest.mark.skipif(not TEST_TRIGGER, reason="Trigger system tests skipped by user")
+@pytest.mark.parametrize("layer", ['all', 'acquire', 'transient'])
+# @pytest.mark.parametrize("layer", ['acquire', 'transient'])
+@pytest.mark.parametrize("sub_system", ['arm', 'trigger'])
+class TestTriggerProperties:
+    """Tests of the trigger properties"""
+
+    @pytest.mark.parametrize("state", [True, False])
+    def test_bypass_once_enabled(self, agilentB298x, b298x_idle, layer, sub_system, state):
+        setattr(b298x_idle, f"{sub_system}_{layer}_bypass_once_enabled", state)
+        assert state == getattr(b298x_idle, f"{sub_system}_{layer}_bypass_once_enabled")
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("count", [1, 10])
-    def test_arm_count_acq(self, b298x_idle, count):
-        b298x_idle.arm_count = count
-        assert len(b298x_idle.check_errors()) == 0
-        assert count == b298x_idle.arm_count
+    def test_count(self, agilentB298x, layer, sub_system, count):
+        setattr(agilentB298x, f"{sub_system}_{layer}_count", count)
+        assert count == getattr(agilentB298x, f"{sub_system}_{layer}_count")
+        assert len(agilentB298x.check_errors()) == 0
 
 
-@pytest.mark.skipif(DEVICE_ID not in HAS_SOURCE, reason=f"{DEVICE_ID} has no source")
-class TestAgilentB298xSource:
+
+@pytest.mark.skipif(not TEST_SOURCE, reason="Source tests skipped by user")
+class TestSource:
     """Test of the source functions of B2985 and B2987."""
 
     @pytest.mark.parametrize("state", [True, False])
@@ -155,8 +180,8 @@ class TestAgilentB298xSource:
         assert agilentB298x.source_voltage_range in RANGES
 
 
-@pytest.mark.skipif(DEVICE_ID not in HAS_SOURCE, reason=f"{DEVICE_ID} is not an electrometer")
-class TestAgilentB298xElectrometer:
+@pytest.mark.skipif(not TEST_SOURCE, reason="Electrometer tests skipped by user")
+class TestElectrometer:
     """Test of the electrometer functions of B2985 and B2987."""
 
     @pytest.mark.parametrize("function", ['CURR', 'CHAR', 'VOLT'])
@@ -190,8 +215,8 @@ class TestAgilentB298xElectrometer:
         assert agilentB298x.voltage_range in [2, 20]
 
 
-@pytest.mark.skipif(DEVICE_ID not in HAS_BATTERY, reason=f"{DEVICE_ID} has no battery")
-class TestAgilentB298xBattery:
+@pytest.mark.skipif(not TEST_BATTERY, reason="Battery tests skipped by user")
+class TestBattery:
     """Test of the battery functions of B2983 and B2987."""
 
     def test_level(self, agilentB298x):
