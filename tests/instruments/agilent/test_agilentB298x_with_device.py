@@ -36,9 +36,10 @@ from time import sleep
 # from pyvisa.errors import VisaIOError
 
 TEST_AMMETER = True
-TEST_TRIGGER = True
-TEST_SOURCE = True
-TEST_BATTERY = True
+TEST_ELECTROMETER = False
+TEST_TRIGGER = False
+TEST_SOURCE = False
+TEST_BATTERY = False
 
 TRIGGER_LAYERS = ['acquire', 'transient']
 TRIGGER_SUB_SYSTEMS = ['arm', 'trigger']
@@ -76,20 +77,39 @@ class TestAmmeter:
     def test_input_enabled(self, agilentB298x):
         input_enabled = agilentB298x.input_enabled
         assert input_enabled is False
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_zero_corrected(self, agilentB298x):
         zero_corrected = agilentB298x.zero_corrected
         assert type(zero_corrected) is bool
+        assert len(agilentB298x.check_errors()) == 0
+
+    def test_measure(self, agilentB298x):
+        measure = agilentB298x.measure
+        assert (type(measure) is float) or (type(measure) is list)
+        assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("range", ['MIN', 'MAX', 'DEF', 'UP', 'DOWN', 2E-3])
     def test_current_range(self, agilentB298x, range):
         agilentB298x.current_range = range
         current_range = agilentB298x.current_range
         assert 2E-12 <= current_range <= 20E-3
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_current(self, agilentB298x):
         current = agilentB298x.current
         assert type(current) is float
+        assert len(agilentB298x.check_errors()) == 0
+
+    def test_interlock_enabled(self, agilentB298x):
+        interlock_enabled = agilentB298x.interlock_enabled
+        assert type(interlock_enabled) is bool
+        assert len(agilentB298x.check_errors()) == 0
+
+    def test_data_buffer_size(self, agilentB298x):
+        data_buffer_size = agilentB298x.data_buffer_size
+        assert type(data_buffer_size) is int
+        assert len(agilentB298x.check_errors()) == 0
 
 
 @pytest.mark.skipif(not TEST_TRIGGER, reason="Trigger system tests skipped by user")
@@ -222,31 +242,36 @@ class TestSource:
         agilentB298x.source_enabled = state
         sleep(1)
         assert state == agilentB298x.source_enabled
+        assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("low_state", ['FLO', 'COMM'])
     def test_source_low_state(self, agilentB298x, low_state):
         agilentB298x.source_low_state = low_state
         sleep(1)
         assert low_state == agilentB298x.source_low_state
+        assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("off_state", ['ZERO', 'HIZ', 'NORM'])
-    def test_source_off_state(self, off_state):
+    def test_source_off_state(self, agilentB298x, off_state):
         agilentB298x.source_off_state = off_state
         assert off_state == agilentB298x.source_off_state
+        assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("voltage", [-20, -5.3, 0.24, 1.25e1, 0])
     def test_source_voltage(self, agilentB298x, voltage):
         agilentB298x.source_voltage = voltage
         assert voltage == agilentB298x.source_voltage
+        assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("range", ['MIN', 'MAX', 'DEF', 1, 20])
     def test_source_voltage_range(self, agilentB298x, range):
         RANGES = [20, -1000, 1000]
         agilentB298x.source_voltage_range = range
         assert agilentB298x.source_voltage_range in RANGES
+        assert len(agilentB298x.check_errors()) == 0
 
 
-@pytest.mark.skipif(not TEST_SOURCE, reason="Electrometer tests skipped by user")
+@pytest.mark.skipif(not TEST_ELECTROMETER, reason="Electrometer tests skipped by user")
 class TestElectrometer:
     """Test of the electrometer functions of B2985 and B2987."""
 
@@ -254,31 +279,59 @@ class TestElectrometer:
     def test_function(self, agilentB298x, function):
         agilentB298x.function = function
         assert function == agilentB298x.function
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_function_res(self, agilentB298x):
         agilentB298x.function = 'RES'
         assert ['VOLT', 'CURR', 'RES'] == agilentB298x.function
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_charge(self, agilentB298x):
         agilentB298x.function = 'CHAR'
         assert type(agilentB298x.charge) is float
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_charge_range(self, agilentB298x):
         assert 2E-9 <= agilentB298x.charge_range <= 2E-6
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_resistance(self, agilentB298x):
         agilentB298x.function = 'RES'
         assert type(agilentB298x.resistance) is float
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_resistance_range(self, agilentB298x):
         assert 1E6 <= agilentB298x.resistance_range <= 1E15
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_voltage(self, agilentB298x):
         agilentB298x.function = 'VOLT'
         assert type(agilentB298x.voltage) is float
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_voltage_range(self, agilentB298x):
         assert agilentB298x.voltage_range in [2, 20]
+        assert len(agilentB298x.check_errors()) == 0
+
+    def test_humidity(self, agilentB298x):
+        assert type(agilentB298x.humidity) is float
+        assert len(agilentB298x.check_errors()) == 0
+
+    def test_temperature(self, agilentB298x):
+        assert type(agilentB298x.temperature) is float
+        assert len(agilentB298x.check_errors()) == 0
+
+    @pytest.mark.parametrize("unit", ['C', 'F', 'K'])
+    def test_temperature_unit(self, agilentB298x, unit):
+        agilentB298x.temperature_unit = unit
+        assert unit == agilentB298x.temperature_unit
+        assert len(agilentB298x.check_errors()) == 0
+
+    @pytest.mark.parametrize("sensor", ['TC', 'HSEN'])
+    def test_temperature_sensor(self, agilentB298x, sensor):
+        agilentB298x.temperature_sensor = sensor
+        assert sensor == agilentB298x.temperature_sensor
+        assert len(agilentB298x.check_errors()) == 0
 
 
 @pytest.mark.skipif(not TEST_BATTERY, reason="Battery tests skipped by user")
@@ -288,11 +341,14 @@ class TestBattery:
     def test_level(self, agilentB298x):
         level = agilentB298x.battery_level
         assert 0 <= level <= 100
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_cycles(self, agilentB298x):
         cycles = agilentB298x.battery_cycles
         assert cycles >= 0
+        assert len(agilentB298x.check_errors()) == 0
 
     def test_selftest_passed(self, agilentB298x):
         selftest_passed = agilentB298x.battery_selftest_passed
         assert type(selftest_passed) is bool
+        assert len(agilentB298x.check_errors()) == 0
