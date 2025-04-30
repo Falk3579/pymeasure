@@ -123,9 +123,23 @@ class TestAmmeter:
             inst.current_range = range
             assert range == inst.current_range
 
-##################
-# Trigger system #
-##################
+    def test_interlock_enabled(self):
+        """Verify the communication of the interlock_enabled getter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(":SYST:INT:TRIP?", "0"),
+             (":SYST:INT:TRIP?", "1")]
+        ) as inst:
+            assert inst.interlock_enabled is True
+            assert inst.interlock_enabled is False
+
+    def test_data_buffer_size(self):
+        """Verify the communication of the data_buffer_size getter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(":SYST:DATA:QUAN?", "14")]
+        ) as inst:
+            assert inst.data_buffer_size == 14
 
 
 @pytest.mark.parametrize("layer", ['ALL', 'ACQ', 'TRAN'])
@@ -436,6 +450,44 @@ class TestElectrometer:
         ) as inst:
             inst.voltage_range = range
             assert range == inst.voltage_range
+
+    def test_humidity(self):
+        """Verify the communication of the humidity getter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(":SYST:HUM?", "53.6")]
+        ) as inst:
+            assert inst.humidity == 53.6
+
+    def test_temperature(self):
+        """Verify the communication of the temperature getter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(":SYST:TEMP?", "23.8")]
+        ) as inst:
+            assert inst.temperature == 23.8
+
+    @pytest.mark.parametrize("sensor", ['TC', 'HSEN'])
+    def test_temperature_sensor(self, sensor):
+        """Verify the communication of the temperature_sensor getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":SYST:TEMP:SEL {sensor}", None),
+             (":SYST:TEMP:SEL?", sensor)]
+        ) as inst:
+            inst.temperature_sensor = sensor
+            assert sensor == inst.temperature_sensor
+
+    @pytest.mark.parametrize("unit", ['C', 'F', 'K'])
+    def test_temperature_unit(self, unit):
+        """Verify the communication of the temperature_unit getter/setter."""
+        with expected_protocol(
+            AgilentB2987,
+            [(f":SYST:TEMP:UNIT {unit}", None),
+             (":SYST:TEMP:UNIT?", unit)]
+        ) as inst:
+            inst.temperature_unit = unit
+            assert unit == inst.temperature_unit
 
 
 class TestSource:
