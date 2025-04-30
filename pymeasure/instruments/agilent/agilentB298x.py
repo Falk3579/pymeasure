@@ -80,7 +80,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     zero_corrected = Instrument.control(
         ":INP:ZCOR?", ":INP:ZCOR %d",
-        """Control the zero correct function (bool).""",
+        """Control the zero correction function (bool).""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 1, False: 0}
@@ -105,6 +105,19 @@ class AgilentB2981(SCPIMixin, Instrument):
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-12, 20E-3]]
+        )
+
+    interlock_enabled = Instrument.measurement(
+        ":SYST:INT:TRIP?",
+        """Get the interlock status (bool).""",
+        map_values=True,
+        values={True: 0, False: 1}
+        )
+
+    data_buffer_size = Instrument.measurement(
+        ":SYST:DATA:QUAN?",
+        """Get the data buffer size (int).""",
+        cast=int
         )
 
 ##################
@@ -362,9 +375,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         values={True: 1, False: 0}
         )
 
-#####################################
-# Trigger properties for ALL layers #
-#####################################
+######################################
+# Trigger setters for the ALL layers #
+######################################
 
     arm_all_bypass_once_enabled = Channel.setting(
         ":ARM:ALL:BYP %s",
@@ -643,6 +656,44 @@ class AgilentB2985(AgilentB2981):
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2, 20]]
         )
+
+    humidity = Instrument.measurement(
+        ":SYST:HUM?",
+        """Measure the relative humidity."""
+        )
+
+    temperature = Instrument.measurement(
+        ":SYST:TEMP?",
+        """Measure the temperature."""
+        )
+
+    temperature_sensor = Instrument.control(
+        ":SYST:TEMP:SEL?", ":SYST:TEMP:SEL %s",
+        """Control the tempertature sensor.
+
+        :type: str, strictly in ``TC``, ``HSEN``
+        
+        - TC selects the thermocouple
+        - HSEN selects the temperature sensor within the humidity sensor.
+
+        """,
+        validator=strict_discrete_set,
+        values=['TC', 'HSEN']
+        )
+
+    temperature_unit = Instrument.control(
+        ":SYST:TEMP:UNIT?", ":SYST:TEMP:UNIT %s",
+        """Control the tempertature unit.
+
+        :type: str, strictly in ``C``, ``CEL``,
+                                ``F``, ``FAR``,
+                                ``K``
+
+        """,
+        validator=strict_discrete_set,
+        values=['C', 'CEL', 'F', 'FAR', 'K']
+        )
+
 
 ################################
 # additional trigger functions #
