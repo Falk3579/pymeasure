@@ -36,10 +36,10 @@ from time import sleep
 # from pyvisa.errors import VisaIOError
 
 TEST_AMMETER = True
-TEST_ELECTROMETER = False
-TEST_TRIGGER = False
-TEST_SOURCE = False
-TEST_BATTERY = False
+TEST_ELECTROMETER = True
+TEST_TRIGGER = True
+TEST_SOURCE = True
+TEST_BATTERY = True
 
 TRIGGER_LAYERS = ['acquire', 'transient']
 TRIGGER_SUB_SYSTEMS = ['arm', 'trigger']
@@ -60,6 +60,7 @@ def resetted_b298x(agilentB298x):
 
 @pytest.fixture
 def b298x_idle(agilentB298x):
+    agilentB298x.abort('ALL')
     agilentB298x.trigger_all_is_idle
     agilentB298x.source_enabled = True
     agilentB298x.input_enabled = True
@@ -138,53 +139,69 @@ class TestTriggerProperties:
 
     @pytest.mark.parametrize("state", [True, False])
     def test_bypass_once_enabled(self, agilentB298x, b298x_idle, layer, sub_system, state):
-        setattr(b298x_idle, f"{sub_system}_{layer}_bypass_once_enabled", state)
-        assert state == getattr(b298x_idle, f"{sub_system}_{layer}_bypass_once_enabled")
+        attribute = f"{sub_system}_{layer}_bypass_once_enabled"
+        assert attribute in dir(b298x_idle)
+        setattr(b298x_idle, attribute, state)
+        assert state == getattr(b298x_idle, attribute)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("count", [1, 10])
     def test_count(self, agilentB298x, layer, sub_system, count):
-        setattr(agilentB298x, f"{sub_system}_{layer}_count", count)
-        assert count == getattr(agilentB298x, f"{sub_system}_{layer}_count")
+        attribute = f"{sub_system}_{layer}_count"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, count)
+        assert count == getattr(agilentB298x, attribute)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("delay", [0, 10, 1e3, 'MIN', 'MAX'])
     def test_delay(self, agilentB298x, layer, sub_system, delay):
-        setattr(agilentB298x, f"{sub_system}_{layer}_delay", delay)
+        attribute = f"{sub_system}_{layer}_delay"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, delay)
         if type(delay) is float:
-            assert delay == getattr(agilentB298x, f"{sub_system}_{layer}_delay")
+            assert delay == getattr(agilentB298x, attribute)
         if type(delay) is str:
-            assert getattr(agilentB298x, f"{sub_system}_{layer}_delay") in [0, 100000]
+            assert getattr(agilentB298x, attribute) in [0, 100000]
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("source", ['AINT', 'BUS', 'EXT2'])
     def test_source(self, agilentB298x, sub_system, layer, source):
-        setattr(agilentB298x, f"{sub_system}_{layer}_source", source)
-        assert source == getattr(agilentB298x, f"{sub_system}_{layer}_source")
+        attribute = f"{sub_system}_{layer}_source"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, source)
+        assert source == getattr(agilentB298x, attribute)
 
     @pytest.mark.parametrize("lan_id", ['LAN0', 'LAN7'])
     def test_source_lan_id(self, agilentB298x, sub_system, layer, lan_id):
-        setattr(agilentB298x, f"{sub_system}_{layer}_lan_id", lan_id)
-        assert lan_id == getattr(agilentB298x, f"{sub_system}_{layer}_lan_id")
+        attribute = f"{sub_system}_{layer}_source_lan_id"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, lan_id)
+        assert lan_id == getattr(agilentB298x, attribute)
 
     @pytest.mark.parametrize("timer", ['MIN', 'MAX', 'DEF', 1E-4, 0.12, 100000])
     def test_timer(self, agilentB298x, sub_system, layer, timer):
-        setattr(agilentB298x, f"{sub_system}_{layer}_timer", timer)
+        attribute = f"{sub_system}_{layer}_timer"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, timer)
         if type(timer) is float:
-            assert timer == getattr(agilentB298x, f"{sub_system}_{layer}_timer")
+            assert timer == getattr(agilentB298x, attribute)
         if type(timer) is str:
-            assert getattr(agilentB298x, f"{sub_system}_{layer}_timer") in [1E-5, 1E-4, 1E5]
+            assert getattr(agilentB298x, attribute) in [1E-5, 1E-4, 1E5]
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("output_signal", ['INT1', 'TOUT', 'EXT3'])
     def test_output_signal(self, agilentB298x, sub_system, layer, output_signal):
-        setattr(agilentB298x, f"{sub_system}_{layer}_output_signal", output_signal)
-        assert output_signal == getattr(agilentB298x, f"{sub_system}_{layer}_output_signal")
+        attribute = f"{sub_system}_{layer}_output_signal"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, output_signal)
+        assert output_signal == getattr(agilentB298x, attribute)
 
     @pytest.mark.parametrize("state", [True, False])
     def test_output_enabled(self, agilentB298x, sub_system, layer, state):
-        setattr(agilentB298x, f"{sub_system}_{layer}_output_enabled", state)
-        assert state == getattr(agilentB298x, f"{sub_system}_{layer}_output_enabled")
+        attribute = f"{sub_system}_{layer}_output_enabled"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, state)
+        assert state == getattr(agilentB298x, attribute)
 
 
 @pytest.mark.skipif(not TEST_TRIGGER, reason="Trigger system tests skipped by user")
@@ -194,42 +211,58 @@ class TestTriggerPropertiesAllLayer:
 
     @pytest.mark.parametrize("state", [True, False])
     def test_bypass_once_enabled(self, agilentB298x, b298x_idle, sub_system, state):
-        setattr(b298x_idle, f"{sub_system}_all_bypass_once_enabled", state)
+        attribute = f"{sub_system}_all_bypass_once_enabled"
+        assert attribute in dir(b298x_idle)
+        setattr(b298x_idle, attribute, state)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("count", [1, 10])
     def test_count(self, agilentB298x, sub_system, count):
-        setattr(agilentB298x, f"{sub_system}_all_count", count)
+        attribute = f"{sub_system}_all_count"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, count)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("delay", [0, 10, 1e3, 'MIN', 'MAX'])
     def test_delay(self, agilentB298x, sub_system, delay):
-        setattr(agilentB298x, f"{sub_system}_all_delay", delay)
+        attribute = f"{sub_system}_all_delay"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, delay)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("source", ['AINT', 'BUS', 'EXT2'])
     def test_source(self, agilentB298x, sub_system, source):
-        setattr(agilentB298x, f"{sub_system}_all_source", source)
+        attribute = f"{sub_system}_all_source"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, source)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("lan_id", ['LAN0', 'LAN7'])
     def test_source_lan_id(self, agilentB298x, sub_system, lan_id):
-        setattr(agilentB298x, f"{sub_system}_all_lan_id", lan_id)
+        attribute = f"{sub_system}_all_source_lan_id"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, lan_id)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("timer", ['MIN', 'MAX', 'DEF', 1E-4, 0.12, 100000])
     def test_timer(self, agilentB298x, sub_system, timer):
-        setattr(agilentB298x, f"{sub_system}_all_timer", timer)
+        attribute = f"{sub_system}_all_timer"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, timer)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("output_signal", ['INT1', 'TOUT', 'EXT3'])
     def test_output_signal(self, agilentB298x, sub_system, output_signal):
-        setattr(agilentB298x, f"{sub_system}_all_output_signal", output_signal)
+        attribute = f"{sub_system}_all_output_signal"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, output_signal)
         assert len(agilentB298x.check_errors()) == 0
 
     @pytest.mark.parametrize("state", [True, False])
     def test_output_enabled(self, agilentB298x, sub_system, state):
-        setattr(agilentB298x, f"{sub_system}_all_output_enabled", state)
+        attribute = f"{sub_system}_all_output_enabled"
+        assert attribute in dir(agilentB298x)
+        setattr(agilentB298x, attribute, state)
         assert len(agilentB298x.check_errors()) == 0
 
 
