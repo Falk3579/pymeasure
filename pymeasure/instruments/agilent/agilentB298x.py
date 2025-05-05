@@ -100,8 +100,9 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":CURR:RANG?", ":CURR:RANG %s",
         """Control the range for the current measurement.
 
-        (float strictly from 2E-12 to 20E-3) or
-        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
+        :type: float, strictly from ``2E-12`` to ``20E-3`` or
+               str, strictly in ``'MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
+
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-12, 20E-3]]
@@ -124,7 +125,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 # Trigger system #
 ##################
 
-    def abort(self, action='ACQ'):
+    def abort(self, action='ALL'):
         """Abort the specified device action.
 
         :param str, optional action: strictly in 'ALL', 'ACQ'
@@ -133,7 +134,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         strict_discrete_set(action, ['ALL', 'ACQ'])
         self.write(f":ABOR:{action}")
 
-    def arm(self, action='ACQ'):
+    def arm(self, action='ALL'):
         """Send an immediate arm trigger.
 
         :param str, optional action: strictly in 'ALL', 'ACQ'
@@ -146,7 +147,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         strict_discrete_set(action, ['ALL', 'ACQ'])
         self.write(f":ARM:{action}")
 
-    def init(self, action='ACQ'):
+    def init(self, action='ALL'):
         """Initiate a trigger.
 
         :param str, optional action: strictly in 'ALL', 'ACQ'
@@ -229,10 +230,10 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":ARM:ACQ:TIM?", ":ARM:ACQ:TIM %s",
         """Control the timer interval of the arm source in seconds.
 
-        :type: float, strictly from ``1E-5`` to ``1E5``
-        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``
+        :type: - float, strictly from ``1E-5`` to ``1E5``
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``
 
-        for the specified device action.""",
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
@@ -249,6 +250,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         - **EXTn** selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
         - **TOUT** selects the BNC Trigger Out.
+
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -288,10 +290,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
         for the specified device action.
 
-        :type: int, strictly from ``1`` to ``100000`` or
-        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
+        :type: - int, strictly from ``1`` to ``100000`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
 
-        ``INF`` is equivalent to 2147483647.
+        ``INF`` is equivalent to ``2147483647``.
 
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
@@ -617,8 +619,8 @@ class AgilentB2985(AgilentB2981):
         ":CHAR:RANG?", ":CHAR:RANG %s",
         """Control the range for the charge measurement.
 
-        (float strictly from 2E-9 to 2E-6) or
-        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
+        :type: - float, strictly from ``2E-9`` to ``2E-6`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-9, 2E-6]]
@@ -633,8 +635,9 @@ class AgilentB2985(AgilentB2981):
         ":RES:RANG?", ":RES:RANG %s",
         """Control the range for the resistance measurement.
 
-        (float strictly from 1E6 to 1E15) or
-        ('MIN', 'MAX', 'DEF', 'UP', 'DOWN')
+        :type: - float, strictly from ``1E6`` to ``1E15`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
+
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [1E6, 1E15]]
@@ -647,10 +650,10 @@ class AgilentB2985(AgilentB2981):
 
     voltage_range = Instrument.control(
         ":VOLT:RANG?", ":VOLT:RANG %s",
-        """Control the range for voltage measurement.
+        """Control the range for the voltage measurement.
 
-        :type: float, strictly from ``2`` to ``20``) or
-        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
+        :type: - float, strictly from ``2`` to ``20`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
 
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
@@ -664,7 +667,10 @@ class AgilentB2985(AgilentB2981):
 
     temperature = Instrument.measurement(
         ":SYST:TEMP?",
-        """Measure the temperature."""
+        """Measure the temperature.
+        
+        The unit of temperature is controlled by :attr:`temperature_unit`:
+        """
         )
 
     temperature_sensor = Instrument.control(
@@ -673,8 +679,8 @@ class AgilentB2985(AgilentB2981):
 
         :type: str, strictly in ``TC``, ``HSEN``
         
-        - TC selects the thermocouple
-        - HSEN selects the temperature sensor within the humidity sensor.
+        - ``TC`` selects the thermocouple.
+        - ``HSEN`` selects the temperature sensor within the humidity sensor.
 
         """,
         validator=strict_discrete_set,
@@ -689,6 +695,10 @@ class AgilentB2985(AgilentB2981):
                                 ``F``, ``FAR``,
                                 ``K``
 
+        - ``C``, ``CEL`` selects degree Celsius.
+        - ``F``, ``FAR`` selects degree Fahrenheit.
+        - ``K`` selects Kelvin.
+        
         """,
         validator=strict_discrete_set,
         values=['C', 'CEL', 'F', 'FAR', 'K']
@@ -730,9 +740,9 @@ class AgilentB2985(AgilentB2981):
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
 
-##########################################
-# Trigger properties for TRANsient layer #
-##########################################
+###########################################################
+# Trigger properties for TRANsient (voltage source) layer #
+###########################################################
 
     arm_transient_bypass_once_enabled = Channel.control(
         ":ARM:TRAN:BYP?", ":ARM:TRAN:BYP %s",
