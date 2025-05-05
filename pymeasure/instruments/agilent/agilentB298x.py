@@ -270,7 +270,9 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_is_idle = Channel.measurement(
         ":IDLE:ACQ?",
-        """Get the status of the specified device action for the specified channel, and
+        """Get the status of the specified device action
+
+        for the specified channel, and
         waits until the status is changed to idle.""",
         map_values=True,
         values={True: 1, False: 0}
@@ -302,18 +304,22 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_delay = Channel.control(
         ":TRIG:ACQ:DEL?", ":TRIG:ACQ:DEL %s",
-        """Control the trigger delay.
+        """Control the trigger delay for the ACQuire action in seconds.
 
-        for the specified device action.""",
+        :type: float, strictly from ``0`` to ``1E5`` or
+               str, strictly in ``MIN``, ``MAX``, ``DEF``
+        
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
 
     trigger_acquire_source = Channel.control(
         ":TRIG:ACQ:SOUR?", ":TRIG:ACQ:SOUR %s",
-        """Control the trigger source.
+        """Control the trigger source for the ACQuire action.
 
-        for the specified device action.
+        :type: str, strictly in ``AINT``, ``BUS``, ``TIM``, ``INT1``, ``INT2``, ``LAN``, ``TIN``,
+               ``EXT1`` to ``EXT7``
 
         - **AINT** automatically selects the trigger source most suitable for the
             present operating mode by using internal algorithms.
@@ -326,6 +332,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
             Digital I/O D-sub connector on the rear panel. n = 1 to 7.
         - **TIN** selects the BNC Trigger In.
+
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -334,7 +341,11 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_source_lan_id = Channel.control(
         ":TRIG:ACQ:SOUR:LAN?", ":TRIG:ACQ:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
+        """Control the source for LAN triggers.
+        
+        :type: str, strictly from ``LAN0`` to ``LAN7``
+
+        """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
         )
@@ -343,7 +354,12 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":TRIG:ACQ:TIM?", ":TRIG:ACQ:TIM %s",
         """Control the timer interval of arm source.
 
-        for the specified device action.""",
+        for the specified device action.
+        
+        :type: - float, strictly from ``1E-5`` to ``1E5`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``
+
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
