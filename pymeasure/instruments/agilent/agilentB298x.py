@@ -59,7 +59,7 @@ class Battery(Instrument):
 
 
 class AgilentB2981(SCPIMixin, Instrument):
-    """Agilent/Keysight B2981A/B series, Femto/Picoammeter."""
+    """A class representing the Agilent/Keysight B2981A/B series, Femto/Picoammeter."""
 
     def __init__(self, adapter,
                  name="Agilent/Keysight B2980A/B series",
@@ -91,7 +91,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         """Measure the defined parameter(s) with a spot measurement.
         
         :return: float or list of float
-        
         """
         )
 
@@ -100,7 +99,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         """Measure current with a spot measurement.
         
         :return: float
-        
         """
         )
 
@@ -110,7 +108,6 @@ class AgilentB2981(SCPIMixin, Instrument):
 
         :type: float, strictly from ``2E-12`` to ``20E-3`` or
                str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-12, 20E-3]]
@@ -125,7 +122,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     data_buffer_size = Instrument.measurement(
         ":SYST:DATA:QUAN?",
-        """Get the data buffer size (int).""",
+        """Get the data buffer size.
+        
+        :return: int
+        """,
         cast=int
         )
 
@@ -134,22 +134,19 @@ class AgilentB2981(SCPIMixin, Instrument):
 ##################
 
     def abort(self, action='ALL'):
-        """Abort the specified device action.
+        """Abort the specified action.
 
         :param str, optional action: strictly in ``ALL``, ``ACQ``
-
         """
         strict_discrete_set(action, ['ALL', 'ACQ'])
         self.write(f":ABOR:{action}")
 
     def arm(self, action='ALL'):
-        """Send an immediate arm trigger.
+        """Send an immediate arm trigger for the specified action.
 
         :param str, optional action: strictly in ``ALL``, ``ACQ``
 
-        for the specified device action.
-
-        When the status of the specified device action is initiated, the arm trigger
+        When the status of the specified action is initiated, the arm trigger
         causes a layer change from arm to trigger.
         """
         strict_discrete_set(action, ['ALL', 'ACQ'])
@@ -159,14 +156,13 @@ class AgilentB2981(SCPIMixin, Instrument):
         """Initiate a trigger.
 
         :param str, optional action: strictly in ``ALL``, ``ACQ``
-
         """
         strict_discrete_set(action, ['ALL', 'ACQ'])
         self.write(f":INIT:{action}")
 
-########################################
-# Trigger properties for ACQuire layer #
-########################################
+###########################################
+# Trigger properties for action 'ACQuire' #
+###########################################
 
     arm_acquire_bypass_once_enabled = Channel.control(
         ":ARM:ACQ:BYP?", ":ARM:ACQ:BYP %s",
@@ -178,7 +174,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_count = Channel.control(
         ":ARM:ACQ:COUN?", ":ARM:ACQ:COUN %s",
-        """Control the arm count for 'ACQuire' action.
+        """Control the arm count for action 'ACQuire'.
 
         :type: - int, strictly from ``1`` to ``100000`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
@@ -191,11 +187,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_delay = Channel.control(
         ":ARM:ACQ:DEL?", ":ARM:ACQ:DEL %s",
-        """Control the arm delay for 'ACQuire' action in seconds.
+        """Control the arm delay for action 'ACQuire' in seconds.
 
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
@@ -203,19 +198,23 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_source = Channel.control(
         ":ARM:ACQ:SOUR?", ":ARM:ACQ:SOUR %s",
-        """Control the arm source for 'ACQuire' action.
+        """Control the arm source for action 'ACQuire'.
 
-        - **AINT** automatically selects the arm source most suitable for the
+        :type: str, strictly in ``AINT``, ``BUS``, ``TIM``,
+               ``INT1``, ``INT2``, ``LAN``, ``TIN``,
+               ``EXT1`` to ``EXT7``
+
+        - ``AINT`` automatically selects the arm source most suitable for the
           present operating mode by using internal algorithms.
-        - **BUS** selects the remote interface trigger command such as the group
+        - ``BUS`` selects the remote interface trigger command such as the group
           execute trigger (GET) and the TRG command.
-        - **TIM** selects a signal internally generated every interval set by the
+        - ``TIM`` selects a signal internally generated every interval set by the
           arm_timer command.
-        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
+        - ``INT1`` and ``INT2`` selects a signal from the internal bus 1 or 2.
+        - ``LAN`` selects the LXI trigger specified by the arm_source_lan_id command.
+        - ``EXT1`` to ``EXT7`` selects a signal from the GPIO pin n, which is an input port of the
           Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN** selects the BNC Trigger In.
+        - ``TIN`` selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -224,10 +223,9 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_source_lan_id = Channel.control(
         ":ARM:ACQ:SOUR:LAN?", ":ARM:ACQ:SOUR:LAN %s",
-        """Control the source for LAN triggers.
+        """Control the source for LAN triggers for action 'ACQuire'.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
-        
         """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
@@ -235,11 +233,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_timer = Channel.control(
         ":ARM:ACQ:TIM?", ":ARM:ACQ:TIM %s",
-        """Control the timer interval of the arm source in seconds.
+        """Control the timer interval of the arm source for action 'ACQuire' in seconds.
 
         :type: - float, strictly from ``1E-5`` to ``1E5``
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
@@ -247,17 +244,16 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_output_signal = Channel.control(
         ":ARM:ACQ:TOUT:SIGN?", ":ARM:ACQ:TOUT:SIGN %s",
-        """Control the trigger output.
+        """Control the trigger output for action 'ACQuire'.
 
-        for the status change between the idle state and the
-        arm layer. Multiple trigger output ports can be set.
+        The signal is for the status change between the idle state and the
+        arm layer.
 
-        - **INTn** selects the internal bus 1 or 2.
-        - **LAN** selects a LAN port.
-        - **EXTn** selects the GPIO pin n, which is an output port of the Digital I/O
+        - ``INT1`` or ``INT2`` selects the internal bus 1 or 2.
+        - ``LAN`` selects a LAN port.
+        - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
-        - **TOUT** selects the BNC Trigger Out.
-
+        - ``TOUT`` selects the BNC Trigger Out.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -266,10 +262,11 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_output_enabled = Channel.control(
         ":ARM:ACQ:TOUT?", ":ARM:ACQ:TOUT %s",
-        """Control the arm trigger output (bool).
+        """Control the arm trigger output for action 'ACQuire' (bool).
 
-        for the status change between the idle state
-        and the arm layer.""",
+        The signal is for the status change between the idle state
+        and the arm layer.
+        """,
         validator=strict_discrete_set,
         map_values=True,
         values={True: 1, False: 0}
@@ -277,10 +274,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_is_idle = Channel.measurement(
         ":IDLE:ACQ?",
-        """Get the status of the 'ACquire' action (bool).
+        """Get the idle status of action 'ACQuire' (bool).
 
-        for the specified channel, and
-        waits until the status is changed to idle.""",
+        The command waits until the status is changed to idle.
+        """,
         map_values=True,
         values={True: 1, False: 0}
         )
@@ -295,15 +292,12 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_count = Channel.control(
         ":TRIG:ACQ:COUN?", ":TRIG:ACQ:COUN %s",
-        """Control the trigger count.
-
-        for the specified device action.
+        """Control the trigger count for action 'ACQuire'.
 
         :type: - int, strictly from ``1`` to ``100000`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
 
         ``INF`` is equivalent to ``2147483647``.
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
@@ -311,11 +305,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_delay = Channel.control(
         ":TRIG:ACQ:DEL?", ":TRIG:ACQ:DEL %s",
-        """Control the trigger delay for the ACQuire action in seconds.
+        """Control the trigger delay for action 'ACQuire' in seconds.
 
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-        
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
@@ -323,23 +316,22 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_source = Channel.control(
         ":TRIG:ACQ:SOUR?", ":TRIG:ACQ:SOUR %s",
-        """Control the trigger source for the ACQuire action.
+        """Control the trigger source for action 'ACQuire'.
 
         :type: str, strictly in ``AINT``, ``BUS``, ``TIM``, ``INT1``, ``INT2``, ``LAN``, ``TIN``,
                ``EXT1`` to ``EXT7``
 
-        - **AINT** automatically selects the trigger source most suitable for the
-            present operating mode by using internal algorithms.
-        - **BUS** selects the remote interface trigger command such as the group
-            execute trigger (GET) and the TRG command.
-        - **TIM** selects a signal internally generated every interval set by the
-            arm_timer command.
-        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
-            Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN** selects the BNC Trigger In.
-
+        - ``AINT`` automatically selects the trigger source most suitable for the
+          present operating mode by using internal algorithms.
+        - ``BUS`` selects the remote interface trigger command such as the group
+          execute trigger (GET) and the TRG command.
+        - ``TIM`` selects a signal internally generated every interval set by the
+          :attr:`trigger_acquire_timer`.
+        - ``INT1`` and ``INT2`` selects a signal from the internal bus 1 or 2.
+        - ``LAN`` selects the LXI trigger specified by :attr:`trigger_acquire_source_lan_id`.
+        - ``EXT1`` to ``EXT7`` selects a signal from the GPIO pin n, which is an input port of the
+          Digital I/O D-sub connector on the rear panel. n = 1 to 7.
+        - ``TIN`` selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -348,10 +340,9 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_source_lan_id = Channel.control(
         ":TRIG:ACQ:SOUR:LAN?", ":TRIG:ACQ:SOUR:LAN %s",
-        """Control the source for LAN triggers.
+        """Control the source for LAN triggers for action 'ACQuire'.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
-
         """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
@@ -359,13 +350,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_timer = Channel.control(
         ":TRIG:ACQ:TIM?", ":TRIG:ACQ:TIM %s",
-        """Control the timer interval of arm source.
-
-        for the specified device action.
+        """Control the timer interval of the trigger source for action 'ACQuire'.
         
         :type: - float, strictly from ``1E-5`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
@@ -373,7 +361,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_output_signal = Channel.control(
         ":TRIG:ACQ:TOUT:SIGN?", ":TRIG:ACQ:TOUT:SIGN %s",
-        """Control the trigger signal output.
+        """Control the trigger signal output for action 'ACQuire'.
 
         :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
                ``EXT1`` to ``EXT7``
@@ -381,11 +369,11 @@ class AgilentB2981(SCPIMixin, Instrument):
         for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
 
-        - **INTn**: selects the internal bus 1 or 2.
-        - **LAN**: selects a LAN port.
-        - **EXTn**: selects the GPIO pin n, which is an output port of the Digital I/O
+        - ``INT1`` and ``INT2`` selects the internal bus 1 or 2.
+        - ``LAN`` selects a LAN port.
+        - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
-        - **TOUT**: selects the BNC Trigger Out.
+        - ``TOUT``: selects the BNC Trigger Out.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -394,7 +382,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_output_enabled = Channel.control(
         ":TRIG:ACQ:TOUT?", ":TRIG:ACQ:TOUT %s",
-        """Control the trigger output (bool).
+        """Control the trigger output for action 'ACQuire' (bool).
 
         for the status change between the idle state
         and the trigger layer.""",
@@ -409,7 +397,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_bypass_once_enabled = Channel.setting(
         ":ARM:ALL:BYP %s",
-        """Set the bypass for the event detector in the arm layer (bool).""",
+        """Set the bypass for the event detector in the arm layer for action 'ALL' (bool).""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -417,13 +405,12 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_count = Channel.setting(
         ":ARM:ALL:COUN %s",
-        """Set the arm counter for 'ALL' action.
+        """Set the arm counter for action 'ALL'.
 
         :type: - int, strictly from ``1`` to ``100000`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
 
         ``INF`` is equivalent to ``2147483647``.
-        
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
@@ -431,12 +418,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_delay = Channel.setting(
         ":ARM:ALL:DEL %s",
-        """Set the arm delay in seconds.
+        """Set the arm delay for action 'ALL' in seconds.
 
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-
-        for the specified device action.
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
@@ -444,25 +429,23 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_source = Channel.setting(
         ":ARM:ALL:SOUR %s",
-        """Set the arm source for the specified device action.
+        """Set the arm source for action 'ALL'.
 
         :type: str, strictly in ``AINT``, ``BUS``, ``TIM``,
                ``INT1``, ``INT2``, ``LAN``, ``TIN``,
                ``EXT1`` to ``EXT7``
 
-
-        - **AINT** automatically selects the arm source most suitable for the
+        - ``AINT`` automatically selects the arm source most suitable for the
           present operating mode by using internal algorithms.
-        - **BUS** selects the remote interface trigger command such as the group
+        - ``BUS`` selects the remote interface trigger command such as the group
           execute trigger (GET) and the TRG command.
-        - **TIM** selects a signal internally generated every interval set by the
-          arm_timer command.
-        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
+        - ``TIM`` selects a signal internally generated every interval set by
+          attr:`arm_all_timer`.
+        - ``INT1`` and ``INT2`` selects a signal from the internal bus 1 or 2.
+        - ``LAN`` selects the LXI trigger specified by :attr:`arm_all_source_lan_id`.
+        - ``EXT1`` to ``EXT7`` selects a signal from the GPIO pin n, which is an input port of the
           Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN** selects the BNC Trigger In.
-        
+        - ``TIN`` selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -471,10 +454,9 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_source_lan_id = Channel.setting(
         ":ARM:ALL:SOUR:LAN %s",
-        """Set the source for LAN triggers.
+        """Set the source for LAN triggers for action 'ALL'.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
-        
         """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
@@ -482,19 +464,18 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_timer = Channel.setting(
         ":ARM:ALL:TIM %s",
-        """Set the timer interval of the arm source in seconds.
+        """Set the timer interval of the arm source for action 'ALL' in seconds.
 
         :type: - float, strictly from ``1E-5`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-
-        for the specified device action.""",
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
 
     arm_all_output_signal = Channel.setting(
         ":ARM:ALL:TOUT:SIGN %s",
-        """Set the trigger output.
+        """Set the trigger output for action 'ALL'.
 
         :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
                 ``EXT1`` to ``EXT7``
@@ -502,12 +483,11 @@ class AgilentB2981(SCPIMixin, Instrument):
         for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
 
-        - **INTn** selects the internal bus 1 or 2.
-        - **LAN** selects a LAN port.
-        - **EXTn** selects the GPIO pin n, which is an output port of the Digital I/O
+        - ``INT1`` and ``INT2`` selects the internal bus 1 or 2.
+        - ``LAN`` selects a LAN port.
+        - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
-        - **TOUT** selects the BNC Trigger Out.
-        
+        - ``TOUT`` selects the BNC Trigger Out.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -516,7 +496,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_output_enabled = Channel.setting(
         ":ARM:ALL:TOUT %s",
-        """Set the arm trigger output (bool).
+        """Set the arm trigger output for action 'ALL' (bool).
 
         for the status change between the idle state
         and the arm layer.""",
@@ -527,7 +507,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_is_idle = Channel.measurement(
         ":IDLE:ALL?",
-        """Get the status of the specified device action
+        """Get the idle status for action 'ALL'
 
         for the specified channel, and
         waits until the status is changed to idle.""",
@@ -553,7 +533,6 @@ class AgilentB2981(SCPIMixin, Instrument):
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
 
         ``INF`` is equivalent to 2147483647.
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
@@ -566,7 +545,8 @@ class AgilentB2981(SCPIMixin, Instrument):
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
 
-        for the specified device action.""",
+        for the specified device action.
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
@@ -582,17 +562,17 @@ class AgilentB2981(SCPIMixin, Instrument):
 
         for the specified device action.
 
-        - **AINT** automatically selects the trigger source most suitable for the
-            present operating mode by using internal algorithms.
-        - **BUS** selects the remote interface trigger command such as the group
-            execute trigger (GET) and the TRG command.
-        - **TIM** selects a signal internally generated every interval set by the
-            arm_timer command.
-        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
-            Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN** selects the BNC Trigger In.
+        - ``AINT`` automatically selects the trigger source most suitable for the
+          present operating mode by using internal algorithms.
+        - ``BUS`` selects the remote interface trigger command such as the group
+          execute trigger (GET) and the TRG command.
+        - ``TIM`` selects a signal internally generated every interval set by
+          :attr:`trigger_all_timer`.
+        - ``INT1`` and ``INT2`` selects a signal from the internal bus 1 or 2.
+        - ``LAN`` selects the LXI trigger specified by :attr:`trigger_all_source_lan_id`.
+        - ``EXT1`` to ``EXT7`` selects a signal from the GPIO pin n, which is an input port of the
+          Digital I/O D-sub connector on the rear panel. n = 1 to 7.
+        - ``TIN`` selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -604,7 +584,6 @@ class AgilentB2981(SCPIMixin, Instrument):
         """Set the source for LAN triggers.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
-        
         """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
@@ -612,12 +591,13 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_timer = Channel.setting(
         ":TRIG:ALL:TIM %s",
-        """Set the timer interval of arm source in seconds.
+        """Set the timer interval of trigger source in seconds.
 
         :type: - float, strictly from ``1E-5`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
 
-        for the specified device action.""",
+        for the specified device action.
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
@@ -629,15 +609,14 @@ class AgilentB2981(SCPIMixin, Instrument):
         :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
                 ``EXT1`` to ``EXT7``
 
-
         for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
 
-        - **INTn**: selects the internal bus 1 or 2.
-        - **LAN**: selects a LAN port.
-        - **EXTn**: selects the GPIO pin n, which is an output port of the Digital I/O
+        - ``INT1`` and ``INT2`` selects the internal bus 1 or 2.
+        - ``LAN`` selects a LAN port.
+        - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
-        - **TOUT**: selects the BNC Trigger Out.
+        - ``TOUT`` selects the BNC Trigger Out.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -657,21 +636,21 @@ class AgilentB2981(SCPIMixin, Instrument):
 
 
 class AgilentB2983(AgilentB2981, Battery):
-    """Agilent/Keysight B2983A/B series, Femto/Picoammeter.
+    """A class representing the Agilent/Keysight B2983A/B series, Femto/Picoammeter.
 
     Has battery operation.
     """
 
 
 class AgilentB2985(AgilentB2981):
-    """Agilent/Keysight B2985A/B series Femto/Picoammeter Electrometer/High Resistance Meter."""
+    """A class representing the Agilent/Keysight B2985A/B series Femto/Picoammeter
+    Electrometer/High Resistance Meter."""
 
     function = Instrument.control(
         ":FUNC?", ":FUNC '%s'",
         """Control the measurement function.
 
         :type: str, strictly in ``CURR``, ``CHAR``, ``VOLT``, ``RES``
-
         """,
         validator=strict_discrete_set,
         values=['CURR', 'CHAR', 'VOLT', 'RES'],
@@ -680,7 +659,10 @@ class AgilentB2985(AgilentB2981):
 
     charge = Instrument.measurement(
         ":MEAS:CHAR?",
-        """Measure charge with a spot measurement."""
+        """Measure charge with a spot measurement.
+        
+        :return: float
+        """
         )
 
     charge_range = Instrument.control(
@@ -689,7 +671,6 @@ class AgilentB2985(AgilentB2981):
 
         :type: - float, strictly from ``2E-9`` to ``2E-6`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2E-9, 2E-6]]
@@ -697,7 +678,10 @@ class AgilentB2985(AgilentB2981):
 
     resistance = Instrument.measurement(
         ":MEAS:RES?",
-        """Measure resistance with a spot measurement."""
+        """Measure resistance with a spot measurement.
+        
+        :return: float
+        """
         )
 
     resistance_range = Instrument.control(
@@ -706,7 +690,6 @@ class AgilentB2985(AgilentB2981):
 
         :type: - float, strictly from ``1E6`` to ``1E15`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [1E6, 1E15]]
@@ -714,7 +697,10 @@ class AgilentB2985(AgilentB2981):
 
     voltage = Instrument.measurement(
         ":MEAS:VOLT?",
-        """Measure voltage with a spot (one-shot) measurement."""
+        """Measure voltage with a spot (one-shot) measurement.
+        
+        :return: float
+        """
         )
 
     voltage_range = Instrument.control(
@@ -723,7 +709,6 @@ class AgilentB2985(AgilentB2981):
 
         :type: - float, strictly from ``2`` to ``20`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``UP``, ``DOWN``
-
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'UP', 'DOWN'], [2, 20]]
@@ -750,7 +735,6 @@ class AgilentB2985(AgilentB2981):
         
         - ``TC`` selects the thermocouple.
         - ``HSEN`` selects the temperature sensor within the humidity sensor.
-
         """,
         validator=strict_discrete_set,
         values=['TC', 'HSEN']
@@ -767,7 +751,6 @@ class AgilentB2985(AgilentB2981):
         - ``C``, ``CEL`` selects degree Celsius.
         - ``F``, ``FAR`` selects degree Fahrenheit.
         - ``K`` selects Kelvin.
-        
         """,
         validator=strict_discrete_set,
         values=['C', 'CEL', 'F', 'FAR', 'K']
@@ -779,7 +762,7 @@ class AgilentB2985(AgilentB2981):
 ################################
 
     def abort(self, action='ALL'):
-        """Abort the specified device action.
+        """Abort the specified action.
 
         :param str, optional action: strictly in ``ALL``, ``ACQ``, ``TRAN``
 
@@ -788,23 +771,20 @@ class AgilentB2985(AgilentB2981):
         self.write(f":ABOR:{action}")
 
     def arm(self, action='ALL'):
-        """Send an immediate arm trigger.
+        """Send an immediate arm trigger for the specified action.
 
         :param str, optional action: strictly in ``ALL``, ``ACQ``, ``TRAN``
 
-        for the specified device action.
-
-        When the status of the specified device action is initiated, the arm trigger
+        When the status of the specified action is initiated, the arm trigger
         causes a layer change from arm to trigger.
         """
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":ARM:{action}")
 
     def init(self, action='ALL'):
-        """Initiate a trigger.
+        """Initiate a trigger for the specified action.
 
         :param str, optional action: strictly in ``ALL``, ``ACQ``, ``TRAN``
-
         """
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
@@ -823,19 +803,12 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_count = Channel.control(
         ":ARM:TRAN:COUN?", ":ARM:TRAN:COUN %s",
-        """Control the arm count for layer 'ACQuire'.
+        """Control the arm count for action 'TRANSient'.
 
-        for the specified device action.
-        """,
-        validator=joined_validators(strict_discrete_set, strict_range),
-        values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
-        )
-
-    arm_transient_count = Channel.control(
-        ":ARM:TRAN:COUN?", ":ARM:TRAN:COUN %s",
-        """Control the arm count for layer 'ALL'.
-
-        for the specified device action.
+        :type: - int, strictly from ``1`` to ``100000`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
+               
+        ``INF`` is equivalent to ``2147483647``.
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
@@ -843,9 +816,10 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_delay = Channel.control(
         ":ARM:TRAN:DEL?", ":ARM:TRAN:DEL %s",
-        """Control the arm delay in seconds.
+        """Control the arm delay for action 'TRANSient' in seconds.
 
-        for the specified device action.
+        :type: - float, strictly from ``0`` to ``1E5`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
@@ -853,19 +827,22 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_source = Channel.control(
         ":ARM:TRAN:SOUR?", ":ARM:TRAN:SOUR %s",
-        """Control the arm source for the specified device action.
+        """Control the arm source for action 'TRANSient'.
 
-        - **AINT** automatically selects the arm source most suitable for the
+        :type: str, strictly in ``AINT``, ``BUS``, ``TIM``, ``INT1``, ``INT2``, ``LAN``, ``TIN``,
+               ``EXT1`` to ``EXT7``
+
+        - ``AINT`` automatically selects the arm source most suitable for the
           present operating mode by using internal algorithms.
-        - **BUS** selects the remote interface trigger command such as the group
+        - ``BUS`` selects the remote interface trigger command such as the group
           execute trigger (GET) and the TRG command.
-        - **TIM** selects a signal internally generated every interval set by the
-          arm_timer command.
-        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
+        - ``TIM`` selects a signal internally generated every interval set by 
+          :attr:`arm_transient_timer`.
+        - ``INT1`` and ``INT2`` selects a signal from the internal bus 1 or 2.
+        - ``LAN`` selects the LXI trigger specified by :attr:`arm_transient_source_lan_id`.
+        - ``EXT1`` to ``EXT7`` selects a signal from the GPIO pin n, which is an input port of the
           Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN** selects the BNC Trigger In.
+        - ``TIN`` selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -874,35 +851,40 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_source_lan_id = Channel.control(
         ":ARM:TRAN:SOUR:LAN?", ":ARM:TRAN:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
+        """Control the source for LAN triggers for action 'TRANSient'.
+        
+        :type: str, strictly ``LAN0`` to ``LAN7``
+        """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
         )
 
     arm_transient_timer = Channel.control(
         ":ARM:TRAN:TIM?", ":ARM:TRAN:TIM %s",
-        """Control the timer interval of the arm source in seconds.
+        """Control the timer interval of the arm source for action 'TRANSient' in seconds.
 
-        :type: float, strictly from ``1E-5`` to ``1E5``
-        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``
-
-        for the specified device action.""",
+        :type: - float, strictly from ``1E-5`` to ``1E5``
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
 
     arm_transient_output_signal = Channel.control(
         ":ARM:TRAN:TOUT:SIGN?", ":ARM:TRAN:TOUT:SIGN %s",
-        """Control the trigger output.
+        """Control the trigger output for action 'TRANSient'.
 
         for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
 
-        - **INTn** selects the internal bus 1 or 2.
-        - **LAN** selects a LAN port.
-        - **EXTn** selects the GPIO pin n, which is an output port of the Digital I/O
+        :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
+               ``EXT1`` to ``EXT7``
+
+        - ``INT1`` and ``INT2`` selects the internal bus 1 or 2.
+        - ``LAN`` selects a LAN port.
+        - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
-        - **TOUT** selects the BNC Trigger Out.
+        - ``TOUT`` selects the BNC Trigger Out.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -911,7 +893,7 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_output_enabled = Channel.control(
         ":ARM:TRAN:TOUT?", ":ARM:TRAN:TOUT %s",
-        """Control the arm trigger output (bool).
+        """Control the arm trigger output for action 'TRANSient' (bool).
 
         for the status change between the idle state
         and the arm layer.""",
@@ -922,7 +904,8 @@ class AgilentB2985(AgilentB2981):
 
     trigger_transient_is_idle = Channel.measurement(
         ":IDLE:TRAN?",
-        """Get the status of the specified device action for the specified channel, and
+        """Get the status of the specified device action for the specified channel,
+        and
         waits until the status is changed to idle.""",
         map_values=True,
         values={True: 1, False: 0}
@@ -938,15 +921,12 @@ class AgilentB2985(AgilentB2981):
 
     trigger_transient_count = Channel.control(
         ":TRIG:TRAN:COUN?", ":TRIG:TRAN:COUN %s",
-        """Control the trigger count.
+        """Control the trigger count for action 'TRANSient'.
 
-        for the specified device action.
+        :type: - int, strictly from ``1`` to ``100000`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
 
-        :type: int, strictly from ``1`` to ``100000`` or
-        :type: str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
-
-        ``INF`` is equivalent to 2147483647.
-
+        ``INF`` is equivalent to ``2147483647``.
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
@@ -954,30 +934,32 @@ class AgilentB2985(AgilentB2981):
 
     trigger_transient_delay = Channel.control(
         ":TRIG:TRAN:DEL?", ":TRIG:TRAN:DEL %s",
-        """Control the trigger delay.
+        """Control the trigger delay for action 'TRANSient'.
 
-        for the specified device action.""",
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
         )
 
     trigger_transient_source = Channel.control(
         ":TRIG:TRAN:SOUR?", ":TRIG:TRAN:SOUR %s",
-        """Control the trigger source.
+        """Control the trigger source for action 'TRANSient'.
 
-        for the specified device action.
+        :type: str, strictly in ``AINT``, ``BUS``, ``TIM``, 
+               ``INT1``, ``INT2``, ``LAN``, ``TIN``,
+               ``EXT1`` to ``EXT7``
 
-        - **AINT** automatically selects the trigger source most suitable for the
-            present operating mode by using internal algorithms.
-        - **BUS** selects the remote interface trigger command such as the group
-            execute trigger (GET) and the TRG command.
-        - **TIM** selects a signal internally generated every interval set by the
-            arm_timer command.
-        - **INTn** selects a signal from the internal bus 1 or 2, respectively.
-        - **LAN** selects the LXI trigger specified by the arm_source_lan_id command.
-        - **EXTn** selects a signal from the GPIO pin n, which is an input port of the
-            Digital I/O D-sub connector on the rear panel. n = 1 to 7.
-        - **TIN** selects the BNC Trigger In.
+        - ``AINT`` automatically selects the trigger source most suitable for the
+          present operating mode by using internal algorithms.
+        - ``BUS`` selects the remote interface trigger command such as the group
+          execute trigger (GET) and the TRG command.
+        - ``TIM`` selects a signal internally generated every interval set by
+          :attr:`trigger_transient_timer`.
+        - ``INTn`` selects a signal from the internal bus 1 or 2, respectively.
+        - ``LAN`` selects the LXI trigger specified by :attr:`trigger_transient_source_lan_id`.
+        - ``EXT1`` to ``EXT7`` selects a signal from the GPIO pin n, which is an input port of the
+          Digital I/O D-sub connector on the rear panel. n = 1 to 7.
+        - ``TIN`` selects the BNC Trigger In.
         """,
         validator=strict_discrete_set,
         values=['AINT', 'BUS', 'TIM', 'INT1', 'INT2', 'LAN', 'TIN',
@@ -986,32 +968,37 @@ class AgilentB2985(AgilentB2981):
 
     trigger_transient_source_lan_id = Channel.control(
         ":TRIG:TRAN:SOUR:LAN?", ":TRIG:TRAN:SOUR:LAN %s",
-        """Control the source for LAN triggers.""",
+        """Control the source for LAN triggers for action 'TRANSient'.
+        
+        :type: str, strictly from ``LAN0`` to ``LAN7``
+        """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
         )
 
     trigger_transient_timer = Channel.control(
         ":TRIG:TRAN:TIM?", ":TRIG:TRAN:TIM %s",
-        """Control the timer interval of arm source.
+        """Control the timer interval of trigger source for action 'TRANSient'.
 
-        for the specified device action.""",
+        :type: - float, strictly from ``1E-5`` to ``1E5`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
         )
 
     trigger_transient_output_signal = Channel.control(
         ":TRIG:TRAN:TOUT:SIGN?", ":TRIG:TRAN:TOUT:SIGN %s",
-        """Control the trigger signal output.
+        """Control the trigger signal output for action 'TRANSient'.
 
-        for the status change between the idle state and the
-        arm layer. Multiple trigger output ports can be set.
+        The signal indicates the status change between the idle state and the
+        trigger layer.
 
-        - **INTn**: selects the internal bus 1 or 2.
-        - **LAN**: selects a LAN port.
-        - **EXTn**: selects the GPIO pin n, which is an output port of the Digital I/O
+        - ``INT1``, ``INT2`` selects the internal bus 1 or 2.
+        - ``LAN`` selects a LAN port.
+        - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
-        - **TOUT**: selects the BNC Trigger Out.
+        - ``TOUT`` selects the BNC Trigger Out.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -1020,7 +1007,7 @@ class AgilentB2985(AgilentB2981):
 
     trigger_transient_output_enabled = Channel.control(
         ":TRIG:TRAN:TOUT?", ":TRIG:TRAN:TOUT %s",
-        """Control the trigger output (bool).
+        """Control the trigger output for action 'TRANSient' (bool).
 
         for the status change between the idle state
         and the trigger layer.""",
@@ -1035,7 +1022,7 @@ class AgilentB2985(AgilentB2981):
 
     source_enabled = Channel.control(
         ":OUTP?", ":OUTP %d",
-        """Control the source output (bool).""",
+        """Control the source output relay (bool).""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 1, False: 0}
@@ -1043,23 +1030,33 @@ class AgilentB2985(AgilentB2981):
 
     source_low_state = Channel.control(
         ":OUTP:LOW?", ":OUTP:LOW %s",
-        """Control the source low terminal state ('FLO', 'COMM').""",
+        """Control the source low terminal state.
+        
+        :type: str, strictly ``FLO`` or ``COMM``
+        
+        - ``FLO``: low terminal is floating.
+        - ``COMM``: low terminal is connected to Common.
+        """,
         validator=strict_discrete_set,
         values=['FLO', 'COMM']
         )
 
     source_off_state = Channel.control(
         ":OUTP:OFF:MODE?", ":OUTP:OFF:MODE %s",
-        """Control the source off condition (str).
+        """Control the source off condition.
 
-        (ZERO|HIZ|NORM).
+        :type: str, strictly in ``ZERO``, ``HIZ``, ``NORM``
 
-        - **HIGH Z**: • Output relay: off (open)
-                      • The voltage source setting is not changed.
-                      • This status is available only when the 20 V range is used.
-        - **NORMAL**: • Output voltage: 0 V
-                      • Output relay: off (open)
-        - **ZERO**:   • Output voltage: 0 V in the present voltage range
+        +------------+--------------------------------------------------------------+
+        | ``HIGH Z`` | - Output relay: off (open)                                   |
+        |            | - The voltage source setting is not changed.                 |
+        |            | - This status is available only when the 20 V range is used. |
+        +------------+--------------------------------------------------------------+
+        | ``NORMAL`` | - Output voltage: 0 V                                        |
+        |            | - Output relay: off (open)                                   |
+        +------------+--------------------------------------------------------------+
+        | ``ZERO``   | - Output voltage: 0 V in the present voltage range           |
+        +------------+--------------------------------------------------------------+
         """,
         validator=strict_discrete_set,
         values=['ZERO', 'HIZ', 'NORM']
@@ -1067,20 +1064,21 @@ class AgilentB2985(AgilentB2981):
 
     source_voltage = Channel.control(
         ":SOUR:VOLT?", ":SOUR:VOLT %g",
-        """Control the source voltage in Volts (float).
+        """Control the source voltage in Volts.
 
         :type: float, strictly from ``-1050`` to ``1050``
         
-        for voltages > 20V the interlock must be closed.
+        For voltages > 20V the interlock must be closed.
         
-        Range value Setting resolution DC output voltage
-        Maximum
-        current
-
-        20 V 700 µV 0 V < |V| +/- 21 V +/-20 mA
-        1000 V 35 mV -1 V <= V <= 1000 V +/-1.0 mA
-        -1000 V 35 mV - 1000 V <= V <= 1 V +/-1.0 mA
-        
+        +---------+------------+---------------------+-----------------+
+        |  Range  | Resolution | Output voltage      | Maximum current |
+        +---------+------------+---------------------+-----------------+
+        |   20 V  |   700 µV   | -21 V ≤ V ≤ 21 V    | +/-20 mA        |
+        +---------+------------+---------------------+-----------------+
+        |  1000 V |    35 mV   | -1 V ≤ V ≤ 1000 V   | +/-1.0 mA       |
+        +---------+------------+---------------------+-----------------+
+        | -1000 V |    35 mV   | -1000 V ≤ V ≤ 1 V   | +/-1.0 mA       |
+        +---------+------------+---------------------+-----------------+
         """,
         validator=strict_range,
         values=[-1050, 1050]
@@ -1088,14 +1086,19 @@ class AgilentB2985(AgilentB2981):
 
     source_voltage_range = Channel.control(
         ":SOUR:VOLT:RANG?", ":SOUR:VOLT:RANG %s",
-        """Control the source voltage range.""",
+        """Control the source voltage range.
+        
+        :type: - float, strictly from ``-1000`` to ``1000`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``
+        """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [-1000, 1000]]
         )
 
 
 class AgilentB2987(AgilentB2985, Battery):
-    """Agilent/Keysight B2987A/B series Femto/Picoammeter Electrometer/High Resistance Meter.
+    """A class representing the Agilent/Keysight B2987A/B series Femto/Picoammeter
+    Electrometer/High Resistance Meter.
 
     Has battery operation.
     """
