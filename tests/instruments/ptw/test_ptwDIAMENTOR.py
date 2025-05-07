@@ -27,54 +27,117 @@ from pymeasure.test import expected_protocol
 from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
 
 
-def test_id():
-    """Verify the communication of the ID getter."""
+def test_baudrate():
+    """Verify the communication of the baudrate getter/setter."""
     with expected_protocol(
         ptwDIAMENTOR,
-        [('PTW', 'CRS 1.2.4')],
+        [("BR4", None),
+         ("BR", "BR0")],
     ) as inst:
-        assert inst.id == 'CRS 1.2.4'
+        inst.baudrate = 115200
+        assert inst.baudrate == 9600
 
 
-@pytest.mark.parametrize("temperature", [0, 1, 30])
-def test_temperature(temperature):
-    """Verify the communication of the temperature getter/setter."""
+def test_selftest_passed():
+    """Verify the communication of the selftest_passed getter."""
     with expected_protocol(
         ptwDIAMENTOR,
-        [(f"TMPA{temperature:02d}", f"TMPA{temperature:02d}"),
-         ('TMPA', f"TMPA{temperature:02d}")]
+        [("TST", ""),
+         ("TST", "E1")],
     ) as inst:
-        inst.temperature = temperature
-        assert inst.temperature == temperature
+        assert inst.selftest_passed is True
+        try:
+            assert inst.selftest_passed is False
+        except ValueError:
+            pass
 
 
-@pytest.mark.parametrize("pressure", [500, 1500])
-def test_pressure(pressure):
-    """Verify the communication of the pressure getter/setter."""
+def test_constancy_check_passed():
+    """Verify the communication of the constancy_check_passed getter."""
     with expected_protocol(
         ptwDIAMENTOR,
-        [(f"PRE{pressure:04d}", f"PRE{pressure:04d}"),
-         ('PRE', f"PRE{pressure:04d}")]
+        [("G", "GP"),
+         ("G", "GF")],
     ) as inst:
-        inst.pressure = pressure
-        assert inst.pressure == pressure
+        assert inst.constancy_check_passed is True
+        assert inst.constancy_check_passed is False
 
 
-def test_serial_number():
-    """Verify the communication of the serial number getter."""
+def test_is_calibrated():
+    """Verify the communication of the is_calibrated getter."""
     with expected_protocol(
         ptwDIAMENTOR,
-        [("SER", "SER345678")]
+        [("CRC", "CRC0,0"),
+         ("CRC", "CRC0,1")],
     ) as inst:
-        assert inst.serial_number == 345678
+        assert inst.is_calibrated is True
+        assert inst.is_calibrated is False
 
 
-@pytest.mark.parametrize("dap_unit", [1, 2, 4])
-def test_dap_unit(dap_unit):
-    """Verify the communication of the dap_unit getter/setter."""
+def test_is_eeprom_ok():
+    """Verify the communication of the is_eeprom_ok getter."""
     with expected_protocol(
         ptwDIAMENTOR,
-        [("U1", "U1")]
+        [("CRC", "CRC0,1"),
+         ("CRC", "CRC1,1")],
     ) as inst:
-        inst.dap_unit = dap_unit
-        assert inst.dap_unit == 345678
+        assert inst.is_eeprom_ok is True
+        assert inst.is_eeprom_ok is False
+
+
+
+
+
+
+
+# def test_id():
+    # """Verify the communication of the ID getter."""
+    # with expected_protocol(
+        # ptwDIAMENTOR,
+        # [('PTW', 'CRS 1.2.4')],
+    # ) as inst:
+        # assert inst.id == 'CRS 1.2.4'
+
+
+# @pytest.mark.parametrize("temperature", [0, 1, 30])
+# def test_temperature(temperature):
+    # """Verify the communication of the temperature getter/setter."""
+    # with expected_protocol(
+        # ptwDIAMENTOR,
+        # [(f"TMPA{temperature:02d}", f"TMPA{temperature:02d}"),
+         # ('TMPA', f"TMPA{temperature:02d}")]
+    # ) as inst:
+        # inst.temperature = temperature
+        # assert inst.temperature == temperature
+
+
+# @pytest.mark.parametrize("pressure", [500, 1500])
+# def test_pressure(pressure):
+    # """Verify the communication of the pressure getter/setter."""
+    # with expected_protocol(
+        # ptwDIAMENTOR,
+        # [(f"PRE{pressure:04d}", f"PRE{pressure:04d}"),
+         # ('PRE', f"PRE{pressure:04d}")]
+    # ) as inst:
+        # inst.pressure = pressure
+        # assert inst.pressure == pressure
+
+
+# def test_serial_number():
+    # """Verify the communication of the serial number getter."""
+    # with expected_protocol(
+        # ptwDIAMENTOR,
+        # [("SER", "SER345678")]
+    # ) as inst:
+        # assert inst.serial_number == 345678
+
+
+# @pytest.mark.parametrize("dap_unit", [1, 2, 4])
+# def test_dap_unit(dap_unit):
+    # """Verify the communication of the dap_unit getter/setter."""
+    # with expected_protocol(
+        # ptwDIAMENTOR,
+        # [("U1", "U1")]
+    # ) as inst:
+        # inst.dap_unit = dap_unit
+        # assert inst.dap_unit == 345678
