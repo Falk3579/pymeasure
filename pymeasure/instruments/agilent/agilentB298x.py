@@ -35,12 +35,11 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
-class Battery(Instrument):
+class Battery(SCPIMixin, Instrument):
     """A class representing the B2983/7 battery functions."""
 
     def __init__(self, adapter,
                  name="Agilent/Keysight B2980A/B battery",
-                 includeSCPI=False,     
                  **kwargs):
         super().__init__(
             adapter,
