@@ -26,7 +26,8 @@
 import logging
 
 from pymeasure.instruments import Instrument
-from pymeasure.instruments.validators import strict_range
+from pymeasure.instruments.validators import (strict_discrete_set,
+                                              strict_range)
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -35,7 +36,8 @@ log.addHandler(logging.NullHandler())
 class ptwDIAMENTOR(Instrument):
     """A class representing the PTW DIAMENTOR DAP dosemeters."""
 
-    def __init__(self, adapter, name="PTW DIAMENTOR DAP dosemeter",
+    def __init__(self, adapter,
+                 name="PTW DIAMENTOR DAP dosemeter",
                  **kwargs):
         super().__init__(
             adapter,
@@ -103,40 +105,59 @@ class ptwDIAMENTOR(Instrument):
 # Properties #
 ##############
 
+    baudrate =  Instrument.control(
+        "BR", "BR%s",
+        """Control the baudrate.
+        
+        :type: int, strictly in ``9600``, ``19200``, ``38400``, ``57600``, ``115200``
+        """,
+        map_values=True,
+        validator=strict_discrete_set,
+        values={9600: "0", 
+                19200: "1",
+                38400: "2",
+                57600: "3",
+                115200: "4",
+                },
+        get_process=lambda v: v[2]
+        )
+
     selftest_passed = Instrument.measurement(
         "TST",
         """Get the DIAMENTOR selftest result (bool).
 
         .. Gives an error if it fails, so False will never be returned.
         """,
-        # map_values=True,
-        # values=[True: "0", False: "1"],
-        get_process=lambda v: True if v = "" else False)
+        get_process=lambda v: True if v == "" else False,
+        )
+
+    constancy_check_passed = Instrument.measurement(
+        "G",
+        """Get the DIAMENTOR electrical constancy check result (bool).""",
+        map_values=True,
+        values={True: "P", False: "F"},
+        get_process=lambda v: v[1]
         )
 
     is_calibrated = Instrument.measurement(
         "CRC",
-        """Get the calibration passed status (bool).""",
-        map_values=True,
-        values=[True: "0", False: "1"],
-        get_process=lambda v: v[1])
+        """Get the calibration status (bool).""",
+        get_process=lambda v: not int(v[1])
         )
 
     is_eeprom_ok = Instrument.measurement(
         "CRC",
         """Get the EEPROM CRC passed status (bool).""",
-        map_values=True,
-        values=[True: "0", False: "1"],
-        get_process=lambda v: v[0][3:])
+        get_process=lambda v: not int(v[0][3])
         )
 
     pressure = Instrument.control(
         "PRE", "PRE%04d",
-        """Control the atmospheric pressure in hPa (int strictly from 500 to 1500).
+        """Control the atmospheric pressure in hPa.
 
-        :type: int, strictly from ``500`` to ``1500``
+        :type: int, strictly from ``500`` to ``1500``,
 
-        It is used for the air density correction.
+        It is used for the air density correction. The default is ``1013`` hPa.
         """,
         validator=strict_range,
         values=[500, 1500],
@@ -155,7 +176,7 @@ class ptwDIAMENTOR(Instrument):
 
     measurement_result = Instrument.measurement(
         "M",
-        """Get the measurement results.
+        """Get the measurement result.
 
         :return: dict
 
@@ -186,11 +207,11 @@ class ptwDIAMENTOR(Instrument):
 
     temperature = Instrument.control(
         "TMPA", "TMPA%02d",
-        """Control the DIAMENTOR chamber temperature in degC (int strictly from 0 to 70).
+        """Control the DIAMENTOR chamber temperature in degree Celsius.
 
         :type: int, strictly from ``0`` to ``70``
 
-        It is used for the air density correction.
+        It is used for the air density correction. The default is ``20`` °C.
         """,
         validator=strict_range,
         values=[0, 70],
@@ -201,14 +222,14 @@ class ptwDIAMENTOR(Instrument):
 
     dap_unit = Instrument.control(
         "U", "U%d",
-        """Control the DAP unit (int strictly from 1 to 4).
+        """Control the dose-area-product (DAP) unit.
 
         :type: int, strictly from ``1`` to ``4``
 
-            - ``1``: cGycm²
-            - ``2``: Gycm²
-            - ``3``: µGym²
-            - ``4``: Rcm²
+            - ``1`` selects cGycm²
+            - ``2`` selects Gycm²
+            - ``3`` selects µGym²
+            - ``4`` selects Rcm²
         """,
         validator=strict_range,
         values=[1, 4],
