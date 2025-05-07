@@ -44,6 +44,7 @@ class Battery(Instrument):
         super().__init__(
             adapter,
             name,
+            includeSCPI=False,
             **kwargs
         )
 
