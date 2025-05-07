@@ -38,6 +38,15 @@ log.addHandler(logging.NullHandler())
 class Battery(Instrument):
     """A class representing the B2983/7 battery functions."""
 
+    def __init__(self, adapter,
+                 name="Agilent/Keysight B2980A/B battery",
+                 **kwargs):
+        super().__init__(
+            adapter,
+            name,
+            **kwargs
+        )
+
     battery_level = Instrument.measurement(
         ":SYST:BATT?",
         """Get the percentage of the remaining battery capacity (int).""",
@@ -637,6 +646,7 @@ class AgilentB2983(AgilentB2981, Battery):
     The B2983 is a Femto/Picoammeterwith with battery operation.
     """
     pass
+
 
 class AgilentB2985(AgilentB2981):
     """A class representing the Agilent/Keysight B2985A/B.
