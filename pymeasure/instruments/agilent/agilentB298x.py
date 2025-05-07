@@ -177,7 +177,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_count = Channel.control(
         ":ARM:ACQ:COUN?", ":ARM:ACQ:COUN %s",
-        """Control the arm count for action 'ACQuire'.
+        """Control the arm trigger count for action 'ACQuire'.
 
         :type: - int, strictly from ``1`` to ``100000`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
@@ -190,7 +190,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_delay = Channel.control(
         ":ARM:ACQ:DEL?", ":ARM:ACQ:DEL %s",
-        """Control the arm delay for action 'ACQuire' in seconds.
+        """Control the arm trigger delay for action 'ACQuire' in seconds.
 
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -201,7 +201,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_source = Channel.control(
         ":ARM:ACQ:SOUR?", ":ARM:ACQ:SOUR %s",
-        """Control the arm source for action 'ACQuire'.
+        """Control the arm trigger source for action 'ACQuire'.
 
         :type: str, strictly in ``AINT``, ``BUS``, ``TIM``,
                ``INT1``, ``INT2``, ``LAN``, ``TIN``,
@@ -226,7 +226,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_source_lan_id = Channel.control(
         ":ARM:ACQ:SOUR:LAN?", ":ARM:ACQ:SOUR:LAN %s",
-        """Control the source for LAN triggers for action 'ACQuire'.
+        """Control the source for LAN arm triggers for action 'ACQuire'.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
         """,
@@ -236,7 +236,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_timer = Channel.control(
         ":ARM:ACQ:TIM?", ":ARM:ACQ:TIM %s",
-        """Control the timer interval of the arm source for action 'ACQuire' in seconds.
+        """Control the timer interval of the arm trigger source for action 'ACQuire' in seconds.
 
         :type: - float, strictly from ``1E-5`` to ``1E5``
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -247,7 +247,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_output_signal = Channel.control(
         ":ARM:ACQ:TOUT:SIGN?", ":ARM:ACQ:TOUT:SIGN %s",
-        """Control the trigger output for action 'ACQuire'.
+        """Control the arm trigger output for action 'ACQuire'.
 
         :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
                ``EXT1`` to ``EXT7``
@@ -411,7 +411,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_count = Channel.setting(
         ":ARM:ALL:COUN %s",
-        """Set the arm counter for action 'ALL'.
+        """Set the arm trigger counter for action 'ALL'.
 
         :type: - int, strictly from ``1`` to ``100000`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
@@ -424,7 +424,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_delay = Channel.setting(
         ":ARM:ALL:DEL %s",
-        """Set the arm delay for action 'ALL' in seconds.
+        """Set the arm trigger delay for action 'ALL' in seconds.
 
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -435,7 +435,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_source = Channel.setting(
         ":ARM:ALL:SOUR %s",
-        """Set the arm source for action 'ALL'.
+        """Set the arm trigger source for action 'ALL'.
 
         :type: str, strictly in ``AINT``, ``BUS``, ``TIM``,
                ``INT1``, ``INT2``, ``LAN``, ``TIN``,
@@ -460,7 +460,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_source_lan_id = Channel.setting(
         ":ARM:ALL:SOUR:LAN %s",
-        """Set the source for LAN triggers for action 'ALL'.
+        """Set the source for LAN arm triggers for action 'ALL'.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
         """,
@@ -470,7 +470,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_timer = Channel.setting(
         ":ARM:ALL:TIM %s",
-        """Set the timer interval of the arm source for action 'ALL' in seconds.
+        """Set the timer interval of the arm trigger source for action 'ALL' in seconds.
 
         :type: - float, strictly from ``1E-5`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -808,7 +808,7 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_count = Channel.control(
         ":ARM:TRAN:COUN?", ":ARM:TRAN:COUN %s",
-        """Control the arm count for action 'TRANSient'.
+        """Control the arm trigger count for action 'TRANSient'.
 
         :type: - int, strictly from ``1`` to ``100000`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
@@ -821,7 +821,7 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_delay = Channel.control(
         ":ARM:TRAN:DEL?", ":ARM:TRAN:DEL %s",
-        """Control the arm delay for action 'TRANSient' in seconds.
+        """Control the arm trigger delay for action 'TRANSient' in seconds.
 
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -832,7 +832,7 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_source = Channel.control(
         ":ARM:TRAN:SOUR?", ":ARM:TRAN:SOUR %s",
-        """Control the arm source for action 'TRANSient'.
+        """Control the arm trigger source for action 'TRANSient'.
 
         :type: str, strictly in ``AINT``, ``BUS``, ``TIM``, ``INT1``, ``INT2``, ``LAN``, ``TIN``,
                ``EXT1`` to ``EXT7``
@@ -856,7 +856,7 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_source_lan_id = Channel.control(
         ":ARM:TRAN:SOUR:LAN?", ":ARM:TRAN:SOUR:LAN %s",
-        """Control the source for LAN triggers for action 'TRANSient'.
+        """Control the source for LAN arm triggers for action 'TRANSient'.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
         """,
@@ -866,7 +866,7 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_timer = Channel.control(
         ":ARM:TRAN:TIM?", ":ARM:TRAN:TIM %s",
-        """Control the timer interval of the arm source for action 'TRANSient' in seconds.
+        """Control the timer interval of the arm trigger source for action 'TRANSient' in seconds.
 
         :type: - float, strictly from ``1E-5`` to ``1E5``
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -877,7 +877,7 @@ class AgilentB2985(AgilentB2981):
 
     arm_transient_output_signal = Channel.control(
         ":ARM:TRAN:TOUT:SIGN?", ":ARM:TRAN:TOUT:SIGN %s",
-        """Control the trigger output for action 'TRANSient'.
+        """Control the arm trigger output for action 'TRANSient'.
 
         for the status change between the idle state and the
         arm layer. Multiple trigger output ports can be set.
