@@ -636,7 +636,7 @@ class AgilentB2983(AgilentB2981, Battery):
 
     The B2983 is a Femto/Picoammeterwith with battery operation.
     """
-
+    pass
 
 class AgilentB2985(AgilentB2981):
     """A class representing the Agilent/Keysight B2985A/B.
@@ -1111,3 +1111,4 @@ class AgilentB2987(AgilentB2985, Battery):
     The B2987 is a Femto/Picoammeter and Electrometer/High Resistance Meter
     with battery operation.
     """
+    pass
