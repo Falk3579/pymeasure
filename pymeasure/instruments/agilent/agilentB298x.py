@@ -59,7 +59,9 @@ class Battery(Instrument):
 
 
 class AgilentB2981(SCPIMixin, Instrument):
-    """A class representing the Agilent/Keysight B2981A/B series, Femto/Picoammeter."""
+    """A class representing the Agilent/Keysight B2981A/B.
+    
+    The B2981 is a Femto/Picoammeter."""
 
     def __init__(self, adapter,
                  name="Agilent/Keysight B2980A/B series",
@@ -166,7 +168,8 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_acquire_bypass_once_enabled = Channel.control(
         ":ARM:ACQ:BYP?", ":ARM:ACQ:BYP %s",
-        """Control the bypass for the event detector in the arm layer (bool).""",
+        """Control the bypass for the event detector in the arm layer for action 'ACQuire' (bool).
+        """,
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -246,14 +249,16 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":ARM:ACQ:TOUT:SIGN?", ":ARM:ACQ:TOUT:SIGN %s",
         """Control the trigger output for action 'ACQuire'.
 
-        The signal is for the status change between the idle state and the
-        arm layer.
+        :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
+               ``EXT1`` to ``EXT7``
 
         - ``INT1`` or ``INT2`` selects the internal bus 1 or 2.
         - ``LAN`` selects a LAN port.
         - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
         - ``TOUT`` selects the BNC Trigger Out.
+
+        It is for the status change between the idle state and the arm layer.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -264,8 +269,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":ARM:ACQ:TOUT?", ":ARM:ACQ:TOUT %s",
         """Control the arm trigger output for action 'ACQuire' (bool).
 
-        The signal is for the status change between the idle state
-        and the arm layer.
+        It is for the status change between the idle state and the arm layer.
         """,
         validator=strict_discrete_set,
         map_values=True,
@@ -284,7 +288,9 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_bypass_once_enabled = Channel.control(
         ":TRIG:ACQ:BYP?", ":TRIG:ACQ:BYP %s",
-        """Control the bypass for the event detector in the trigger layer (bool).""",
+        """
+        Control the bypass for the event detector in the trigger layer for action 'ACQuire' (bool).
+        """,
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -350,7 +356,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_acquire_timer = Channel.control(
         ":TRIG:ACQ:TIM?", ":TRIG:ACQ:TIM %s",
-        """Control the timer interval of the trigger source for action 'ACQuire'.
+        """Control the timer interval of the trigger source for action 'ACQuire' in seconds.
         
         :type: - float, strictly from ``1E-5`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
@@ -366,14 +372,14 @@ class AgilentB2981(SCPIMixin, Instrument):
         :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
                ``EXT1`` to ``EXT7``
 
-        for the status change between the idle state and the
-        arm layer. Multiple trigger output ports can be set.
-
         - ``INT1`` and ``INT2`` selects the internal bus 1 or 2.
         - ``LAN`` selects a LAN port.
         - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
         - ``TOUT``: selects the BNC Trigger Out.
+
+        It is for the status change between the idle state and the
+        trigger layer.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -384,16 +390,16 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":TRIG:ACQ:TOUT?", ":TRIG:ACQ:TOUT %s",
         """Control the trigger output for action 'ACQuire' (bool).
 
-        for the status change between the idle state
+        It is for the status change between the idle state
         and the trigger layer.""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 1, False: 0}
         )
 
-######################################
-# Trigger setters for the ALL layers #
-######################################
+####################################
+# Trigger setters for action 'ALL' #
+####################################
 
     arm_all_bypass_once_enabled = Channel.setting(
         ":ARM:ALL:BYP %s",
@@ -475,19 +481,18 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     arm_all_output_signal = Channel.setting(
         ":ARM:ALL:TOUT:SIGN %s",
-        """Set the trigger output for action 'ALL'.
+        """Set the arm trigger output for action 'ALL'.
 
         :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
                 ``EXT1`` to ``EXT7``
-
-        for the status change between the idle state and the
-        arm layer. Multiple trigger output ports can be set.
 
         - ``INT1`` and ``INT2`` selects the internal bus 1 or 2.
         - ``LAN`` selects a LAN port.
         - ``EXT1`` to ``EXT7`` selects the GPIO pin n, which is an output port of the Digital I/O
           D-sub connector on the rear panel. n = 1 to 7.
         - ``TOUT`` selects the BNC Trigger Out.
+
+        It is for the status change between the idle state and the arm layer.
         """,
         validator=strict_discrete_set,
         values=['INT1', 'INT2', 'LAN', 'TOUT',
@@ -498,7 +503,7 @@ class AgilentB2981(SCPIMixin, Instrument):
         ":ARM:ALL:TOUT %s",
         """Set the arm trigger output for action 'ALL' (bool).
 
-        for the status change between the idle state
+        It is for the status change between the idle state
         and the arm layer.""",
         validator=strict_discrete_set,
         map_values=True,
@@ -507,17 +512,17 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_is_idle = Channel.measurement(
         ":IDLE:ALL?",
-        """Get the idle status for action 'ALL'
+        """Get the trigger idle status for action 'ALL' (bool).
 
-        for the specified channel, and
-        waits until the status is changed to idle.""",
+        The command waits until the status is changed to idle.
+        """,
         map_values=True,
         values={True: 1, False: 0}
         )
 
     trigger_all_bypass_once_enabled = Channel.setting(
         ":TRIG:ALL:BYP %s",
-        """Set the bypass for the event detector in the trigger layer (bool).""",
+        """Set the bypass for the event detector in the trigger layer for action 'ALL' (bool).""",
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -525,14 +530,12 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_count = Channel.setting(
         ":TRIG:ALL:COUN %s",
-        """Set the trigger count.
-
-        for the specified device action.
+        """Set the trigger count for action 'ALL'.
 
         :type: - int, strictly from ``1`` to ``100000`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``, ``INF``
 
-        ``INF`` is equivalent to 2147483647.
+        ``INF`` is equivalent to ``2147483647``.
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF', 'INF', 2147483647], [1, 100000]]
@@ -540,12 +543,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_delay = Channel.setting(
         ":TRIG:ALL:DEL %s",
-        """Set the trigger delay in seconds.
+        """Set the trigger delay for action 'ALL' in seconds.
         
         :type: - float, strictly from ``0`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-
-        for the specified device action.
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
@@ -553,14 +554,11 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_source = Channel.setting(
         ":TRIG:ALL:SOUR %s",
-        """Set the trigger source.
+        """Set the trigger source for action 'ALL'.
 
         :type: str, strictly in ``AINT``, ``BUS``, ``TIM``,
                ``INT1``, ``INT2``, ``LAN``, ``TIN``,
                ``EXT1`` to ``EXT7``
-
-
-        for the specified device action.
 
         - ``AINT`` automatically selects the trigger source most suitable for the
           present operating mode by using internal algorithms.
@@ -581,7 +579,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_source_lan_id = Channel.setting(
         ":TRIG:ALL:SOUR:LAN %s",
-        """Set the source for LAN triggers.
+        """Set the source for LAN triggers for action 'ALL'.
         
         :type: str, strictly from ``LAN0`` to ``LAN7``
         """,
@@ -591,12 +589,10 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_timer = Channel.setting(
         ":TRIG:ALL:TIM %s",
-        """Set the timer interval of trigger source in seconds.
+        """Set the timer interval of trigger source for action 'ALL' in seconds.
 
         :type: - float, strictly from ``1E-5`` to ``1E5`` or
                - str, strictly in ``MIN``, ``MAX``, ``DEF``
-
-        for the specified device action.
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [1E-5, 1E5]]
@@ -604,13 +600,13 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_output_signal = Channel.setting(
         ":TRIG:ALL:TOUT:SIGN %s",
-        """Set the trigger signal output.
+        """Set the trigger signal output for action 'ALL'.
 
         :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
                 ``EXT1`` to ``EXT7``
 
         for the status change between the idle state and the
-        arm layer. Multiple trigger output ports can be set.
+        arm layer.
 
         - ``INT1`` and ``INT2`` selects the internal bus 1 or 2.
         - ``LAN`` selects a LAN port.
@@ -625,7 +621,7 @@ class AgilentB2981(SCPIMixin, Instrument):
 
     trigger_all_output_enabled = Channel.setting(
         ":TRIG:ALL:TOUT %s",
-        """Set the trigger output (bool).
+        """Set the trigger output for action 'ALL' (bool).
 
         for the status change between the idle state
         and the trigger layer.""",
@@ -636,15 +632,17 @@ class AgilentB2981(SCPIMixin, Instrument):
 
 
 class AgilentB2983(AgilentB2981, Battery):
-    """A class representing the Agilent/Keysight B2983A/B series, Femto/Picoammeter.
+    """A class representing the Agilent/Keysight B2983A/B.
 
-    Has battery operation.
+    The B2983 is a Femto/Picoammeterwith with battery operation.
     """
 
 
 class AgilentB2985(AgilentB2981):
-    """A class representing the Agilent/Keysight B2985A/B series Femto/Picoammeter
-    Electrometer/High Resistance Meter."""
+    """A class representing the Agilent/Keysight B2985A/B.
+    
+    The B2985 is a Femto/Picoammeter and Electrometer/High Resistance Meter.
+    """
 
     function = Instrument.control(
         ":FUNC?", ":FUNC '%s'",
@@ -716,12 +714,17 @@ class AgilentB2985(AgilentB2981):
 
     humidity = Instrument.measurement(
         ":SYST:HUM?",
-        """Measure the relative humidity."""
+        """Measure the relative humidity.
+        
+        :return: float
+        """
         )
 
     temperature = Instrument.measurement(
         ":SYST:TEMP?",
         """Measure the temperature.
+        
+        :return: float
         
         The unit of temperature is controlled by :attr:`temperature_unit`:
         """
@@ -789,13 +792,15 @@ class AgilentB2985(AgilentB2981):
         strict_discrete_set(action, ['ALL', 'ACQ', 'TRAN'])
         self.write(f":INIT:{action}")
 
-###########################################################
-# Trigger properties for TRANsient (voltage source) layer #
-###########################################################
+##############################################################
+# Trigger properties for action 'TRANsient' (voltage source) #
+##############################################################
 
     arm_transient_bypass_once_enabled = Channel.control(
         ":ARM:TRAN:BYP?", ":ARM:TRAN:BYP %s",
-        """Control the bypass for the event detector in the arm layer (bool).""",
+        """
+        Control the bypass for the event detector in the arm layer for action 'TRANSient' (bool).
+        """,
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -853,7 +858,7 @@ class AgilentB2985(AgilentB2981):
         ":ARM:TRAN:SOUR:LAN?", ":ARM:TRAN:SOUR:LAN %s",
         """Control the source for LAN triggers for action 'TRANSient'.
         
-        :type: str, strictly ``LAN0`` to ``LAN7``
+        :type: str, strictly from ``LAN0`` to ``LAN7``
         """,
         validator=strict_discrete_set,
         values=['LAN0', 'LAN1', 'LAN2', 'LAN3', 'LAN4', 'LAN5', 'LAN6', 'LAN7']
@@ -904,16 +909,19 @@ class AgilentB2985(AgilentB2981):
 
     trigger_transient_is_idle = Channel.measurement(
         ":IDLE:TRAN?",
-        """Get the status of the specified device action for the specified channel,
-        and
-        waits until the status is changed to idle.""",
+        """Get idle the status of action 'TRANSient'  (bool).
+
+        The command waits until the status is changed to idle.
+        """,
         map_values=True,
         values={True: 1, False: 0}
         )
 
     trigger_transient_bypass_once_enabled = Channel.control(
         ":TRIG:TRAN:BYP?", ":TRIG:TRAN:BYP %s",
-        """Control the bypass for the event detector in the trigger layer (bool).""",
+        """
+        Control the bypass for the event detector in the trigger layer for action 'TRANSient' (bool).
+        """,
         validator=strict_discrete_set,
         map_values=True,
         values={True: 'ONCE', False: 'OFF'}
@@ -934,8 +942,10 @@ class AgilentB2985(AgilentB2981):
 
     trigger_transient_delay = Channel.control(
         ":TRIG:TRAN:DEL?", ":TRIG:TRAN:DEL %s",
-        """Control the trigger delay for action 'TRANSient'.
+        """Control the trigger delay for action 'TRANSient' iin seconds.
 
+        :type: - float, strictly from ``0`` to ``1E5`` or
+               - str, strictly in ``MIN``, ``MAX``, ``DEF``
         """,
         validator=joined_validators(strict_discrete_set, strict_range),
         values=[['MIN', 'MAX', 'DEF'], [0, 100000]]
@@ -955,7 +965,7 @@ class AgilentB2985(AgilentB2981):
           execute trigger (GET) and the TRG command.
         - ``TIM`` selects a signal internally generated every interval set by
           :attr:`trigger_transient_timer`.
-        - ``INTn`` selects a signal from the internal bus 1 or 2, respectively.
+        - ``INT1`` and ``INT2`` selects a signal from the internal bus 1 or 2.
         - ``LAN`` selects the LXI trigger specified by :attr:`trigger_transient_source_lan_id`.
         - ``EXT1`` to ``EXT7`` selects a signal from the GPIO pin n, which is an input port of the
           Digital I/O D-sub connector on the rear panel. n = 1 to 7.
@@ -991,6 +1001,9 @@ class AgilentB2985(AgilentB2981):
         ":TRIG:TRAN:TOUT:SIGN?", ":TRIG:TRAN:TOUT:SIGN %s",
         """Control the trigger signal output for action 'TRANSient'.
 
+        :type: str, strictly in ``INT1``, ``INT2``, ``LAN``, ``TOUT``,
+               ``EXT1`` to ``EXT7``
+
         The signal indicates the status change between the idle state and the
         trigger layer.
 
@@ -1010,15 +1023,16 @@ class AgilentB2985(AgilentB2981):
         """Control the trigger output for action 'TRANSient' (bool).
 
         for the status change between the idle state
-        and the trigger layer.""",
+        and the trigger layer.
+        """,
         validator=strict_discrete_set,
         map_values=True,
         values={True: 1, False: 0}
         )
 
-####################
-# Source functions #
-####################
+############################
+# Voltage source functions #
+############################
 
     source_enabled = Channel.control(
         ":OUTP?", ":OUTP %d",
@@ -1070,15 +1084,15 @@ class AgilentB2985(AgilentB2981):
         
         For voltages > 20V the interlock must be closed.
         
-        +---------+------------+---------------------+-----------------+
-        |  Range  | Resolution | Output voltage      | Maximum current |
-        +---------+------------+---------------------+-----------------+
-        |   20 V  |   700 µV   | -21 V ≤ V ≤ 21 V    | +/-20 mA        |
-        +---------+------------+---------------------+-----------------+
-        |  1000 V |    35 mV   | -1 V ≤ V ≤ 1000 V   | +/-1.0 mA       |
-        +---------+------------+---------------------+-----------------+
-        | -1000 V |    35 mV   | -1000 V ≤ V ≤ 1 V   | +/-1.0 mA       |
-        +---------+------------+---------------------+-----------------+
+        +---------+------------+-------------------+-----------------+
+        |  Range  | Resolution |   Output voltage  | Maximum current |
+        +---------+------------+-------------------+-----------------+
+        |   20 V  |   700 µV   | -21 V ≤ V ≤ 21 V  |    +/-20 mA     |
+        +---------+------------+-------------------+-----------------+
+        |  1000 V |    35 mV   | -1 V ≤ V ≤ 1000 V |    +/-1.0 mA    |
+        +---------+------------+-------------------+-----------------+
+        | -1000 V |    35 mV   | -1000 V ≤ V ≤ 1 V |    +/-1.0 mA    |
+        +---------+------------+-------------------+-----------------+
         """,
         validator=strict_range,
         values=[-1050, 1050]
@@ -1097,8 +1111,8 @@ class AgilentB2985(AgilentB2981):
 
 
 class AgilentB2987(AgilentB2985, Battery):
-    """A class representing the Agilent/Keysight B2987A/B series Femto/Picoammeter
-    Electrometer/High Resistance Meter.
+    """A class representing the Agilent/Keysight B2987A/B.
 
-    Has battery operation.
+    The B2987 is a Femto/Picoammeter and Electrometer/High Resistance Meter
+    with battery operation.
     """
