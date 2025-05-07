@@ -40,11 +40,11 @@ class Battery(Instrument):
 
     def __init__(self, adapter,
                  name="Agilent/Keysight B2980A/B battery",
+                 includeSCPI=False,     
                  **kwargs):
         super().__init__(
             adapter,
             name,
-            includeSCPI=False,
             **kwargs
         )
 
