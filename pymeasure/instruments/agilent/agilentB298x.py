@@ -38,19 +38,19 @@ log.addHandler(logging.NullHandler())
 class Battery(Instrument):
     """A class representing the B2983/7 battery functions."""
 
-    battery_level = Channel.measurement(
+    battery_level = Instrument.measurement(
         ":SYST:BATT?",
         """Get the percentage of the remaining battery capacity (int).""",
         cast=int,
     )
 
-    battery_cycles = Channel.measurement(
+    battery_cycles = Instrument.measurement(
         ":SYST:BATT:CYCL?",
         """Get the battery cycle count (int).""",
         cast=int,
     )
 
-    battery_selftest_passed = Channel.measurement(
+    battery_selftest_passed = Instrument.measurement(
         ":SYST:BATT:TEST?",
         """Get the battery self-test result (bool).""",
         map_values=True,
