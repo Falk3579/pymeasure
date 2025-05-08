@@ -75,5 +75,5 @@ class TestPTWDiamentorProperties:
             firmware = diamentor9600.id
         except VisaIOError:
             firmware = ""
-            pass
+
         assert 'CRS' in firmware
