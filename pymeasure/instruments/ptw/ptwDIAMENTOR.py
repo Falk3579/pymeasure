@@ -106,27 +106,31 @@ class ptwDIAMENTOR(Instrument):
 ##############
 
     baudrate =  Instrument.control(
-        "BR", "BR%s",
+        "BR", "BR%d",
         """Control the baudrate.
         
         :type: int, strictly in ``9600``, ``19200``, ``38400``, ``57600``, ``115200``
+        
+        The baudrate is changed after sending the respone.
         """,
         map_values=True,
         validator=strict_discrete_set,
-        values={9600: "0", 
-                19200: "1",
-                38400: "2",
-                57600: "3",
-                115200: "4",
+        values={9600: 0, 
+                19200: 1,
+                38400: 2,
+                57600: 3,
+                115200: 4,
                 },
-        get_process=lambda v: v[2]
+        check_set_errors=True,
+        get_process=lambda v: int(v[2])
         )
 
     selftest_passed = Instrument.measurement(
         "TST",
         """Get the DIAMENTOR selftest result (bool).
 
-        .. Gives an error if it fails, so False will never be returned.
+        :raises: *ValueError* if selftest fails
+        
         """,
         get_process=lambda v: True if v == "" else False,
         )
@@ -171,10 +175,10 @@ class ptwDIAMENTOR(Instrument):
         """Get the DIAMENTOR firmware version.
 
         :return: str
-        """
+        """,
         )
 
-    measurement_result = Instrument.measurement(
+    measurement = Instrument.measurement(
         "M",
         """Get the measurement result.
 
@@ -189,10 +193,10 @@ class ptwDIAMENTOR(Instrument):
         The units of ``dap`` and ``dap_rate`` depend on the :attr:`dap_unit` property.
         Time is in seconds.
         """,
-        get_process=lambda v: {"dap": v[0][1:],
-                               "dap_rate": v[1],
+        get_process=lambda v: {"dap": float(v[0][1:]),
+                               "dap_rate": float(v[1]),
                                "time": 60*int(v[2]) + int(v[3]),
-                               "crc": v[8]
+                               "crc": int(v[8])
                                }
         )
 
@@ -224,15 +228,59 @@ class ptwDIAMENTOR(Instrument):
         "U", "U%d",
         """Control the dose-area-product (DAP) unit.
 
-        :type: int, strictly from ``1`` to ``4``
+        :type: str, strictly in ``cGycm2``, ``Gycm2``, ``uGym2``, ``Rcm2``
 
-            - ``1`` selects cGycm²
-            - ``2`` selects Gycm²
-            - ``3`` selects µGym²
-            - ``4`` selects Rcm²
+        - ``cGycm2`` selects cGycm²
+        - ``Gycm2`` selects Gycm²
+        - ``uGym2`` selects µGym²
+        - ``Rcm2`` selects Rcm²
         """,
-        validator=strict_range,
-        values=[1, 4],
+        validator=strict_discrete_set,
+        map_values=True,
+        values={"cGycm2": 1,
+                "Gycm2": 2,
+                "uGym2": 3,
+                "Rcm2": 4,
+                },
         check_set_errors=True,
         get_process=lambda v: int(v[1:])
+        )
+
+    calibration_factor =Instrument.control(
+        "KA", "KA%s",
+        """Control the calibration factor of the measurement chamber in µGym²/s.
+        
+        type: float, strictly from ``1E8`` to ``9.999E12``
+
+        The unit of the calibration factor is always µGym²/s.
+        It is independent from the selected :attr:`dap_unit`.
+        
+        Default is ``1.0E9`` µGym²/s.
+        
+        .. warning::
+            Changing the calibration factor can lead to wrong measurements!
+
+            The calibration factor of the last calibration can be found on
+            a label on the case or in the calibration certificate
+            of the DIAMENTOR chamber.
+        """,
+        validator=strict_range,
+        values=[1E8, 9.999E12],
+        check_set_errors=True,
+        set_process=lambda v: f"{v:.4E}".replace('+',''),  # remove '+' from scientific notation
+        get_process=lambda v: float(v[2:])
+        )
+    
+    correctrion_factor =Instrument.control(
+        "KFA", "KFA%.3f",
+        """Control the correction factor of the chamber.
+        
+        type: float, strictly from ``0`` to ``9.999``
+        
+        Default is ``1.0``.
+        """,
+        validator=strict_range,
+        values=[0, 9.999],
+        check_set_errors=True,
+        get_process=lambda v: float(v[3:])
         )
