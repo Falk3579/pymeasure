@@ -22,13 +22,14 @@
 # THE SOFTWARE.
 #
 
-# Tested using SCPI over telnet (via ethernet). call signature:
-# $ pytest test_ptwDIAMENTOR_with_device.py --device-address ""
+# Tested using serial port. call signature:
+# $ pytest test_ptwDIAMENTOR_with_device.py --device-address COM1""
 #
 
 
 import pytest
 from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
+from pyvisa.errors import VisaIOError
 
 
 ############
@@ -37,14 +38,42 @@ from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
 
 
 @pytest.fixture(scope="module")
-def diamentor(connected_device_address):
-    instr = ptwDIAMENTOR(connected_device_address)
+def diamentor9600(connected_device_address):
+    instr = ptwDIAMENTOR(connected_device_address, baud_rate=9600)
+    return instr
+
+
+@pytest.fixture(scope="module")
+def diamentor19200(connected_device_address):
+    instr = ptwDIAMENTOR(connected_device_address, baud_rate=19200)
+    return instr
+
+
+@pytest.fixture(scope="module")
+def diamentor38400(connected_device_address):
+    instr = ptwDIAMENTOR(connected_device_address, baud_rate=38400)
+    return instr
+
+
+@pytest.fixture(scope="module")
+def diamentor57600(connected_device_address):
+    instr = ptwDIAMENTOR(connected_device_address, baud_rate=57600)
+    return instr
+
+
+@pytest.fixture(scope="module")
+def diamentor115200(connected_device_address):
+    instr = ptwDIAMENTOR(connected_device_address, baud_rate=115200)
     return instr
 
 
 class TestPTWDiamentorProperties:
     """Tests for PTW DIAMENTOR dosemeter properties."""
 
-    def test_id(self, diamentor):
-        fw_ver = diamentor.id
-        assert 'CRS' in fw_ver
+    def test_id(self, diamentor9600):
+        try:
+            firmware = diamentor9600.id
+        except VisaIOError:
+            firmware = ""
+            pass
+        assert 'CRS' in firmware
