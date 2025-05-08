@@ -26,11 +26,11 @@ from pymeasure.instruments import Instrument, SCPIMixin
 
 
 class Keithley4200(SCPIMixin, Instrument):
-    """ Represents the Keithley4200SCS.
+    """A class representing the Keithley 4200A-SCS Parameter Analyzer.
     """
 
     def __init__(self, adapter,
-                 name="Keithley 4200SCS",
+                 name="Keithley 4200A-SCS",
                  **kwargs):
         super().__init__(
             adapter, 
