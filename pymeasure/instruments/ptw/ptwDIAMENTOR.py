@@ -38,6 +38,7 @@ class ptwDIAMENTOR(Instrument):
 
     def __init__(self, adapter,
                  name="PTW DIAMENTOR DAP dosemeter",
+                 baud_rate=9600,
                  **kwargs):
         super().__init__(
             adapter,
@@ -45,7 +46,6 @@ class ptwDIAMENTOR(Instrument):
             read_termination="\r\n",
             includeSCPI=False,
             timeout=2000,
-            encoding="utf8",
             **kwargs
         )
 
