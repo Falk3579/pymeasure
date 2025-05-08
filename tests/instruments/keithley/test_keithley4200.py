@@ -22,20 +22,14 @@
 # THE SOFTWARE.
 #
 
-from .keithley2000 import Keithley2000
-from .keithley2200 import Keithley2200
-from .keithley2260B import Keithley2260B
-from .keithley2281S import Keithley2281S
-from .keithley2306 import Keithley2306
-from .keithley2400 import Keithley2400
-from .keithley2450 import Keithley2450
-from .keithley2510 import Keithley2510
-from .keithley2600 import Keithley2600
-from .keithley2700 import Keithley2700
-from .keithley2750 import Keithley2750
-from .keithley6221 import Keithley6221
-from .keithley6517b import Keithley6517B
-from .keithleyDMM6500 import KeithleyDMM6500
-from .keithley2182 import Keithley2182
-from .keithleyDAQ6510 import KeithleyDAQ6510
-from .keithley4200 import Keithley4200
+from pymeasure.test import expected_protocol
+
+from pymeasure.instruments.keithley import Keithley4200
+
+
+def test_id():
+    with expected_protocol(
+        Keithley4200,
+        [("*IDN?", "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d")],
+    ) as inst:
+        assert inst.id == "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d"
