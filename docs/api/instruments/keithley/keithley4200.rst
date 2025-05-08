@@ -1,6 +1,6 @@
-################
-Keithley 4200SCS
-################
+#####################################
+Keithley 4200A-SCS Parameter Analyzer
+#####################################
 
 .. autoclass:: pymeasure.instruments.keithley.Keithley4200
     :members:
