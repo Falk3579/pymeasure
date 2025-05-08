@@ -151,7 +151,7 @@ class ptwDIAMENTOR(Instrument):
 
     is_eeprom_ok = Instrument.measurement(
         "CRC",
-        """Get the EEPROM CRC passed status (bool).""",
+        """Get the EEPROM CRC ok status (bool).""",
         get_process=lambda v: not int(v[0][3])
         )
 
@@ -174,7 +174,7 @@ class ptwDIAMENTOR(Instrument):
         "PTW",
         """Get the DIAMENTOR firmware version.
 
-        :return: str
+        :return: str ("CRS x.xx")
         """,
         )
 
