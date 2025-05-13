@@ -31,10 +31,25 @@ import pytest
 from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
 from pyvisa.errors import VisaIOError
 
+BAUD_RATES = [9600, 19200, 38400, 57600, 115200]
+DAP_UNITS = ["cGycm2", "Gycm2", "uGym2", "Rcm2"]
 
 ############
 # FIXTURES #
 ############
+
+@pytest.fixture(scope="module")
+def diamentor(connected_device_address):
+    for baud_rate in BAUD_RATES:  # probe for the correct baud rate
+        instr = ptwDIAMENTOR(connected_device_address, baud_rate=baud_rate)
+
+        try:
+            firmware = diamentor.id
+        except VisaIOError:
+            firmware = ""
+
+        if "CRS" in firmware:
+            return instr
 
 
 @pytest.fixture(scope="module")
@@ -70,24 +85,43 @@ def diamentor115200(connected_device_address):
 class TestPTWDiamentorProperties:
     """Tests for PTW DIAMENTOR dosemeter properties."""
         
-    # def test_baudrate(self, diamentor9600):
-    # def test_selftest_passed(self, diamentor9600):
-    # def test_constancy_check_passed(self, diamentor9600):
-    # def test_is_calibrated(self, diamentor9600):
-    # def test_is_eeprom_ok(self, diamentor9600):
-    # def test_pressure(self, diamentor9600):
+    def test_baudrate(self, diamentor):
+        baud_rate = diamentor.baud_rate
+        assert baud_rate in BAUD_RATES
 
-    def test_id(self, diamentor9600):
+    def test_selftest_passed(self, diamentor):
+        selftest_passed = diamentor.selftest_passed
+        assert type(selftest_passed) in bool
+
+    def test_constancy_check_passed(self, diamentor):
+        constancy_check_passed = diamentor.constancy_check_passed
+        assert type(constancy_check_passed) in bool
+
+    def test_is_calibrated(self, diamentor):
+        is_calibrated = diamentor.is_calibrated
+        assert type(is_calibrated) in bool
+
+    def test_is_eeprom_ok(self, diamentor):
+        is_eeprom_ok = diamentor.is_eeprom_ok
+        assert type(is_eeprom_ok) in bool
+
+
+
+
+
+    # def test_pressure(self, diamentor):
+
+    def test_id(self, diamentor):
         try:
-            firmware = diamentor9600.id
+            firmware = diamentor.id
         except VisaIOError:
             firmware = ""
 
         assert "CRS" in firmware
 
-    # def test_measurement(self, diamentor9600):
-    # def test_serial_number(self, diamentor9600):
-    # def test_temperature(self, diamentor9600):
-    # def test_dap_unit(self, diamentor9600):
-    # def test_calibration_factor(self, diamentor9600):
-    # def test_correctrion_factor(self, diamentor9600):
+    # def test_measurement(self, diamentor):
+    # def test_serial_number(self, diamentor):
+    # def test_temperature(self, diamentor):
+    # def test_dap_unit(self, diamentor):
+    # def test_calibration_factor(self, diamentor):
+    # def test_correctrion_factor(self, diamentor):
