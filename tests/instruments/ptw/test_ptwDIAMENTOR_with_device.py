@@ -69,6 +69,13 @@ def diamentor115200(connected_device_address):
 
 class TestPTWDiamentorProperties:
     """Tests for PTW DIAMENTOR dosemeter properties."""
+        
+    # def test_baudrate(self, diamentor9600):
+    # def test_selftest_passed(self, diamentor9600):
+    # def test_constancy_check_passed(self, diamentor9600):
+    # def test_is_calibrated(self, diamentor9600):
+    # def test_is_eeprom_ok(self, diamentor9600):
+    # def test_pressure(self, diamentor9600):
 
     def test_id(self, diamentor9600):
         try:
@@ -76,4 +83,11 @@ class TestPTWDiamentorProperties:
         except VisaIOError:
             firmware = ""
 
-        assert 'CRS' in firmware
+        assert "CRS" in firmware
+
+    # def test_measurement(self, diamentor9600):
+    # def test_serial_number(self, diamentor9600):
+    # def test_temperature(self, diamentor9600):
+    # def test_dap_unit(self, diamentor9600):
+    # def test_calibration_factor(self, diamentor9600):
+    # def test_correctrion_factor(self, diamentor9600):
