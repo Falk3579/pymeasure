@@ -39,6 +39,7 @@ DAP_UNITS = ["cGycm2", "Gycm2", "uGym2", "Rcm2"]
 # FIXTURES #
 ############
 
+
 @pytest.fixture(scope="module")
 def diamentor(connected_device_address):
     for baud_rate in BAUD_RATES:  # probe for the correct baud rate
@@ -85,7 +86,7 @@ def diamentor115200(connected_device_address):
 
 class TestPTWDiamentorProperties:
     """Tests for PTW DIAMENTOR dosemeter properties."""
-        
+
     def test_baudrate(self, diamentor):
         baud_rate = diamentor.baud_rate
         assert baud_rate in BAUD_RATES
@@ -135,7 +136,7 @@ class TestPTWDiamentorProperties:
         assert diamentor.dap_unit in DAP_UNITS
 
     def test_calibration_factor(self, diamentor):
-        assert 1E8 <= diamentor.calibration_factor 9.999E12
+        assert 1E8 <= diamentor.calibration_factor <= 9.999E12
 
     def test_correctrion_factor(self, diamentor):
-        assert 0 <= diamentor.correctrion_factor 9.999
+        assert 0 <= diamentor.correctrion_factor <= 9.999
