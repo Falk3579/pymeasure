@@ -30,6 +30,7 @@
 import pytest
 from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
 from pyvisa.errors import VisaIOError
+from time import sleep
 
 BAUD_RATES = [9600, 19200, 38400, 57600, 115200]
 DAP_UNITS = ["cGycm2", "Gycm2", "uGym2", "Rcm2"]
@@ -90,38 +91,51 @@ class TestPTWDiamentorProperties:
         assert baud_rate in BAUD_RATES
 
     def test_selftest_passed(self, diamentor):
-        selftest_passed = diamentor.selftest_passed
-        assert type(selftest_passed) in bool
+        assert type(diamentor.selftest_passed) is bool
 
     def test_constancy_check_passed(self, diamentor):
-        constancy_check_passed = diamentor.constancy_check_passed
-        assert type(constancy_check_passed) in bool
+        assert type(diamentor.constancy_check_passed) is bool
 
     def test_is_calibrated(self, diamentor):
-        is_calibrated = diamentor.is_calibrated
-        assert type(is_calibrated) in bool
+        assert type(diamentor.is_calibrated) is bool
 
     def test_is_eeprom_ok(self, diamentor):
-        is_eeprom_ok = diamentor.is_eeprom_ok
-        assert type(is_eeprom_ok) in bool
+        assert type(diamentor.is_eeprom_ok) is bool
 
-
-
-
-
-    # def test_pressure(self, diamentor):
+    def test_pressure(self, diamentor):
+        assert 500 <= diamentor.pressure <= 1500
+        diamentor.pressure = 1013
+        assert diamentor.pressure == 1013
 
     def test_id(self, diamentor):
-        try:
-            firmware = diamentor.id
-        except VisaIOError:
-            firmware = ""
+        assert "CRS" in diamentor.id
 
-        assert "CRS" in firmware
+    def test_measurement(self, diamentor):
+        diamentor.reset()
+        sleep(2)
+        measurement = diamentor.measurement
+        assert type(measurement["dap"]) is float
+        assert type(measurement["dap_rate"]) is float
+        assert type(measurement["time"]) is int
+        assert type(measurement["crc"]) is int
 
-    # def test_measurement(self, diamentor):
-    # def test_serial_number(self, diamentor):
-    # def test_temperature(self, diamentor):
-    # def test_dap_unit(self, diamentor):
-    # def test_calibration_factor(self, diamentor):
-    # def test_correctrion_factor(self, diamentor):
+    def test_serial_number(self, diamentor):
+        serial_number = diamentor.serial_number
+        assert type(serial_number) is int
+        assert serial_number in range(1000000)
+
+    def test_temperature(self, diamentor):
+        temperature = diamentor.temperature
+        assert type(temperature) is int
+        assert temperature in range(71)
+        diamentor.temperature = 20
+        assert diamentor.temperature == 20
+
+    def test_dap_unit(self, diamentor):
+        assert diamentor.dap_unit in DAP_UNITS
+
+    def test_calibration_factor(self, diamentor):
+        assert 1E8 <= diamentor.calibration_factor 9.999E12
+
+    def test_correctrion_factor(self, diamentor):
+        assert 0 <= diamentor.correctrion_factor 9.999
