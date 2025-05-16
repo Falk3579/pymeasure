@@ -23,14 +23,62 @@
 #
 
 
-from pymeasure.instruments import Instrument, SCPIUnknownMixin
+from pymeasure.instruments import Instrument, Channel, SCPIMixin
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 from pyvisa.errors import VisaIOError
 
 
-class AgilentE4980(SCPIUnknownMixin, Instrument):
+class Spot(Channel):
+    """A class representing the spot correction functions.
+    
+    Up to 201 spots can be defined.
+    """
+
+    def measure_open(self):
+        """Measure the OPEN correction standard of the specified spot."""
+        self.write(":CORR:SPOT{ch}:OPEN")
+
+    def measure_short(self):
+        """Measure the SHORT correction standard of the specified spot."""
+        self.write(":CORR:SPOT{ch}:SHOR")
+
+    def measure_load(self):
+        """Measure the LOAD correction standard of the specified spot."""
+        self.write(":CORR:SPOT{ch}:LOAD")
+
+    enabled = Channel.control(
+        ":CORR:SPOT1:STAT?", ":CORR:SPOT{ch}:STAT %s",
+        """Enable the specified spot correction (bool).""",
+        map_values=True,
+        values={True: "1", False: "0"}
+        )
+
+    frequency = Channel.control(
+        ":CORR:SPOT{ch}:FREQ?", ":CORR:SPOT{ch}:FREQ %g",
+        """Control the frequency of the specified spot in Hz.""",
+        )
+
+    load_function = Channel.control(
+        ":CORR:SPOT{ch}:LOAD:STAN?", ":CORR:SPOT{ch}:LOAD:STAN %s",
+        """Control the spot load standard.
+        
+        :type: str, strictly in 
+        """,
+        validator=strict_discrete_set,
+        values=["CPD", "CPQ", "CPG", "CPRP",
+                "CSD", "CSQ", "CSRS",
+                "LPD", "LPQ", "LPG", "LPRP",
+                "LSD", "LSQ", "LSRS",
+                "ZTD", "ZTR", "YTD", "YTR",
+                "RX", "GB"]
+        )
+
+
+class AgilentE4980(SCPIMixin, Instrument):
     """Represents LCR meter E4980A/AL"""
 
+    spots = Instrument.MultiChannelCreator(Spot, list(range(1,202)), prefix="spot_")
+ 
     ac_voltage = Instrument.control(":VOLT:LEV?", ":VOLT:LEV %g",
                                     "AC voltage level, in Volts",
                                     validator=strict_range,
@@ -163,3 +211,57 @@ Select trigger source; accept the values:
                 self.write(f":APER {time}, {averages}")
             else:
                 raise Exception("Time must be a string: SHORT, MED, LONG")
+
+
+    # integration_time_and_averages = Instrument.control(
+        # "APER?", "APER %s,%d",
+        # """   """,
+        # validator=strict_discrete_set,
+        # values=["SHORT", "MED", "LONG"]
+        # )
+        
+    # trigger_delay
+    # bias
+    # dc source (OPT 001)
+    # OPT to get the installed options
+
+
+########################
+# Correction functions #
+########################
+
+    def measure_open(self):
+        """Measure the OPEN correction standard of the specified spot."""
+        self.write(":CORR:OPEN")
+
+    def measure_short(self):
+        """Measure the SHORT correction standard of the specified spot."""
+        self.write(":CORR:SHOR")
+
+    def measure_load(self):
+        """Measure the LOAD correction standard of the specified spot."""
+        self.write(":CORR:LOAD")
+
+
+    open_correction_enabled = Instrument.control(
+        "", "",
+        """ doc""",
+        map_values=True,
+        values={True: "1", False: "0"}
+
+        )
+
+    short_correction_enabled = Instrument.control(
+        "", "",
+        """ doc""",
+        map_values=True,
+        values={True: "1", False: "0"}
+        )
+
+    load_correction_enabled = Instrument.control(
+        "", "",
+        """ doc""",
+        map_values=True,
+        values={True: "1", False: "0"}
+
+        )
