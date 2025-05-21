@@ -43,7 +43,6 @@ class ptwDIAMENTOR(Instrument):
         super().__init__(
             adapter,
             name,
-            read_termination="\r\n",
             includeSCPI=False,
             timeout=2000,
             **kwargs
