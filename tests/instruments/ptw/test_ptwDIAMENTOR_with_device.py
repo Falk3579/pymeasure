@@ -23,7 +23,7 @@
 #
 
 # Tested using serial port. call signature:
-# $ pytest test_ptwDIAMENTOR_with_device.py --device-address COM1""
+# $ pytest test_ptwDIAMENTOR_with_device.py --device-address ASRL4
 #
 
 
@@ -41,46 +41,8 @@ DAP_UNITS = ["cGycm2", "Gycm2", "uGym2", "Rcm2"]
 
 
 @pytest.fixture(scope="module")
-def diamentor(connected_device_address):
-    for baud_rate in BAUD_RATES:  # probe for the correct baud rate
-        instr = ptwDIAMENTOR(connected_device_address, baud_rate=baud_rate)
-
-        try:
-            firmware = diamentor.id
-        except VisaIOError:
-            firmware = ""
-
-        if "CRS" in firmware:
-            return instr
-
-
-@pytest.fixture(scope="module")
-def diamentor9600(connected_device_address):
-    instr = ptwDIAMENTOR(connected_device_address, baud_rate=9600)
-    return instr
-
-
-@pytest.fixture(scope="module")
-def diamentor19200(connected_device_address):
-    instr = ptwDIAMENTOR(connected_device_address, baud_rate=19200)
-    return instr
-
-
-@pytest.fixture(scope="module")
-def diamentor38400(connected_device_address):
-    instr = ptwDIAMENTOR(connected_device_address, baud_rate=38400)
-    return instr
-
-
-@pytest.fixture(scope="module")
-def diamentor57600(connected_device_address):
-    instr = ptwDIAMENTOR(connected_device_address, baud_rate=57600)
-    return instr
-
-
-@pytest.fixture(scope="module")
-def diamentor115200(connected_device_address):
-    instr = ptwDIAMENTOR(connected_device_address, baud_rate=115200)
+def diamentor(connected_device_address, baud_rate=9600):
+    instr = ptwDIAMENTOR(connected_device_address, baud_rate=baud_rate)
     return instr
 
 
@@ -88,8 +50,7 @@ class TestPTWDiamentorProperties:
     """Tests for PTW DIAMENTOR dosemeter properties."""
 
     def test_baudrate(self, diamentor):
-        baud_rate = diamentor.baud_rate
-        assert baud_rate in BAUD_RATES
+        assert diamentor.baudrate in BAUD_RATES
 
     def test_selftest_passed(self, diamentor):
         assert type(diamentor.selftest_passed) is bool
@@ -103,10 +64,12 @@ class TestPTWDiamentorProperties:
     def test_is_eeprom_ok(self, diamentor):
         assert type(diamentor.is_eeprom_ok) is bool
 
-    def test_pressure(self, diamentor):
-        assert 500 <= diamentor.pressure <= 1500
-        diamentor.pressure = 1013
-        assert diamentor.pressure == 1013
+    @pytest.mark.parametrize("pressure", [0, 70, 20])
+    def test_pressure(self, diamentor, pressure):
+        initial_pressure = diamentor.pressure  # get the current setting
+        diamentor.pressure = pressure
+        assert pressure == diamentor.pressure
+        diamentor.pressure = initial_pressure  # restore the initial setting
 
     def test_id(self, diamentor):
         assert "CRS" in diamentor.id
@@ -125,15 +88,19 @@ class TestPTWDiamentorProperties:
         assert type(serial_number) is int
         assert serial_number in range(1000000)
 
-    def test_temperature(self, diamentor):
-        temperature = diamentor.temperature
-        assert type(temperature) is int
-        assert temperature in range(71)
-        diamentor.temperature = 20
-        assert diamentor.temperature == 20
+    @pytest.mark.parametrize("temperature", [0, 70, 20])
+    def test_temperature(self, diamentor, temperature):
+        initial_temperature = diamentor.temperature  # get the current setting
+        diamentor.temperature = temperature
+        assert temperature = diamentor.temperature
+        diamentor.temperature = initial_temperature  # restore the initial setting
 
-    def test_dap_unit(self, diamentor):
-        assert diamentor.dap_unit in DAP_UNITS
+    @pytest.mark.parametrize("dap_unit", DAP_UNITS)
+    def test_dap_unit(self, diamentor, dap_unit):
+        initial_dap_unit = diamentor.dap_unit  # get the current setting
+        diamentor.dap_unit = dap_unit
+        assert dap_unit == diamentor.dap_unit
+        diamentor.dap_unit = initial_dap_unit  # restore the initial setting
 
     def test_calibration_factor(self, diamentor):
         assert 1E8 <= diamentor.calibration_factor <= 9.999E12
