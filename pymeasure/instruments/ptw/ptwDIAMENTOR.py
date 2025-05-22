@@ -223,10 +223,10 @@ class ptwDIAMENTOR(Instrument):
 
         :type: str, strictly in ``cGycm2``, ``Gycm2``, ``uGym2``, ``Rcm2``
 
-        - ``cGycm2`` selects cGycm²
-        - ``Gycm2`` selects Gycm²
-        - ``uGym2`` selects µGym²
-        - ``Rcm2`` selects Rcm²
+        - ``cGycm2`` selects cGy*cm²
+        - ``Gycm2`` selects Gy*cm²
+        - ``uGym2`` selects µGy*m²
+        - ``Rcm2`` selects R*cm²
         """,
         validator=strict_discrete_set,
         map_values=True,
@@ -241,11 +241,11 @@ class ptwDIAMENTOR(Instrument):
 
     calibration_factor = Instrument.control(
         "KA", "KA%s",
-        """Control the calibration factor of the measurement chamber in µGym²/s.
+        """Control the calibration factor of the measurement chamber in µGy*m²/s.
 
         :type: float, strictly from ``1E8`` to ``9.999E12``, default: ``1.0E9``
 
-        The unit of the calibration factor is always µGym²/s.
+        The unit of the calibration factor is always µGy*m²/s.
         It is independent from the selected :attr:`dap_unit`.
 
         .. warning::
