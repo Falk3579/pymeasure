@@ -114,8 +114,7 @@ def test_measurement():
     ) as inst:
         assert inst.measurement == {"dap": 9999.99,
                                     "dap_rate": 8888.88,
-                                    "time": 13353,
-                                    "crc": 34567
+                                    "time": 13353
                                     }
 
 
