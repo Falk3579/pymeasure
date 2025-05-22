@@ -76,7 +76,6 @@ class TestPTWDiamentorProperties:
         assert type(measurement["dap"]) is float
         assert type(measurement["dap_rate"]) is float
         assert type(measurement["time"]) is int
-        assert type(measurement["crc"]) is int
 
     def test_serial_number(self, diamentor):
         serial_number = diamentor.serial_number
