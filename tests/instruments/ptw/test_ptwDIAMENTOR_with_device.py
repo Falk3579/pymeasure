@@ -29,7 +29,6 @@
 
 import pytest
 from pymeasure.instruments.ptw.ptwDIAMENTOR import ptwDIAMENTOR
-from pyvisa.errors import VisaIOError
 from time import sleep
 
 BAUD_RATES = [9600, 19200, 38400, 57600, 115200]
@@ -64,7 +63,7 @@ class TestPTWDiamentorProperties:
     def test_is_eeprom_ok(self, diamentor):
         assert type(diamentor.is_eeprom_ok) is bool
 
-    @pytest.mark.parametrize("pressure", [0, 70, 20])
+    @pytest.mark.parametrize("pressure", [500, 1500, 1013])
     def test_pressure(self, diamentor, pressure):
         initial_pressure = diamentor.pressure  # get the current setting
         diamentor.pressure = pressure
@@ -92,7 +91,7 @@ class TestPTWDiamentorProperties:
     def test_temperature(self, diamentor, temperature):
         initial_temperature = diamentor.temperature  # get the current setting
         diamentor.temperature = temperature
-        assert temperature = diamentor.temperature
+        assert temperature == diamentor.temperature
         diamentor.temperature = initial_temperature  # restore the initial setting
 
     @pytest.mark.parametrize("dap_unit", DAP_UNITS)

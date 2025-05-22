@@ -104,17 +104,17 @@ class ptwDIAMENTOR(Instrument):
 # Properties #
 ##############
 
-    baudrate =  Instrument.control(
+    baudrate = Instrument.control(
         "BR", "BR%d",
         """Control the baudrate.
-        
+
         :type: int, strictly in ``9600``, ``19200``, ``38400``, ``57600``, ``115200``
-        
+
         The baudrate is changed after sending the respone.
         """,
         map_values=True,
         validator=strict_discrete_set,
-        values={9600: 0, 
+        values={9600: 0,
                 19200: 1,
                 38400: 2,
                 57600: 3,
@@ -129,7 +129,7 @@ class ptwDIAMENTOR(Instrument):
         """Get the DIAMENTOR selftest result (bool).
 
         :raises: *ValueError* if selftest fails
-        
+
         """,
         get_process=lambda v: True if v == "" else False,
         )
@@ -158,9 +158,9 @@ class ptwDIAMENTOR(Instrument):
         "PRE", "PRE%04d",
         """Control the atmospheric pressure in hPa.
 
-        :type: int, strictly from ``500`` to ``1500``,
+        :type: int, strictly from ``500`` to ``1500``, default: ``1013``
 
-        It is used for the air density correction. The default is ``1013`` hPa.
+        It is used for the air density correction.
         """,
         validator=strict_range,
         values=[500, 1500],
@@ -171,10 +171,7 @@ class ptwDIAMENTOR(Instrument):
 
     id = Instrument.measurement(
         "PTW",
-        """Get the DIAMENTOR firmware version.
-
-        :return: str ("CRS x.xx")
-        """,
+        """Get the firmware version (str) ("CRS x.xx")""",
         )
 
     measurement = Instrument.measurement(
@@ -201,20 +198,17 @@ class ptwDIAMENTOR(Instrument):
 
     serial_number = Instrument.measurement(
         "SER",
-        """Get the DIAMENTOR serial number.
-
-        :return: int
-        """,
+        """Get the serial number (int).""",
         get_process=lambda v: int(v[3:])
         )
 
     temperature = Instrument.control(
         "TMPA", "TMPA%02d",
-        """Control the DIAMENTOR chamber temperature in degree Celsius.
+        """Control the chamber temperature in degree Celsius.
 
-        :type: int, strictly from ``0`` to ``70``
+        :type: int, strictly from ``0`` to ``70``, default: ``20``
 
-        It is used for the air density correction. The default is ``20`` °C.
+        It is used for the air density correction.
         """,
         validator=strict_range,
         values=[0, 70],
@@ -229,10 +223,10 @@ class ptwDIAMENTOR(Instrument):
 
         :type: str, strictly in ``cGycm2``, ``Gycm2``, ``uGym2``, ``Rcm2``
 
-        - ``cGycm2`` selects cGycm²
-        - ``Gycm2`` selects Gycm²
-        - ``uGym2`` selects µGym²
-        - ``Rcm2`` selects Rcm²
+        - ``cGycm2`` selects cGy*cm²
+        - ``Gycm2`` selects Gy*cm²
+        - ``uGym2`` selects µGy*m²
+        - ``Rcm2`` selects R*cm²
         """,
         validator=strict_discrete_set,
         map_values=True,
@@ -245,17 +239,15 @@ class ptwDIAMENTOR(Instrument):
         get_process=lambda v: int(v[1:])
         )
 
-    calibration_factor =Instrument.control(
+    calibration_factor = Instrument.control(
         "KA", "KA%s",
-        """Control the calibration factor of the measurement chamber in µGym²/s.
-        
-        type: float, strictly from ``1E8`` to ``9.999E12``
+        """Control the calibration factor of the measurement chamber in µGy*m²/s.
 
-        The unit of the calibration factor is always µGym²/s.
+        :type: float, strictly from ``1E8`` to ``9.999E12``, default: ``1.0E9``
+
+        The unit of the calibration factor is always µGy*m²/s.
         It is independent from the selected :attr:`dap_unit`.
-        
-        Default is ``1.0E9`` µGym²/s.
-        
+
         .. warning::
             Changing the calibration factor can lead to wrong measurements!
 
@@ -266,17 +258,15 @@ class ptwDIAMENTOR(Instrument):
         validator=strict_range,
         values=[1E8, 9.999E12],
         check_set_errors=True,
-        set_process=lambda v: f"{v:.4E}".replace('+',''),  # remove '+' from scientific notation
+        set_process=lambda v: f"{v:.4E}".replace('+', ''),  # remove '+' from scientific notation
         get_process=lambda v: float(v[2:])
         )
-    
-    correctrion_factor =Instrument.control(
+
+    correctrion_factor = Instrument.control(
         "KFA", "KFA%.3f",
         """Control the correction factor of the chamber.
-        
-        type: float, strictly from ``0`` to ``9.999``
-        
-        Default is ``1.0``.
+
+        :type: float, strictly from ``0`` to ``9.999``, default: ``1.0``
         """,
         validator=strict_range,
         values=[0, 9.999],
