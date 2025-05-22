@@ -263,7 +263,7 @@ class ptwDIAMENTOR(Instrument):
         get_process=lambda v: float(v[2:])
         )
 
-    correctrion_factor = Instrument.control(
+    correction_factor = Instrument.control(
         "KFA", "KFA%.3f",
         """Control the correction factor of the chamber.
 
