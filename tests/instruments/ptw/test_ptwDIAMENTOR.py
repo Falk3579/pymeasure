@@ -164,13 +164,13 @@ def test_calibration_factor():
         assert inst.calibration_factor == 1.3356E11
 
 
-def test_correctrion_factor():
-    """Verify the communication of the correctrion_factor getter/setter."""
+def test_correction_factor():
+    """Verify the communication of the correction_factor getter/setter."""
     with expected_protocol(
         ptwDIAMENTOR,
         [("KFA", "KFA1.010"),
          ("KFA3.870", "KFA3.870")
          ]
     ) as inst:
-        assert inst.correctrion_factor == 1.01
-        inst.correctrion_factor = 3.87
+        assert inst.correction_factor == 1.01
+        inst.correction_factor = 3.87
