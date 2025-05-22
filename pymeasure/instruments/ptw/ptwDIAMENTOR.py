@@ -183,8 +183,7 @@ class ptwDIAMENTOR(Instrument):
 
         :dict keys: ``dap``,
                     ``dap_rate``,
-                    ``time``,
-                    ``crc``
+                    ``time``
 
         The result consists of the dose-area-product (DAP) and the  dose-area-product rate.
         The units of ``dap`` and ``dap_rate`` depend on the :attr:`dap_unit` property.
@@ -192,8 +191,7 @@ class ptwDIAMENTOR(Instrument):
         """,
         get_process=lambda v: {"dap": float(v[0][1:]),
                                "dap_rate": float(v[1]),
-                               "time": 60*int(v[2]) + int(v[3]),
-                               "crc": int(v[8])
+                               "time": 60*int(v[2]) + int(v[3])
                                }
         )
 
