@@ -100,5 +100,5 @@ class TestPTWDiamentorProperties:
     def test_calibration_factor(self, diamentor):
         assert 1E8 <= diamentor.calibration_factor <= 9.999E12
 
-    def test_correctrion_factor(self, diamentor):
-        assert 0 <= diamentor.correctrion_factor <= 9.999
+    def test_correction_factor(self, diamentor):
+        assert 0 <= diamentor.correction_factor <= 9.999
