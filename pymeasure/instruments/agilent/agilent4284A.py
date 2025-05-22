@@ -37,6 +37,10 @@ IMPEDANCE_MODES = (
 )
 
 
+class Agilent4284ASpot(Channel):
+    pass
+
+
 class Agilent4284A(SCPIMixin, Instrument):
     """Represents the Agilent 4284A precision LCR meter.
 
@@ -64,6 +68,10 @@ class Agilent4284A(SCPIMixin, Instrument):
         kwargs.setdefault("timeout", 10000)
         super().__init__(adapter, name, **kwargs)
         self._set_ranges(0)
+
+    spot1 = Instrument.ChannelCreator(Agilent4284ASpot, "1")
+    spot2 = Instrument.ChannelCreator(Agilent4284ASpot, "2")
+    spot3 = Instrument.ChannelCreator(Agilent4284ASpot, "3")
 
     frequency = Instrument.control(
         "FREQ?", "FREQ %g",
