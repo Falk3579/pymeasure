@@ -34,10 +34,6 @@ from time import sleep
 BAUD_RATES = [9600, 19200, 38400, 57600, 115200]
 DAP_UNITS = ["cGycm2", "Gycm2", "uGym2", "Rcm2"]
 
-############
-# FIXTURES #
-############
-
 
 @pytest.fixture(scope="module")
 def diamentor(connected_device_address, baud_rate=9600):
