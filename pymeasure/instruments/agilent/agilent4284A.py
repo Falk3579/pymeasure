@@ -176,6 +176,7 @@ class Agilent4284A(SCPIMixin, Instrument):
         """Control AC frequency in Hertz, from 20 Hz to 1 MHz.""",
         validator=strict_range,
         values=(20, 1e6),
+        dynamic=True
     )
 
     ac_current = Instrument.control(
