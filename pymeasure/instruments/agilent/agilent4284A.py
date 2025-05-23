@@ -66,7 +66,7 @@ class Agilent4284ASpot(Channel):
 
     load_function = Channel.control(
         ":CORR:SPOT{ch}:LOAD:STAN?", ":CORR:SPOT{ch}:LOAD:STAN %s",
-        """Control the spot load standard.
+        """Control the spot LOAD standard.
 
         :type: str, strictly in  ``CPD``, ``CPQ``, ``CPG``, ``CPRP``, ``CSD``, ``CSQ``, ``CSRS``,
                ``LPQ``, ``LPD``, ``LPG``, ``LPRP``, ``LSD``, ``LSQ``, ``LSRS``,
@@ -76,6 +76,54 @@ class Agilent4284ASpot(Channel):
         """,
         validator=strict_discrete_set,
         values=IMPEDANCE_MODES
+        )
+
+
+class Agilent4284ACorrection(Channel):
+    """A class representing the correction functions."""
+    
+    spot1 = Instrument.ChannelCreator(Agilent4284ASpot, "1")
+    spot2 = Instrument.ChannelCreator(Agilent4284ASpot, "2")
+    spot3 = Instrument.ChannelCreator(Agilent4284ASpot, "3")
+
+    def measure_open(self):
+        """Measure the OPEN correction standard."""
+        self.write(":CORR:OPEN")
+  
+    def measure_short(self):
+        """Measure the SHORT correction standard."""
+        self.write(":CORR:SHOR")
+  
+    def measure_load(self):
+        """Measure the LOAD correction standard."""
+        self.write(":CORR:LOAD")
+
+    enabled = Channel.control(
+        ":CORR:STAT?", ":CORR:STAT %d",
+        """Enable the specified spot correction (bool).""",
+        map_values=True,
+        values={True: 1, False: 0}
+        )
+
+    load_function = Channel.control(
+        ":CORR:LOAD:STAN?", ":CORR:LOAD:STAN %s",
+        """Control the spot LOAD standard.
+
+        :type: str, strictly in  ``CPD``, ``CPQ``, ``CPG``, ``CPRP``, ``CSD``, ``CSQ``, ``CSRS``,
+               ``LPQ``, ``LPD``, ``LPG``, ``LPRP``, ``LSD``, ``LSQ``, ``LSRS``,
+               ``RX``, ``ZTD``, ``ZTR``, ``GB``, ``YTD``, ``YTR``
+
+        See :attr:`.Agilent4284A.impedance_mode` for detailed explanation.
+        """,
+        validator=strict_discrete_set,
+        values=IMPEDANCE_MODES
+        )
+
+    cable_length = Channel.control(
+        ":CORR:LENG?", ":CORR:LENG %d",
+        """Control the correction setting for cable length in meters, strictly 0, 1, 2 or 4.""",
+        validator=strict_discrete_set,
+        values=[0, 1, 2, 4]
         )
 
 
@@ -107,10 +155,8 @@ class Agilent4284A(SCPIMixin, Instrument):
         super().__init__(adapter, name, **kwargs)
         self._set_ranges(0)
 
-    spot1 = Instrument.ChannelCreator(Agilent4284ASpot, "1")
-    spot2 = Instrument.ChannelCreator(Agilent4284ASpot, "2")
-    spot3 = Instrument.ChannelCreator(Agilent4284ASpot, "3")
-
+    correction = Instrument.ChannelCreator(Agilent4284ACorrection, "1")
+    
     frequency = Instrument.control(
         "FREQ?", "FREQ %g",
         """Control AC frequency in Hertz, from 20 Hz to 1 MHz.""",
