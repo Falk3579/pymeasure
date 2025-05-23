@@ -82,9 +82,9 @@ class Agilent4284ASpot(Channel):
 class Agilent4284ACorrection(Channel):
     """A class representing the correction functions."""
 
-    spot1 = Instrument.ChannelCreator(Agilent4284ASpot, "1")
-    spot2 = Instrument.ChannelCreator(Agilent4284ASpot, "2")
-    spot3 = Instrument.ChannelCreator(Agilent4284ASpot, "3")
+    spot1 = Instrument.ChannelCreator(Agilent4284ASpot, 1, collection="spots")
+    spot2 = Instrument.ChannelCreator(Agilent4284ASpot, 2, collection="spots")
+    spot3 = Instrument.ChannelCreator(Agilent4284ASpot, 3, collection="spots")
 
     def measure_open(self):
         """Measure the OPEN correction standard."""
@@ -169,7 +169,7 @@ class Agilent4284A(SCPIMixin, Instrument):
         super().__init__(adapter, name, **kwargs)
         self._set_ranges(0)
 
-    correction = Instrument.ChannelCreator(Agilent4284ACorrection, "1")
+    correction = Instrument.ChannelCreator(Agilent4284ACorrection)
 
     frequency = Instrument.control(
         "FREQ?", "FREQ %g",
