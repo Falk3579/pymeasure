@@ -41,32 +41,32 @@ class Agilent4284ASpot(Channel):
     """A class representing the spot correction functions."""
 
     def measure_open(self):
-        """Measure the OPEN correction standard of the specified spot."""
+        """Measure the OPEN correction standard of this spot."""
         self.write(":CORR:SPOT{ch}:OPEN")
 
     def measure_short(self):
-        """Measure the SHORT correction standard of the specified spot."""
+        """Measure the SHORT correction standard of this spot."""
         self.write(":CORR:SPOT{ch}:SHOR")
 
     def measure_load(self):
-        """Measure the LOAD correction standard of the specified spot."""
+        """Measure the LOAD correction standard of this spot."""
         self.write(":CORR:SPOT{ch}:LOAD")
 
     enabled = Channel.control(
         ":CORR:SPOT{ch}:STAT?", ":CORR:SPOT{ch}:STAT %d",
-        """Enable the specified spot correction (bool).""",
+        """Enable this spot correction (bool).""",
         map_values=True,
         values={True: 1, False: 0}
         )
 
     frequency = Channel.control(
         ":CORR:SPOT{ch}:FREQ?", ":CORR:SPOT{ch}:FREQ %g",
-        """Control the frequency of the specified spot in Hz.""",
+        """Control the frequency of this spot in Hz.""",
         )
 
     load_function = Channel.control(
         ":CORR:SPOT{ch}:LOAD:STAN?", ":CORR:SPOT{ch}:LOAD:STAN %s",
-        """Control the spot LOAD standard.
+        """Control the LOAD standard of this spot.
 
         :type: str, strictly in  ``CPD``, ``CPQ``, ``CPG``, ``CPRP``, ``CSD``, ``CSQ``, ``CSRS``,
                ``LPQ``, ``LPD``, ``LPG``, ``LPRP``, ``LSD``, ``LSQ``, ``LSRS``,
@@ -81,7 +81,7 @@ class Agilent4284ASpot(Channel):
 
 class Agilent4284ACorrection(Channel):
     """A class representing the correction functions."""
-    
+
     spot1 = Instrument.ChannelCreator(Agilent4284ASpot, "1")
     spot2 = Instrument.ChannelCreator(Agilent4284ASpot, "2")
     spot3 = Instrument.ChannelCreator(Agilent4284ASpot, "3")
@@ -89,24 +89,38 @@ class Agilent4284ACorrection(Channel):
     def measure_open(self):
         """Measure the OPEN correction standard."""
         self.write(":CORR:OPEN")
-  
+
     def measure_short(self):
         """Measure the SHORT correction standard."""
         self.write(":CORR:SHOR")
-  
+
     def measure_load(self):
         """Measure the LOAD correction standard."""
         self.write(":CORR:LOAD")
 
-    enabled = Channel.control(
-        ":CORR:STAT?", ":CORR:STAT %d",
-        """Enable the specified spot correction (bool).""",
+    open_enabled = Channel.control(
+        ":CORR:OPEN:STAT?", ":CORR:OPEN:STAT %d",
+        """Enable the OPEN correction (bool).""",
+        map_values=True,
+        values={True: 1, False: 0}
+        )
+
+    short_enabled = Channel.control(
+        ":CORR:SHOR:STAT?", ":CORR:SHOR:STAT %d",
+        """Enable the SHORT correction (bool).""",
+        map_values=True,
+        values={True: 1, False: 0}
+        )
+
+    load_enabled = Channel.control(
+        ":CORR:LOAD:STAT?", ":CORR:LOAD:STAT %d",
+        """Enable the LOAD correction (bool).""",
         map_values=True,
         values={True: 1, False: 0}
         )
 
     load_function = Channel.control(
-        ":CORR:LOAD:STAN?", ":CORR:LOAD:STAN %s",
+        ":CORR:LOAD:TYPE?", ":CORR:LOAD:TYPE %s",
         """Control the spot LOAD standard.
 
         :type: str, strictly in  ``CPD``, ``CPQ``, ``CPG``, ``CPRP``, ``CSD``, ``CSQ``, ``CSRS``,
@@ -156,7 +170,7 @@ class Agilent4284A(SCPIMixin, Instrument):
         self._set_ranges(0)
 
     correction = Instrument.ChannelCreator(Agilent4284ACorrection, "1")
-    
+
     frequency = Instrument.control(
         "FREQ?", "FREQ %g",
         """Control AC frequency in Hertz, from 20 Hz to 1 MHz.""",
