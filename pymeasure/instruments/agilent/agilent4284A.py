@@ -25,7 +25,7 @@
 import logging
 from time import sleep
 
-from pymeasure.instruments import Instrument, SCPIMixin
+from pymeasure.instruments import Instrument, Channel, SCPIMixin
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 
 log = logging.getLogger(__name__)
@@ -38,7 +38,45 @@ IMPEDANCE_MODES = (
 
 
 class Agilent4284ASpot(Channel):
-    pass
+    """A class representing the spot correction functions."""
+
+    def measure_open(self):
+        """Measure the OPEN correction standard of the specified spot."""
+        self.write(":CORR:SPOT{ch}:OPEN")
+
+    def measure_short(self):
+        """Measure the SHORT correction standard of the specified spot."""
+        self.write(":CORR:SPOT{ch}:SHOR")
+
+    def measure_load(self):
+        """Measure the LOAD correction standard of the specified spot."""
+        self.write(":CORR:SPOT{ch}:LOAD")
+
+    enabled = Channel.control(
+        ":CORR:SPOT{ch}:STAT?", ":CORR:SPOT{ch}:STAT %d",
+        """Enable the specified spot correction (bool).""",
+        map_values=True,
+        values={True: 1, False: 0}
+        )
+
+    frequency = Channel.control(
+        ":CORR:SPOT{ch}:FREQ?", ":CORR:SPOT{ch}:FREQ %g",
+        """Control the frequency of the specified spot in Hz.""",
+        )
+
+    load_function = Channel.control(
+        ":CORR:SPOT{ch}:LOAD:STAN?", ":CORR:SPOT{ch}:LOAD:STAN %s",
+        """Control the spot load standard.
+
+        :type: str, strictly in  ``CPD``, ``CPQ``, ``CPG``, ``CPRP``, ``CSD``, ``CSQ``, ``CSRS``,
+               ``LPQ``, ``LPD``, ``LPG``, ``LPRP``, ``LSD``, ``LSQ``, ``LSRS``,
+               ``RX``, ``ZTD``, ``ZTR``, ``GB``, ``YTD``, ``YTR``
+
+        See :attr:`.Agilent4284A.impedance_mode` for detailed explanation.
+        """,
+        validator=strict_discrete_set,
+        values=IMPEDANCE_MODES
+        )
 
 
 class Agilent4284A(SCPIMixin, Instrument):
