@@ -26,11 +26,17 @@ from pymeasure.instruments import Instrument
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 from enum import IntFlag
 
-# https://github.com/wholden/SpellmanUSB
 # https://www.spellmanhv.com/en/high-voltage-power-supplies/XRV
 
+# scaling facrtors are updated during class initialization
+dac_scaling_factor_voltage = 39.072039  # volts/bit
+dac_scaling_factor_current = 0.00732601  # A/bit
+adc_scaling_factor_voltage = 1.2*dac_scaling_factor_voltage
+adc_scaling_factor_current = 1.2*dac_scaling_factor_current
+adc_scaling_factor_power = 1.1721612  # watts/bit
 
-class Status(IntFlag):
+
+class StatusCode(IntFlag):
     HV_ENABLED = 1
     INTERLOCK_1_CLOSED = 2
     INTERLOCK_2_CLOSED = 4
@@ -56,13 +62,6 @@ class SpellmanHV(Instrument):
     STX = "\x02"
     ETX = "\x03"
 
-    dac_scaling_factor_voltage = 39.072039
-    dac_scaling_factor_current = 0.00732601
-
-    adc_scaling_factor_voltage = 46.88  # volts/bit
-    adc_scaling_factor_current = 0.00879121  # mA/bit
-    adc_scaling_factor_power = 1.1721612  # watts/bit
-
     def __init__(self, adapter,
                  name="Spellman HV Power Supply",
                  query_delay=0.15,
@@ -74,7 +73,7 @@ class SpellmanHV(Instrument):
 
         self.query_delay = query_delay
 
-        # self.get_scaling_factors()
+        self.calculate_scaling_factors(self.max_voltage, self.max_current)
 
     def checksum(self, string):
         """Calculate the checksum.
@@ -146,27 +145,11 @@ class SpellmanHV(Instrument):
 
         return response[1:-1]  # without command and checksum
 
-    def get_scaling_factors(self):
-        """Calculate the scaling factors for DAC and A/D feedback."""
-
-        got = self.ask("28")  # get the maximum values of voltage and current.
-
-        max_voltage = got[0]
-        max_current = got[1]
-
-        # scaling for DAC
-        self.dac_scaling_factor_voltage = max_voltage/4095  # volts/bit
-        self.dac_scaling_factor_current = max_current/4095  # mA/bit
-
-        # Scaling for ADC, ADC has 20% overrange
-        self.adc_scaling_factor_voltage = ((max_voltage+(max_voltage*0.2))/4095)  # volts/bit
-        self.adc_scaling_factor_current = ((max_current+(max_current*0.2))/4095)  # mA/bit
-        self.adc_scaling_factor_power = max_voltage*max_current/4095  # watts/bit
 
     status = Instrument.measurement(
         "22",
         """Get the power supply status (enum).""",
-        get_process_list=lambda v: Status(v)
+        get_process_list=lambda v: StatusCode(v)
         )
 
     baudrate = Instrument.setting(
@@ -184,26 +167,52 @@ class SpellmanHV(Instrument):
                 115200: 5},
         )
 
+    max_voltage = Instrument.measurement(
+        "28",
+        """Get the maximum voltage in Volts (int).""",
+        get_process_list=lambda v: 1000*int(v[0]),
+        )
+
+    max_current = Instrument.measurement(
+        "28",
+        """Get the maximum current in A (float).""",
+        get_process_list=lambda v: 1e-3*int(v[1]),
+        )
+
+    def calculate_scaling_factors(self, max_voltage, max_current):
+        """Calculate the scaling factors for DAC and A/D feedback."""
+
+        # scaling for DAC
+        dac_scaling_factor_voltage = max_voltage/4095  # volts/bit
+        dac_scaling_factor_current = max_current/4095  # mA/bit
+
+        # Scaling for ADC, ADC has 20% overrange
+        adc_scaling_factor_voltage = 1.2*max_voltage/4095  # volts/bit
+        adc_scaling_factor_current = 1.2*max_current/4095  # mA/bit
+        adc_scaling_factor_power = max_voltage*max_current/4095  # watts/bit
+
     voltage = Instrument.control(
         "14",
         "10,%d",
         """Control the voltage in Volts (int).""",
         validator=strict_range,
-        values=[0, 160e3],
-        set_process=lambda v: int(v/39.072039),
+        values=[0, 1],
+        set_process=lambda v: int(v/dac_scaling_factor_voltage),
         get_process=lambda v: int(v*46.88),
+        dynamic=True,
         )
 
     current = Instrument.control(
         "15",
         "11,%d",
-        """Control current in mA (float).
+        """Control current in A (float).
 
         get 15
         set 11
         """,
         validator=strict_range,
-        values=[0, 30e-3],
+        values=[0, 1e-3],
+        dynamic=True,
         )
 
 # Data Byte section of the TCP/IP Datagram
