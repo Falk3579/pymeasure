@@ -22,13 +22,43 @@
 # THE SOFTWARE.
 #
 
+import pytest
 from pymeasure.test import expected_protocol
-from pymeasure.instruments.spellmann.spellmanhv import SpellmanHV
+from pymeasure.instruments.spellmanhv.spellmanhv import SpellmanHV
 
 
-def test_init():
-    with expected_protocol(
-        SpellmanHV,
-        [(b"EOI ON", None), (b"FRUN OFF", None)],
-    ):
-        pass  # Verify the expected communication.
+class TestSpellmanHV:
+    """Test for the Spellman HV power supplies"""
+    
+    @pytest.mark.parametrize("baudrate", [20, 100, 1e4, 1e6])
+    def test_baudrate(self, baudrate):
+        """Verify the communication of the baudrate getter/setter."""
+        with expected_protocol(
+            SpellmanHV,
+            [(f"ASL;{baudrate}", f"ASL;{baudrate}"),
+             ("ASL", f"ASL;{baudrate}")],
+        ) as inst:
+            inst.baudrate = baudrate
+            assert baudrate == inst.baudrate
+
+    @pytest.mark.parametrize("voltage", [20, 100, 1e4, 1e6])
+    def test_voltage(self, voltage):
+        """Verify the communication of the voltage getter/setter."""
+        with expected_protocol(
+            SpellmanHV,
+            [(f"ASL;{voltage}", f"ASL;{voltage}"),
+             ("ASL", f"ASL;{voltage}")],
+        ) as inst:
+            inst.voltage = voltage
+            assert voltage == inst.voltage
+
+    @pytest.mark.parametrize("current", [20, 100, 1e4, 1e6])
+    def test_current(self, current):
+        """Verify the communication of the current getter/setter."""
+        with expected_protocol(
+            SpellmanHV,
+            [(f"ASL;{current}", f"ASL;{current}"),
+             ("ASL", f"ASL;{current}")],
+        ) as inst:
+            inst.current = current
+            assert current == inst.current
