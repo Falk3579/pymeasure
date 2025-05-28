@@ -27,7 +27,7 @@ from pymeasure.test import expected_protocol
 from pymeasure.instruments.spellmanhv.spellmanXRV import SpellmanXRV
 
 
-class TestSpellmanHV:
+class TestSpellmanXRV:
     """Test for the Spellman XRV HV power supplies"""
     
     @pytest.mark.parametrize("baudrate", [20, 100, 1e4, 1e6])
