@@ -9,4 +9,4 @@ This section contains specific documentation on the Spellman HV instruments that
 .. toctree::
    :maxdepth: 2
 
-   spellmanhv
+   spellmanXRV
