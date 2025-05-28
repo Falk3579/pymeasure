@@ -30,23 +30,53 @@ from enum import IntFlag
 
 
 class StatusCode(IntFlag):
-    HV_ENABLED = 1
-    INTERLOCK_1_CLOSED = 2
-    INTERLOCK_2_CLOSED = 4
-    ECR_Mode_Active = 8
-    POWER_SUPPLY_FAULT = 16
-    LOCAL_MODE = 32
-    FILAMENT_ENABLED = 64
-    LARGE_FILAMENT = 128
-    XRAYS_EMINENT = 256
-    LARGE_FILAMENT_CONFIRMATION = 512
-    SMALL_FILAMENT_CONFIRMATION = 1024
-    RESERVED1 = 2048
-    RESERVED2 = 4096
-    RESERVED3 = 8192
-    RESERVED4 = 16384
-    POWER_SUPPLY_READY = 32768
-    INTERNAL_INTERLOCK_CLOSED = 65536
+    HV_ENABLED = 2**0
+    INTERLOCK_1_CLOSED = 2**1
+    INTERLOCK_2_CLOSED = 2**2
+    ECR_Mode_Active = 2**3
+    POWER_SUPPLY_FAULT = 2**4
+    LOCAL_MODE = 2**5
+    FILAMENT_ENABLED = 2**6
+    LARGE_FILAMENT = 2**7
+    XRAYS_EMINENT = 2**8
+    LARGE_FILAMENT_CONFIRMATION = 2**9
+    SMALL_FILAMENT_CONFIRMATION = 2**10
+    RESERVED1 = 2*11
+    RESERVED2 = 2**12
+    RESERVED3 = 2**13
+    RESERVED4 = 2**14
+    POWER_SUPPLY_READY = 2*15
+    INTERNAL_INTERLOCK_CLOSED = 2*16
+
+
+class Faults(IntFlag):
+    FILAMENT_SELECT_FAULT = 2**0
+    OVER_TEMP_APPROACH = 2**1
+    OVER_VOLTAGE = 2**2
+    UNDER_VOLTAGE = 2**3
+    OVER_CURRENT = 2**4
+    UNDER_CURRENT = 2**5
+    OVER_TEMP_ANODE = 2**6
+    OVER_TEMP_CATHODE = 2**7
+    INVERTER_FAULT_ANODE = 2**8
+    INVERTER_FAULT_CATHODE = 2**9
+    FILAMENT_FEEDBACK_FAULT = 2**10
+    ANODE_ARC = 2**11
+    CATHODE_ARC = 2**12
+    CABLE_CONNECT_ANODE_FAULT = 2**13
+    CABLE_CONNECT_CATHODE_FAULT = 2**14
+    AC_LINE_MON_ANODE_FAULT = 2**15
+    AC_LINE_MON_CATHODE_FAULT = 2**16
+    DC_RAIL_MON_ANODE_FAULT = 2**17
+    DC_RAIL_MON_FAULT_CATHODE = 2**18
+    LVPS_NEG_15_FAULT = 2**19
+    LVPS_POS_15_FAULT = 2**20
+    WATCH_DOG_FAULT = 2**21
+    BOARD_OVER_TEMP = 2**22
+    OVERPOWER_FAULT = 2**23
+    KV_DIFF = 2**24
+    MA_DIFF = 2**25
+    INVERTER_NOT_READY = 2**26
 
 
 class SpellmanXRV(Instrument):
@@ -65,6 +95,8 @@ class SpellmanXRV(Instrument):
             **kwargs)
 
         self.query_delay = query_delay
+
+        self.set_scaling()
 
     def checksum(self, string):
         """Calculate the checksum.
@@ -136,6 +168,38 @@ class SpellmanXRV(Instrument):
 
         return response[1:-1]  # without command and checksum
 
+    def set_scaling(self):
+        """Set the scaling factors for :attr:`voltage` and :attr:`current` properties."""
+
+        max_values = self.capability
+        max_voltage = max_values[0] * 1000
+        max_current = max_values[1] * 1e-3
+
+        # scaling for DAC
+        volts_to_bits = 4095/max_voltage  # bits/Volt
+        amps_to_bits = 4095/max_current  # bits/Amp
+        watts_to_bits = 4095/(max_voltage*max_current)  # bits/Watt
+
+        # Scaling for ADC, ADC has 20% overrange
+        bits_to_volts = 1.2*max_voltage/4095  # Volts/bit
+        bits_to_amps = 1.2*max_current/4095  # Amps/bit
+        bits_to_watts = max_voltage*max_current/4095  # Watts/bit
+
+        self.voltage_values = [0, max_voltage]
+        self.voltage_set_process = lambda volts: int(volts*volts_to_bits)
+        self.voltage_get_process = lambda bits: int(bits*bits_to_volts)
+
+        self.current_values = [0, max_current]
+        self.current_set_process = lambda amps: int(amps*amps_to_bits)
+        self.current_get_process = lambda bits: int(bits*bits_to_amps)
+
+        self.power_limit_set_process = lambda watts: int(watts*watts_to_bits)
+        self.power_limit_get_process = lambda bits: int(bits*bits_to_watts)
+
+    capability = Instrument.measurement(
+        "28",
+        """Get maximum voltage (kV, int) and maximum current (mA, int)."""
+        )
 
     status = Instrument.measurement(
         "22",
@@ -158,31 +222,32 @@ class SpellmanXRV(Instrument):
                 115200: 5},
         )
 
-
     voltage = Instrument.control(
         "14",
         "10,%d",
         """Control the voltage in Volts (int).""",
         validator=strict_range,
-        values=[0, 1],
-        set_process=lambda v: int(v/dac_scaling_factor_voltage),
-        get_process=lambda v: int(v*46.88),
+        values=[0, 1],  # reset during initialization (set_scaling())
+        set_process=lambda v: v,  # reset during initialization (set_scaling())
+        get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True,
         )
 
     current = Instrument.control(
         "15",
         "11,%d",
-        """Control current in A (float).
-
-        get 15
-        set 11
-        """,
+        """Control current in A (float).""",
         validator=strict_range,
-        values=[0, 1e-3],
-        set_process=lambda v: int(v/dac_scaling_factor_voltage),
-        get_process=lambda v: int(v*46.88),
+        values=[0, 1e-3],  # reset during initialization (set_scaling())
+        set_process=lambda v: v,  # reset during initialization (set_scaling())
+        get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True,
+        )
+
+    power_limit = Instrument.control(
+        "38",
+        "97,%d",
+        """Control the power limit (int).""",
         )
 
 # Data Byte section of the TCP/IP Datagram
@@ -251,26 +316,3 @@ class SpellmanXRV(Instrument):
 # Request –15V LVPS  65  1
 # Request Faults  68  27
 # Request System Voltages  69  10
-
-
-
-class SpellmanXRV160(SpellmanXRV):
-    """A class representing the Spellman XRV160 hig voltage power supply."""
-    pass
-    
-class SpellmanXRV225(SpellmanXRV):
-    """A class representing the Spellman XRV225 hig voltage power supply."""
-    pass
-    
-    
-    def calculate_scaling_factors(self, max_voltage, max_current):
-        """Calculate the scaling factors for DAC and A/D feedback."""
-
-        # scaling for DAC
-        dac_scaling_factor_voltage = max_voltage/4095  # volts/bit
-        dac_scaling_factor_current = max_current/4095  # mA/bit
-
-        # Scaling for ADC, ADC has 20% overrange
-        adc_scaling_factor_voltage = 1.2*max_voltage/4095  # volts/bit
-        adc_scaling_factor_current = 1.2*max_current/4095  # mA/bit
-        adc_scaling_factor_power = max_voltage*max_current/4095  # watts/bit
