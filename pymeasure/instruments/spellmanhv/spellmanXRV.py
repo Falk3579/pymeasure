@@ -28,13 +28,6 @@ from enum import IntFlag
 
 # https://www.spellmanhv.com/en/high-voltage-power-supplies/XRV
 
-# scaling facrtors are updated during class initialization
-dac_scaling_factor_voltage = 39.072039  # volts/bit
-dac_scaling_factor_current = 0.00732601  # A/bit
-adc_scaling_factor_voltage = 1.2*dac_scaling_factor_voltage
-adc_scaling_factor_current = 1.2*dac_scaling_factor_current
-adc_scaling_factor_power = 1.1721612  # watts/bit
-
 
 class StatusCode(IntFlag):
     HV_ENABLED = 1
@@ -212,6 +205,8 @@ class SpellmanHV(Instrument):
         """,
         validator=strict_range,
         values=[0, 1e-3],
+        set_process=lambda v: int(v/dac_scaling_factor_voltage),
+        get_process=lambda v: int(v*46.88),
         dynamic=True,
         )
 
