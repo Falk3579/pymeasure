@@ -22,4 +22,4 @@
 # THE SOFTWARE.
 #
 
-from .spellmanhv import SpellmanHV
+from .spellmanXRV import SpellmanXRV
