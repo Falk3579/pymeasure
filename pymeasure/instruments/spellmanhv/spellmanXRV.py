@@ -50,13 +50,13 @@ class StatusCode(IntFlag):
 
 
 class SpellmanXRV(Instrument):
-    """A class representing the Spellmann high voltage power supply."""
+    """A class representing the Spellman XRV series high voltage power supplies."""
 
     STX = "\x02"
     ETX = "\x03"
 
     def __init__(self, adapter,
-                 name="Spellman HV Power Supply",
+                 name="Spellman XRV HV Power Supply",
                  query_delay=0.15,
                  **kwargs):
         super().__init__(
@@ -65,8 +65,6 @@ class SpellmanXRV(Instrument):
             **kwargs)
 
         self.query_delay = query_delay
-
-        self.calculate_scaling_factors(self.max_voltage, self.max_current)
 
     def checksum(self, string):
         """Calculate the checksum.
@@ -160,29 +158,6 @@ class SpellmanXRV(Instrument):
                 115200: 5},
         )
 
-    max_voltage = Instrument.measurement(
-        "28",
-        """Get the maximum voltage in Volts (int).""",
-        get_process_list=lambda v: 1000*int(v[0]),
-        )
-
-    max_current = Instrument.measurement(
-        "28",
-        """Get the maximum current in A (float).""",
-        get_process_list=lambda v: 1e-3*int(v[1]),
-        )
-
-    def calculate_scaling_factors(self, max_voltage, max_current):
-        """Calculate the scaling factors for DAC and A/D feedback."""
-
-        # scaling for DAC
-        dac_scaling_factor_voltage = max_voltage/4095  # volts/bit
-        dac_scaling_factor_current = max_current/4095  # mA/bit
-
-        # Scaling for ADC, ADC has 20% overrange
-        adc_scaling_factor_voltage = 1.2*max_voltage/4095  # volts/bit
-        adc_scaling_factor_current = 1.2*max_current/4095  # mA/bit
-        adc_scaling_factor_power = max_voltage*max_current/4095  # watts/bit
 
     voltage = Instrument.control(
         "14",
@@ -276,3 +251,26 @@ class SpellmanXRV(Instrument):
 # Request –15V LVPS  65  1
 # Request Faults  68  27
 # Request System Voltages  69  10
+
+
+
+class SpellmanXRV160(SpellmanXRV):
+    """A class representing the Spellman XRV160 hig voltage power supply."""
+    pass
+    
+class SpellmanXRV225(SpellmanXRV):
+    """A class representing the Spellman XRV225 hig voltage power supply."""
+    pass
+    
+    
+    def calculate_scaling_factors(self, max_voltage, max_current):
+        """Calculate the scaling factors for DAC and A/D feedback."""
+
+        # scaling for DAC
+        dac_scaling_factor_voltage = max_voltage/4095  # volts/bit
+        dac_scaling_factor_current = max_current/4095  # mA/bit
+
+        # Scaling for ADC, ADC has 20% overrange
+        adc_scaling_factor_voltage = 1.2*max_voltage/4095  # volts/bit
+        adc_scaling_factor_current = 1.2*max_current/4095  # mA/bit
+        adc_scaling_factor_power = max_voltage*max_current/4095  # watts/bit
