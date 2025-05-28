@@ -49,7 +49,7 @@ class StatusCode(IntFlag):
     INTERNAL_INTERLOCK_CLOSED = 65536
 
 
-class SpellmanHV(Instrument):
+class SpellmanXRV(Instrument):
     """A class representing the Spellmann high voltage power supply."""
 
     STX = "\x02"
