@@ -88,15 +88,20 @@ class SpellmanXRV(Instrument):
     def __init__(self, adapter,
                  name="Spellman XRV HV Power Supply",
                  query_delay=0.15,
+                 baud_rate=9600,
                  **kwargs):
         super().__init__(
             adapter, name,
+            baud_rate=baud_rate,
             includeSCPI=False,
+            timeout=1000,
             **kwargs)
 
         self.query_delay = query_delay
 
-        self.set_scaling()
+
+        print(self.checksum("22,"))
+        # self.set_scaling()
 
     def checksum(self, string):
         """Calculate the checksum.
@@ -204,7 +209,7 @@ class SpellmanXRV(Instrument):
     status = Instrument.measurement(
         "22",
         """Get the power supply status (enum).""",
-        get_process_list=lambda v: StatusCode(v)
+        # get_process_list=lambda v: StatusCode(v)
         )
 
     baudrate = Instrument.setting(
