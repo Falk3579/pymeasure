@@ -82,8 +82,8 @@ class Faults(IntFlag):
 class SpellmanXRV(Instrument):
     """A class representing the Spellman XRV series high voltage power supplies."""
 
-    STX = "\x02"
-    ETX = "\x03"
+    STX = chr(2)
+    ETX = chr(3)
 
     def __init__(self, adapter,
                  name="Spellman XRV HV Power Supply",
@@ -94,17 +94,18 @@ class SpellmanXRV(Instrument):
             adapter, name,
             baud_rate=baud_rate,
             includeSCPI=False,
+            read_termination=self.ETX,
             timeout=1000,
             **kwargs)
 
         self.query_delay = query_delay
 
+        self.set_scaling()
 
-        print(self.checksum("22,"))
-        # self.set_scaling()
-
-    def checksum(self, string):
+    def checksum(self, string: str):
         """Calculate the checksum.
+
+        :param:
 
         The checksum is computed as follows:
         - Add all the bytes before <CSUM>, except <STX>, into a 16 bit (or larger) word.
@@ -132,11 +133,11 @@ class SpellmanXRV(Instrument):
         return csb3
 
     def write(self, command):
-        """Add STX in front and CRC + ETX at end of every command before sending it."""
+        """Add STX in front and checksum + ETX at end of every command before sending it."""
 
         command_with_comma = command + ","
-        csum = self.checksum(command_with_comma)
-        super().write(f"{self.STX}{command_with_comma}{csum},{self.ETX}")
+        checksum = chr(self.checksum(command_with_comma))
+        super().write(f"{self.STX}{command_with_comma}{checksum}{self.ETX}")
 
     def wait_for(self, query_delay=0):
         """Wait for some time.
@@ -146,38 +147,39 @@ class SpellmanXRV(Instrument):
         super().wait_for(query_delay or self.query_delay)
 
     def read(self):
-        """Read from the device and check for errors.
-
-        Assert that the response starts with <STX> and ends with <ETX>.
-        Assert the checksum.
-        """
+        """Read from the device and check for errors."""
         got = super().read()
 
         begin_ok = got.startswith(self.STX)
         if not begin_ok:
             raise ConnectionError("Expected <STX>  at begin of received message.")
 
-        end_ok = got.endswith(self.ETX)
-        if not end_ok:
-            raise ConnectionError("Expected <ETX> at end of received message.")
-
-        # remove <STX> and <ETX> and split to list
-        response = got.strip(self.STX).strip(self.ETX).split(",")
-
-        got_checksum = response[-1]  # last element
-        calculated_checksum = self.checksum(response[:-1])
+        response = got.strip(self.STX).rpartition(",")
+        
+        string_to_check = response[0] + response[1]
+        calculated_checksum = self.checksum(string_to_check)
+        got_checksum = ord(response[2])
 
         if got_checksum is not calculated_checksum:
             string = f"Checksum error: expected '{calculated_checksum}', got '{got_checksum}'."
             raise ConnectionError(string)
 
-        return response[1:-1]  # without command and checksum
+        return response[0].partition(",")[2]  # remove command from response
 
+    def check_set_errors(self):
+        got = self.read()
+        expected = "$"
+        if got == expected:
+            return []
+        else:
+            string = f"Connection error: expected '{expected}', got '{got}'."
+            raise ConnectionError(string)
+    
     def set_scaling(self):
         """Set the scaling factors for :attr:`voltage` and :attr:`current` properties."""
 
         max_values = self.capability
-        max_voltage = max_values[0] * 1000
+        max_voltage = max_values[0] * 1e3
         max_current = max_values[1] * 1e-3
 
         # scaling for DAC
@@ -186,20 +188,20 @@ class SpellmanXRV(Instrument):
         watts_to_bits = 4095/(max_voltage*max_current)  # bits/Watt
 
         # Scaling for ADC, ADC has 20% overrange
-        bits_to_volts = 1.2*max_voltage/4095  # Volts/bit
-        bits_to_amps = 1.2*max_current/4095  # Amps/bit
+        bits_to_volts = 1*max_voltage/4095  # Volts/bit
+        bits_to_amps = 1*max_current/4095  # Amps/bit
         bits_to_watts = max_voltage*max_current/4095  # Watts/bit
 
         self.voltage_values = [0, max_voltage]
-        self.voltage_set_process = lambda volts: int(volts*volts_to_bits)
-        self.voltage_get_process = lambda bits: int(bits*bits_to_volts)
+        self.voltage_set_process = lambda volts: (volts*volts_to_bits)
+        self.voltage_get_process = lambda bits: (bits*bits_to_volts)
 
         self.current_values = [0, max_current]
-        self.current_set_process = lambda amps: int(amps*amps_to_bits)
-        self.current_get_process = lambda bits: int(bits*bits_to_amps)
+        self.current_set_process = lambda amps: (amps*amps_to_bits)
+        self.current_get_process = lambda bits: (bits*bits_to_amps)
 
-        self.power_limit_set_process = lambda watts: int(watts*watts_to_bits)
-        self.power_limit_get_process = lambda bits: int(bits*bits_to_watts)
+        # self.power_limit_set_process = lambda watts: int(watts*watts_to_bits)
+        # self.power_limit_get_process = lambda bits: int(bits*bits_to_watts)
 
     capability = Instrument.measurement(
         "28",
@@ -208,6 +210,12 @@ class SpellmanXRV(Instrument):
 
     status = Instrument.measurement(
         "22",
+        """Get the power supply status (enum).""",
+        # get_process_list=lambda v: StatusCode(v)
+        )
+
+    faults = Instrument.measurement(
+        "68",
         """Get the power supply status (enum).""",
         # get_process_list=lambda v: StatusCode(v)
         )
@@ -225,6 +233,7 @@ class SpellmanXRV(Instrument):
                 38400: 3,
                 57600: 4,
                 115200: 5},
+        check_set_errors=True,
         )
 
     voltage = Instrument.control(
@@ -236,6 +245,17 @@ class SpellmanXRV(Instrument):
         set_process=lambda v: v,  # reset during initialization (set_scaling())
         get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True,
+        check_set_errors=True,
+        )
+
+    voltage_raw = Instrument.control(
+        "14",
+        "10,%d",
+        """Control the voltage in Volts (int).""",
+        validator=strict_range,
+        values=[0, 4095],
+        check_set_errors=True,
+        cast=int
         )
 
     current = Instrument.control(
@@ -247,12 +267,25 @@ class SpellmanXRV(Instrument):
         set_process=lambda v: v,  # reset during initialization (set_scaling())
         get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True,
+        check_set_errors=True,
         )
+
+    current_raw = Instrument.control(
+        "15",
+        "11,%d",
+        """Control current in A (float).""",
+        validator=strict_range,
+        values=[0, 4095],
+        check_set_errors=True,
+        cast=int
+        )
+
 
     power_limit = Instrument.control(
         "38",
         "97,%d",
         """Control the power limit (int).""",
+        check_set_errors=True,
         )
 
 # Data Byte section of the TCP/IP Datagram
