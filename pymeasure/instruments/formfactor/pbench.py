@@ -39,7 +39,7 @@ class PBench(SCPIMixin, Instrument):
     .. code-block:: python
 
         prober = PBench(resource)
-        prober.stepnextdie()
+        prober.stepfirstdie()
     """
 
 
@@ -48,7 +48,20 @@ class PBench(SCPIMixin, Instrument):
             adapter, name, **kwargs
         )
 
+    def read(self):
+
+    def stepfirstdie(self):
+        """ step to first die"""
+        pass
     
-    def stepnextdie(self):
+    def stepnextdie(self, None):
         """ step to next die"""
         pass
+        
+    def move_contact(self):
+        """   """
+        self.ask("MoveChuckContact")
+
+    def move_separation(self):
+        """   """
+        self.ask("MoveChuckSeparation")
