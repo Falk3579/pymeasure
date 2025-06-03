@@ -167,6 +167,9 @@ class SpellmanXRV(Instrument):
         return response[0].partition(",")[2]  # remove command from response
 
     def check_set_errors(self):
+        """ 
+        :raise: ValueError
+        """
         got = self.read()
         expected = "$"
         if got == expected:
@@ -200,24 +203,25 @@ class SpellmanXRV(Instrument):
         self.current_set_process = lambda amps: (amps*amps_to_bits)
         self.current_get_process = lambda bits: (bits*bits_to_amps)
 
-        # self.power_limit_set_process = lambda watts: int(watts*watts_to_bits)
-        # self.power_limit_get_process = lambda bits: int(bits*bits_to_watts)
+        self.power_limit_set_process = lambda watts: int(watts*watts_to_bits)
+        self.power_limit_get_process = lambda bits: int(bits*bits_to_watts)
 
     capability = Instrument.measurement(
         "28",
-        """Get maximum voltage (kV, int) and maximum current (mA, int)."""
+        """Get maximum voltage in kV (int) and maximum current in mA (int).""",
+        cast=int
         )
 
     status = Instrument.measurement(
         "22",
         """Get the power supply status (enum).""",
-        # get_process_list=lambda v: StatusCode(v)
+        get_process_list=lambda v: StatusCode(v[::-1])
         )
 
     faults = Instrument.measurement(
         "68",
         """Get the power supply status (enum).""",
-        # get_process_list=lambda v: StatusCode(v)
+        get_process_list=lambda v: Faults(v[::-1])
         )
 
     baudrate = Instrument.setting(
@@ -251,7 +255,7 @@ class SpellmanXRV(Instrument):
     voltage_raw = Instrument.control(
         "14",
         "10,%d",
-        """Control the voltage in Volts (int).""",
+        """Control the voltage (int, strictly 0 to 4095).""",
         validator=strict_range,
         values=[0, 4095],
         check_set_errors=True,
@@ -273,7 +277,7 @@ class SpellmanXRV(Instrument):
     current_raw = Instrument.control(
         "15",
         "11,%d",
-        """Control current in A (float).""",
+        """Control current (int, strictly 0 to 4095).""",
         validator=strict_range,
         values=[0, 4095],
         check_set_errors=True,
