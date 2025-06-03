@@ -33,7 +33,7 @@ class StatusCode(IntFlag):
     HV_ENABLED = 2**0
     INTERLOCK_1_CLOSED = 2**1
     INTERLOCK_2_CLOSED = 2**2
-    ECR_Mode_Active = 2**3
+    ECR_MODE_ACTIVE = 2**3
     POWER_SUPPLY_FAULT = 2**4
     LOCAL_MODE = 2**5
     FILAMENT_ENABLED = 2**6
@@ -50,6 +50,7 @@ class StatusCode(IntFlag):
 
 
 class Faults(IntFlag):
+    NONE = 0
     FILAMENT_SELECT_FAULT = 2**0
     OVER_TEMP_APPROACH = 2**1
     OVER_VOLTAGE = 2**2
@@ -77,6 +78,50 @@ class Faults(IntFlag):
     KV_DIFF = 2**24
     MA_DIFF = 2**25
     INVERTER_NOT_READY = 2**26
+
+
+class Filament(Channel):
+    """Representing the filament."""
+
+    enabled = Channel.setting(
+        "70,%d",
+        """Set the filament enable status (bool).""",
+        map_values=True,
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 1, False: 0},
+        check_set_errors=True,
+        )
+
+    size = Channel.setting(
+        "32,%d",
+        """Set the filament size ('large', 'small')""",
+        map_values=True,
+        validator=strict_discrete_set,
+        map_values=True,
+        values={"large": 1, "small": 0},
+        check_set_errors=True,
+        )
+
+    limit = Channel.setting(
+        "12,%d",
+        """  """,
+        )
+
+    pre_heat = Channel.setting(
+        "13,%d",
+        """   """,
+        )
+
+    limit_setpoint = Channel.measurement(
+        "16",
+        """Get the filament Limit Set point 16  None""",
+        )
+
+    pre_heat_setpoint = Channel.measurement(
+        "17",
+        """Get the filament PreHeat Set point 17  None""",
+        )
 
 
 class SpellmanXRV(Instrument):
@@ -206,6 +251,14 @@ class SpellmanXRV(Instrument):
         self.power_limit_set_process = lambda watts: int(watts*watts_to_bits)
         self.power_limit_get_process = lambda bits: int(bits*bits_to_watts)
 
+    def reset_faults(self):
+        self.ask("31")
+    
+    def reset_hv_on_timer(self):
+        self.ask("30")
+
+    filament = Instrument.ChannelCreator(Filament)
+    
     capability = Instrument.measurement(
         "28",
         """Get maximum voltage in kV (int) and maximum current in mA (int).""",
@@ -215,13 +268,16 @@ class SpellmanXRV(Instrument):
     status = Instrument.measurement(
         "22",
         """Get the power supply status (enum).""",
-        get_process_list=lambda v: StatusCode(v[::-1])
+        # get_process_list=lambda v: StatusCode(v[::-1])
+        get_process_list=lambda v: StatusCode(int(''.join(map(str, (v[::-1]))), 2)),
+        cast=int
         )
 
     faults = Instrument.measurement(
         "68",
         """Get the power supply status (enum).""",
-        get_process_list=lambda v: Faults(v[::-1])
+        get_process_list=lambda v: Faults(int(''.join(map(str, (v[::-1]))), 2)),
+        cast=int
         )
 
     baudrate = Instrument.setting(
@@ -292,69 +348,66 @@ class SpellmanXRV(Instrument):
         check_set_errors=True,
         )
 
-# Data Byte section of the TCP/IP Datagram
-# CommandName  CommandCode ArgumentLength
+    output_enabled = Instrument.control(
+        "22",
+        "98,%d",
+        """Control the high voltage output (bool).""",
+        validator=strict_discrete_set,
+        map_values=True,
+        values={True: 1, False: 0},
+        get_process_list=lambda v: int(v[0]),
+        check_set_errors=True,
+        )
 
-# Program RS232 unit baud rate 07  1
+    hv_on_timer = Instrument.measurement(
+        "21",
+        """Get the HV On time in hours (float).""",
+        )
+    
+    configuration = Instrument.measurement(
+        "27",
+        """Get the power supply configuration.""",
+        )
 
-# Program kV  10  1
-# Request kV Set point  14  None
+    fpga_revision = Instrument.measurement(
+        "43",
+        """Request FPGA  and Build number."""
+        )
 
-# Program mA  11  1
-# Request mA Set point  15  None
-
-# Program Filament Limit 12  1
-# Request Filament Limit Set point 16  None
-
-# Program Filament PreHeat 13  1
-# Request Filament PreHeat Set point 17  None
+    model_number = Instrument.measurement(
+        "26",
+        """Get the model number.""",
+        )
 
 
-# Request Analog Monitor Read backs 19  None
-# Request HV On  Hours Counter 21  None
+    software_version = Instrument.measurement(
+        "23",
+        """Get the DSP software version."""
+        )
 
-# Request Status  22  None
+    analog_monitor = Instrument.measurement(
+        "19",
+        """# Request Analog Monitor Read backs 19  8""",
+        )
 
-# Request Software Version 23  None
-# Request Model Number 26  None
-# Request User Configuration 27  None
-# Request Scaling  28  None
+    system_voltages = Instrument.measurement(
+        "69",
+        """# Request System Voltages  69  10""",
+        )
 
-# Reset HV On Hours Counter 30  None
-# Reset Faults  31  None
-
-# Set Large/Small Filament 32  1
-# Request Power Limits  38  None
-
-# Request FPGA Rev  43  None
-# Request kV monitor  60  None
-# Request  –15V LVPS  65  None
-# Request Faults  68  None
-
-# Request System Voltages 69  None
-# Filament Enable  70  1
-# XRV Controller  71  1
-
+    power_limits = Instrument.measurement(
+        "38",
+        """# Request Power Limits  38  6"""
+        )
 # Program Power Limit  97  2
-# Program HV On  98  1
 
-# Local/Remote Mode  99  1
 
-# ResponseName  CommandCode ArgumentLength
-# Request kV Set point  14  1
-# Request mA Set point  15  1
-# Request Filament Limit Set point 16  1
-# Request Filament PreHeat Set point 17  1
-# Request Analog Monitor Read backs 19  8
-# Request Total Hours High Voltage On 21  1
-# Request Status  22   17
-# Request DSP Software Version 23  1
-# Request Model number  26  1
-# Request User Configuration  27  12
-# Request Scaling   28  3
-# Request Power Limits  38  6
-# Request FPGA Revision and Build number 43  2
-# Request kV monitor  60  1
-# Request –15V LVPS  65  1
-# Request Faults  68  27
-# Request System Voltages  69  10
+    voltage_monitor = Instrument.measurement(
+        "60",
+        """# Request kV monitor  60  1 unscaled""",
+        )
+
+    lvps_monitor = Instrument.measurement(
+        "65",
+        """# Request –15V LVPS  65  1 unscaled""",
+        )
