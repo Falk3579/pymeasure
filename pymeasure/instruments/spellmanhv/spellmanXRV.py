@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 
-from pymeasure.instruments import Instrument
+from pymeasure.instruments import Instrument, Channel
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 from enum import IntFlag
 
@@ -49,8 +49,8 @@ class StatusCode(IntFlag):
     INTERNAL_INTERLOCK_CLOSED = 2*16
 
 
-class Faults(IntFlag):
-    NONE = 0
+class ErrorCode(IntFlag):
+    NO_ERROR = 0
     FILAMENT_SELECT_FAULT = 2**0
     OVER_TEMP_APPROACH = 2**1
     OVER_VOLTAGE = 2**2
@@ -88,7 +88,6 @@ class Filament(Channel):
         """Set the filament enable status (bool).""",
         map_values=True,
         validator=strict_discrete_set,
-        map_values=True,
         values={True: 1, False: 0},
         check_set_errors=True,
         )
@@ -98,7 +97,6 @@ class Filament(Channel):
         """Set the filament size ('large', 'small')""",
         map_values=True,
         validator=strict_discrete_set,
-        map_values=True,
         values={"large": 1, "small": 0},
         check_set_errors=True,
         )
@@ -129,6 +127,7 @@ class SpellmanXRV(Instrument):
 
     STX = chr(2)
     ETX = chr(3)
+    checksum_enabled = False
 
     def __init__(self, adapter,
                  name="Spellman XRV HV Power Supply",
@@ -144,10 +143,9 @@ class SpellmanXRV(Instrument):
             **kwargs)
 
         self.query_delay = query_delay
-
         self.set_scaling()
 
-    def checksum(self, string: str):
+    def checksum(self, string_to_check):
         """Calculate the checksum.
 
         :param:
@@ -167,21 +165,23 @@ class SpellmanXRV(Instrument):
         these have non overlapping ASCII values.
         """
 
-        ascii_sum = 0
-        for char in string:
-            ascii_sum += ord(char)  # add ascii values together
+        if self.checksum_enabled:
+            ascii_sum = 0
+            for char in string_to_check:
+                ascii_sum += ord(char)  # add ascii values together
 
-        csb1 = 0x100 - ascii_sum  # two's complement
-        csb2 = 0x7F & csb1  # bitwise AND 0x7F: truncate to the last 7 bits
-        csb3 = 0x40 | csb2  # bitwise OR 0x40: set bit 6
-
-        return csb3
+            csb1 = 0x100 - ascii_sum  # two's complement
+            csb2 = 0x7F & csb1  # bitwise AND 0x7F: truncate to the last 7 bits
+            csb3 = 0x40 | csb2  # bitwise OR 0x40: set bit 6
+            return chr(csb3)
+        else:
+            return ""
 
     def write(self, command):
         """Add STX in front and checksum + ETX at end of every command before sending it."""
 
         command_with_comma = command + ","
-        checksum = chr(self.checksum(command_with_comma))
+        checksum = self.checksum(command_with_comma)
         super().write(f"{self.STX}{command_with_comma}{checksum}{self.ETX}")
 
     def wait_for(self, query_delay=0):
@@ -200,10 +200,10 @@ class SpellmanXRV(Instrument):
             raise ConnectionError("Expected <STX>  at begin of received message.")
 
         response = got.strip(self.STX).rpartition(",")
-        
+
         string_to_check = response[0] + response[1]
         calculated_checksum = self.checksum(string_to_check)
-        got_checksum = ord(response[2])
+        got_checksum = response[2]
 
         if got_checksum is not calculated_checksum:
             string = f"Checksum error: expected '{calculated_checksum}', got '{got_checksum}'."
@@ -212,7 +212,7 @@ class SpellmanXRV(Instrument):
         return response[0].partition(",")[2]  # remove command from response
 
     def check_set_errors(self):
-        """ 
+        """
         :raise: ValueError
         """
         got = self.read()
@@ -220,9 +220,9 @@ class SpellmanXRV(Instrument):
         if got == expected:
             return []
         else:
-            string = f"Connection error: expected '{expected}', got '{got}'."
-            raise ConnectionError(string)
-    
+            string = f"ValueError: expected '{expected}', got '{got}'."
+            raise ValueError(string)
+
     def set_scaling(self):
         """Set the scaling factors for :attr:`voltage` and :attr:`current` properties."""
 
@@ -235,33 +235,54 @@ class SpellmanXRV(Instrument):
         amps_to_bits = 4095/max_current  # bits/Amp
         watts_to_bits = 4095/(max_voltage*max_current)  # bits/Watt
 
-        # Scaling for ADC, ADC has 20% overrange
-        bits_to_volts = 1*max_voltage/4095  # Volts/bit
-        bits_to_amps = 1*max_current/4095  # Amps/bit
+        bits_to_volts = max_voltage/4095  # Volts/bit
+        bits_to_amps = max_current/4095  # Amps/bit
         bits_to_watts = max_voltage*max_current/4095  # Watts/bit
 
-        self.voltage_values = [0, max_voltage]
-        self.voltage_set_process = lambda volts: (volts*volts_to_bits)
-        self.voltage_get_process = lambda bits: (bits*bits_to_volts)
+        self.voltage_setpoint_values = [0, max_voltage]
+        self.voltage_setpoint_set_process = lambda volts: (volts*volts_to_bits)
+        self.voltage_setpoint_get_process = lambda bits: (bits*bits_to_volts)
 
-        self.current_values = [0, max_current]
-        self.current_set_process = lambda amps: (amps*amps_to_bits)
-        self.current_get_process = lambda bits: (bits*bits_to_amps)
+        self.current_setpoint_values = [0, max_current]
+        self.current_setpoint_set_process = lambda amps: (amps*amps_to_bits)
+        self.current_setpoint_get_process = lambda bits: (bits*bits_to_amps)
 
         self.power_limit_set_process = lambda watts: int(watts*watts_to_bits)
         self.power_limit_get_process = lambda bits: int(bits*bits_to_watts)
 
-    def reset_faults(self):
+        # Scaling for monitor ADC, ADC has 20% overrange
+        bits_to_volts_adc = 1.2*max_voltage/4095  # Volts/bit
+        # bits_to_amps_adc = 1.2*max_current/4095  # Amps/bit
+        # bits_to_watts = max_voltage*max_current/4095  # Watts/bit
+
+        self.system_voltages_get_process_list = lambda v: {
+             "anode": bits_to_volts_adc*int(v[2]),
+             "cathode": bits_to_volts_adc*int(v[3]),
+             "ac_line_cathode": 0.088610*int(v[4]),
+             "dc_rail_cathode": 0.11399241*int(v[5]),
+             "ac_line_anode": 0.088610*int(v[6]),
+             "dc_rail_anode": 0.11399241*int(v[7]),
+             "lvps_pos": 0.00427407*int(v[8]),
+             "lvps_neg": 0.00576703*int(v[9]),
+             }
+
+        self.voltage_monitor_get_process = lambda v: bits_to_volts_adc*int(v),
+
+    def reset_errors(self):
         self.ask("31")
-    
+
     def reset_hv_on_timer(self):
         self.ask("30")
 
     filament = Instrument.ChannelCreator(Filament)
-    
+
     capability = Instrument.measurement(
         "28",
-        """Get maximum voltage in kV (int) and maximum current in mA (int).""",
+        """Get maximum voltage in kV (int), maximum current in mA (int) and polarity.
+
+        0: uni-polar
+        1: bipolar
+        """,
         cast=int
         )
 
@@ -273,10 +294,10 @@ class SpellmanXRV(Instrument):
         cast=int
         )
 
-    faults = Instrument.measurement(
+    errors = Instrument.measurement(
         "68",
-        """Get the power supply status (enum).""",
-        get_process_list=lambda v: Faults(int(''.join(map(str, (v[::-1]))), 2)),
+        """Get the power supply errors (enum).""",
+        get_process_list=lambda v: ErrorCode(int(''.join(map(str, (v[::-1]))), 2)),
         cast=int
         )
 
@@ -296,10 +317,10 @@ class SpellmanXRV(Instrument):
         check_set_errors=True,
         )
 
-    voltage = Instrument.control(
+    voltage_setpoint = Instrument.control(
         "14",
         "10,%d",
-        """Control the voltage in Volts (int).""",
+        """Control the voltage setpoint in Volts (int).""",
         validator=strict_range,
         values=[0, 1],  # reset during initialization (set_scaling())
         set_process=lambda v: v,  # reset during initialization (set_scaling())
@@ -308,20 +329,20 @@ class SpellmanXRV(Instrument):
         check_set_errors=True,
         )
 
-    voltage_raw = Instrument.control(
+    voltage_setpoint_raw = Instrument.control(
         "14",
         "10,%d",
-        """Control the voltage (int, strictly 0 to 4095).""",
+        """Control the voltage setpoint (int, strictly 0 to 4095).""",
         validator=strict_range,
         values=[0, 4095],
         check_set_errors=True,
         cast=int
         )
 
-    current = Instrument.control(
+    current_setpoint = Instrument.control(
         "15",
         "11,%d",
-        """Control current in A (float).""",
+        """Control current setpoint in A (float).""",
         validator=strict_range,
         values=[0, 1e-3],  # reset during initialization (set_scaling())
         set_process=lambda v: v,  # reset during initialization (set_scaling())
@@ -330,16 +351,15 @@ class SpellmanXRV(Instrument):
         check_set_errors=True,
         )
 
-    current_raw = Instrument.control(
+    current_setpoint_raw = Instrument.control(
         "15",
         "11,%d",
-        """Control current (int, strictly 0 to 4095).""",
+        """Control current setpoint (int, strictly 0 to 4095).""",
         validator=strict_range,
         values=[0, 4095],
         check_set_errors=True,
         cast=int
         )
-
 
     power_limit = Instrument.control(
         "38",
@@ -363,7 +383,7 @@ class SpellmanXRV(Instrument):
         "21",
         """Get the HV On time in hours (float).""",
         )
-    
+
     configuration = Instrument.measurement(
         "27",
         """Get the power supply configuration.""",
@@ -379,7 +399,6 @@ class SpellmanXRV(Instrument):
         """Get the model number.""",
         )
 
-
     software_version = Instrument.measurement(
         "23",
         """Get the DSP software version."""
@@ -388,11 +407,52 @@ class SpellmanXRV(Instrument):
     analog_monitor = Instrument.measurement(
         "19",
         """# Request Analog Monitor Read backs 19  8""",
+
+        # <Arg 1> ‐ KV Feedback.
+        # <Arg 2> ‐ mA Cathode Feedback.
+        # <Arg 3> ‐ Filament Feedback.
+        # <Arg 4> ‐ KV program Feedback  Note 1
+        # <Arg 5> ‐ mA Program Feedback  Note1
+        # <Arg 6> ‐ Program Limit Feedback  Note 1
+        # <Arg 7> ‐ Program Preheat Feedback  Note 1
+        # <Arg 8> ‐ mA Anode Feedback  Note 2
+        dynamic=True
+        )
+
+    analog_monitor_raw = Instrument.measurement(
+        "19",
+        """Get the unscaled Analog Monitor Read backs [int].""",
         )
 
     system_voltages = Instrument.measurement(
         "69",
-        """# Request System Voltages  69  10""",
+        """Measure the system voltages in Volts.
+
+        :return: dict
+
+        :dict keys: ``anode``,
+                    ``cathode``,
+                    ``ac_line_cathode``,
+                    ``dc_rail_cathode``,
+                    ``ac_line_anode``,
+                    ``dc_rail_anode``,
+                    ``lvps_pos``,
+                    ``lvps_neg``
+        """,
+        get_process_list=lambda v: v,  # reset during initialization (set_scaling())
+        dynamic=True
+        )
+
+    system_voltages_raw = Instrument.measurement(
+        "69",
+        """Measure the system voltages unscaled (int).""",
+        cast=int
+        )
+
+    temperature = Instrument.measurement(
+        "69",
+        """Measure the system temperature (float).""",
+        get_process_list=lambda v: 0.05911815*int(v[0])
         )
 
     power_limits = Instrument.measurement(
@@ -401,10 +461,17 @@ class SpellmanXRV(Instrument):
         )
 # Program Power Limit  97  2
 
+    voltage = Instrument.measurement(
+        "60",
+        """# Request kV monitor  60 """,
+        get_process=lambda v: v,  # reset during initialization (set_scaling())
+        dynamic=True
+        )
 
-    voltage_monitor = Instrument.measurement(
+    voltage_raw = Instrument.measurement(
         "60",
         """# Request kV monitor  60  1 unscaled""",
+        cast=int,
         )
 
     lvps_monitor = Instrument.measurement(
