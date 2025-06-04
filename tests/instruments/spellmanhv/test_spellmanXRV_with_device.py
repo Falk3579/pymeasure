@@ -24,7 +24,7 @@
 
 import pytest
 
-from pymeasure.instruments.spellmanhv.spellmanhv import SpellmanHV
+from pymeasure.instruments.spellmanhv.spellmanhv import SpellmanXRV
 
 
 @pytest.fixture(scope="module")
