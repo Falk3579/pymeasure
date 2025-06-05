@@ -29,6 +29,6 @@ from pymeasure.instruments.spellmanhv.spellmanhv import SpellmanXRV
 
 @pytest.fixture(scope="module")
 def spellmann(connected_device_address):
-    instr = SpellmanHV(connected_device_address)
+    instr = SpellmanXRV(connected_device_address)
     instr.reset_to_defaults()
     return instr
