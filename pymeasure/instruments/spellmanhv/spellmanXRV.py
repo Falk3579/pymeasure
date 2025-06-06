@@ -443,12 +443,20 @@ class SpellmanXRV(Instrument):
 
     configuration = Instrument.measurement(
         "27",
-        """Get the power supply configuration.""",
-        get_process_list=lambda v: {"over_voltage": (v[1]),
+        """Get the power supply configuration.
+        
+        :return: dict
+        
+        :dict keys:
+        
+        """,
+        get_process_list=lambda v: {"reserved1": v[0],
+                                    "over_voltage_percentage": (v[1]),
                                     "voltage_ramp_rate": (v[2]),
                                     "current_ramp_rate": (v[3]),
                                     "pre_warning_time": (v[4]),
                                     "arc_count": (v[5]),
+                                    "reserved2": v[6],
                                     "quench_time": (v[7]),
                                     "max_kV": (v[9]),
                                     "max_mA": (v[10]),
@@ -475,20 +483,6 @@ class SpellmanXRV(Instrument):
 
     def reset_errors(self):
         self.ask("31")
-
-    power_limit = Instrument.control(
-        "38",
-        "97,%d",
-        """Control the power limit (int).""",
-        check_set_errors=True,
-        )
-
-
-
-
-
-
-
 
     fpga_revision = Instrument.measurement(
         "43",
