@@ -283,7 +283,7 @@ class SpellmanXRV(Instrument):
 
     def write(self, command):
         """
-        Add STX (\\x02) in front and checksum + ETX (\\x03) at end of every command and send it.
+        Add STX (0x02) in front and checksum + ETX (0x03) at end of every command and send it.
         """
 
         command_with_comma = command + ","
@@ -300,7 +300,7 @@ class SpellmanXRV(Instrument):
     def read(self):
         """Read from the device and check for errors.
 
-        :raise: ConnectionError if checksum is in correct
+        :raise: ConnectionError if checksum is incorrect
         """
         got = super().read()
 
@@ -323,7 +323,7 @@ class SpellmanXRV(Instrument):
     def check_set_errors(self):
         """Check for errors after sending a command.
 
-        :raise: ValueError if response is not '$'
+        :raise: ValueError if response is not ``$``
         """
         got = self.read()
         expected = "$"
@@ -336,12 +336,12 @@ class SpellmanXRV(Instrument):
     def set_scaling(self):
         """Set the scaling factors.
 
-        Used for
-            :attr:`analog_monitor`,
-            :attr:`current_setpoint`,
-            :attr:`voltage`,
-            :attr:`voltage_setpoint`,
-            :attr:`system_voltages`,
+        Used to set the scaling factor for
+        :attr:`analog_monitor`,
+        :attr:`current_setpoint`,
+        :attr:`voltage`,
+        :attr:`voltage_setpoint` and
+        :attr:`system_voltages`.
 
         """
 
@@ -414,11 +414,8 @@ class SpellmanXRV(Instrument):
     voltage_setpoint = Instrument.control(
         "14",
         "10,%d",
-        """Control the voltage setpoint in Volts (int).""",
+        """Control the voltage setpoint in Volts (float).""",
         validator=strict_range,
-        values=[0, 1],  # reset during initialization (set_scaling())
-        set_process=lambda v: v,  # reset during initialization (set_scaling())
-        get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True,
         check_set_errors=True,
         )
@@ -428,9 +425,6 @@ class SpellmanXRV(Instrument):
         "11,%d",
         """Control the current setpoint in Amps (float).""",
         validator=strict_range,
-        values=[0, 1e-3],  # reset during initialization (set_scaling())
-        set_process=lambda v: v,  # reset during initialization (set_scaling())
-        get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True,
         check_set_errors=True,
         )
@@ -452,7 +446,6 @@ class SpellmanXRV(Instrument):
             ``anode_current``,
 
         """,
-        get_process_list=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True
         )
 
@@ -464,7 +457,6 @@ class SpellmanXRV(Instrument):
     status = Instrument.measurement(
         "22",
         """Get the power supply status (enum).""",
-        # get_process_list=lambda v: StatusCode(v[::-1])
         get_process_list=lambda v: StatusCode(int(''.join(map(str, (v[::-1]))), 2)),
         cast=int
         )
@@ -501,16 +493,16 @@ class SpellmanXRV(Instrument):
 
         """,
         get_process_list=lambda v: {"reserved1": v[0],
-                                    "over_voltage_percentage": (v[1]),
-                                    "voltage_ramp_rate": (v[2]),
-                                    "current_ramp_rate": (v[3]),
-                                    "pre_warning_time": (v[4]),
-                                    "arc_count": (v[5]),
+                                    "over_voltage_percentage": v[1],
+                                    "voltage_ramp_rate": v[2],
+                                    "current_ramp_rate": v[3],
+                                    "pre_warning_time": v[4],
+                                    "arc_count": v[5],
                                     "reserved2": v[6],
-                                    "quench_time": (v[7]),
-                                    "max_kV": (v[9]),
-                                    "max_mA": (v[10]),
-                                    "watchdog_timer": (v[11]),
+                                    "quench_time": v[7],
+                                    "max_kV": v[9],
+                                    "max_mA": v[10],
+                                    "watchdog_timer": v[11],
                                     },
         )
 
@@ -522,9 +514,9 @@ class SpellmanXRV(Instrument):
 
         :dict keys: ``voltage``, ``current``, ``polarity``
 
-        ``voltage`` is in kV
-        ``current`` in in mA
-        ``polarity`` 0: uni-polar
+        ``voltage`` is in kV,
+        ``current`` in in mA,
+        ``polarity`` 0: uni-polar,
         ``polarity`` 1: bipolar
 
         """,
@@ -574,7 +566,6 @@ class SpellmanXRV(Instrument):
     voltage = Instrument.measurement(
         "60",
         """Measure the output voltage in Volts.""",
-        get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True
         )
 
@@ -595,7 +586,6 @@ class SpellmanXRV(Instrument):
                     ``lvps_neg``
 
         """,
-        get_process_list=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True
         )
 
