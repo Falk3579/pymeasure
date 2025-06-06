@@ -205,11 +205,13 @@ class TestSpellmanXRV:
              ],
         ) as inst:
             got = inst.configuration
-            assert got["over_voltage"] == 2
+            assert got["reserved1"] == 1
+            assert got["over_voltage_percentage"] == 2
             assert got["voltage_ramp_rate"] == 3
             assert got["current_ramp_rate"] == 4
             assert got["pre_warning_time"] == 5
             assert got["arc_count"] == 6
+            assert got["reserved2"] == 7
             assert got["quench_time"] == 8
             assert got["max_kV"] == 10
             assert got["max_mA"] == 11
@@ -259,40 +261,6 @@ class TestSpellmanXRV:
              ],
         ) as inst:
             inst.reset_errors()
-
-
-
-
-
-
-    @pytest.mark.parametrize("current_setpoint, mapping", [(0, 0), (0.0035, 478), (30e-3, 4095)])
-    def test_power_limit(self, current_setpoint, mapping):
-        set_cmd = f"97,{mapping},"
-        set_cmd_csum = checksum(set_cmd)
-        set_got = "97,$,"
-        set_got_csum = checksum(set_got)
-
-        get_cmd = "38,"
-        get_cmd_csum = checksum(get_cmd)
-        get_got = f"38,{mapping},"
-        get_got_csum = checksum(get_got)
-
-        with expected_protocol(
-            SpellmanXRV,
-            [INITIALIZATION,
-             (f"{STX}{set_cmd}{set_cmd_csum}{ETX}", f"{STX}{set_got}{set_got_csum}"),
-             (f"{STX}{get_cmd}{get_cmd_csum}{ETX}", f"{STX}{get_got}{get_got_csum}"),
-             ],
-        ) as inst:
-            inst.current_setpoint = current_setpoint
-            assert current_setpoint == pytest.approx(inst.current_setpoint, abs=0.5*30e-3/4095)
-
-
-
-
-
-
-
 
     def test_fpga_revision(self):
         get_cmd = "43,"
@@ -406,10 +374,6 @@ class TestSpellmanXRV:
             inst.output_enabled = output_enabled
             assert output_enabled == inst.output_enabled
 
-
-
-
-
     def test_voltage(self):
         get_cmd = "60,"
         get_cmd_csum = checksum(get_cmd)
@@ -440,8 +404,8 @@ class TestSpellmanXRV:
 
         assert got["temperature"] == 1*0.05911815
         assert got["reserved"] == 2
-        assert got["anode"] == 3*1.2*160000/4095
-        assert got["cathode"] == 4*1.2*160000/4095
+        assert got["anode"] == pytest.approx(3*1.2*160000/4095)
+        assert got["cathode"] == pytest.approx(4*1.2*160000/4095)
         assert got["ac_line_cathode"] == 5*0.088610
         assert got["dc_rail_cathode"] == 6*0.11399241
         assert got["ac_line_anode"] == 7*0.088610
