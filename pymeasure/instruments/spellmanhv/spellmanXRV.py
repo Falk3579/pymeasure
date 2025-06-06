@@ -230,7 +230,8 @@ class SpellmanXRV(Instrument):
 
     STX = chr(2)
     ETX = chr(3)
-    checksum_enabled = True
+    checksum_enabled = True  # True for RS232 and USB connections, False for LAN
+    # TODO: automatic detection of the VISA adapter type if possible
 
     def __init__(self, adapter,
                  name="Spellman XRV HV Power Supply",
@@ -251,7 +252,7 @@ class SpellmanXRV(Instrument):
     def checksum(self, string_to_check):
         """Calculate the checksum.
 
-        :param str string_to_check:
+        :param string_to_check: string to calculate the checksum from
 
         The checksum is computed as follows:
         - Add all the bytes before <CSUM>, except <STX>, into a 16 bit (or larger) word.
