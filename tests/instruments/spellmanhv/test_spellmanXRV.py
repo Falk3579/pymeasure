@@ -178,10 +178,10 @@ class TestSpellmanXRV:
         ) as inst:
             assert status == inst.status
 
-    def test_software_version(self):
+    def test_dsp(self):
         get_cmd = "23,"
         get_cmd_csum = checksum(get_cmd)
-        get_got = "22,SWM9999-999,"
+        get_got = "23,SWM9999-999,56234,"
         get_got_csum = checksum(get_got)
 
         with expected_protocol(
@@ -190,7 +190,9 @@ class TestSpellmanXRV:
              (f"{STX}{get_cmd}{get_cmd_csum}{ETX}", f"{STX}{get_got}{get_got_csum}"),
              ],
         ) as inst:
-            assert "SWM9999-999" == inst.software_version
+            got = inst.dsp
+            assert "SWM9999-999" == got["part_number"]
+            assert 56234 == got["version"]
 
     def test_configuration(self):
         get_cmd = "27,"
@@ -262,7 +264,7 @@ class TestSpellmanXRV:
         ) as inst:
             inst.reset_errors()
 
-    def test_fpga_revision(self):
+    def test_fpga(self):
         get_cmd = "43,"
         get_cmd_csum = checksum(get_cmd)
         get_got = "43,SWM00199-001,3261,"
@@ -274,9 +276,9 @@ class TestSpellmanXRV:
              (f"{STX}{get_cmd}{get_cmd_csum}{ETX}", f"{STX}{get_got}{get_got_csum}"),
              ],
         ) as inst:
-            got = inst.fpga_revision
+            got = inst.fpga
             assert got["part_number"] == "SWM00199-001"
-            assert got["build_number"] == 3261
+            assert got["version"] == 3261
 
     @pytest.mark.parametrize("errors, mapping", [
         (ErrorCode.NO_ERROR,
