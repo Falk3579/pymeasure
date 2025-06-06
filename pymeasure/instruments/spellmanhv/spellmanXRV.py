@@ -121,12 +121,12 @@ class Filament(Channel):
 
 
 class UnscaledData(Channel):
-    """A class to handle the unscaled raw data of the Spellman XRV power supplies."""
+    """A class to handle unscaled raw data of the Spellman XRV power supplies."""
 
     voltage_setpoint = Instrument.control(
         "14",
         "10,%d",
-        """Control the voltage setpoint unscaled (int from 0 to 4095).""",
+        """Control the voltage setpoint (int from 0 to 4095).""",
         validator=strict_range,
         values=[0, 4095],
         check_set_errors=True,
@@ -136,7 +136,7 @@ class UnscaledData(Channel):
     current_setpoint = Instrument.control(
         "15",
         "11,%d",
-        """Control the current setpoint unscaled (int from 0 to 4095).""",
+        """Control the current setpoint (int from 0 to 4095).""",
         validator=strict_range,
         values=[0, 4095],
         check_set_errors=True,
@@ -145,9 +145,18 @@ class UnscaledData(Channel):
 
     analog_monitor = Instrument.measurement(
         "19",
-        """Get the unscaled analog monitor read backs.
+        """Measure the analog monitor read backs.
         
         :return: dict of int
+        
+        :dict keys: ``voltage``,
+                    ``current``,
+                    ``filament``,
+                    ``voltage_setpoint``,
+                    ``current_setpoint``,
+                    ``limit``,
+                    ``preheat``,
+                    ``anode_current``
         """,
         get_process_list=lambda v: {"voltage": int(v[0]),
                                     "current": int(v[1]),
@@ -158,13 +167,13 @@ class UnscaledData(Channel):
                                     "preheat": int(v[6]),
                                     "anode_current": int(v[7]),
                                     },
-        cast=int
+        cast=int,
         )
 
     power_limit = Instrument.control(
         "38",
         "97,%d",
-        """Control the power limit unscaled (int from 0 to 4095).""",
+        """Control the power limit (int from 0 to 4095).""",
         validator=strict_range,
         values=[0, 4095],
         check_set_errors=True,
@@ -172,19 +181,34 @@ class UnscaledData(Channel):
 
     voltage = Instrument.measurement(
         "60",
-        """Measure the output voltage unscaled (int).""",
+        """Measure the output voltage (int from 0 to 4095).""",
         cast=int,
         )
 
     lvps_monitor = Instrument.measurement(
         "65",
-        """Measure the –15 V low voltage power supply unscaled (int)""",
+        """Measure the –15 V low voltage power supply (int from 0 to 4095)""",
         cast=int,
         )
 
     system_voltages = Instrument.measurement(
         "69",
-        """Measure the system voltages unscaled (int).""",
+        """Measure the system voltages.
+        
+        :return: dict of int from 0 to 4095
+        
+        :dict keys: ``temperature``,
+                    ``reserved``,
+                    ``anode``,
+                    ``cathode``,
+                    ``ac_line_cathode``,
+                    ``dc_rail_cathode``,
+                    ``ac_line_anode``,
+                    ``dc_rail_anode``,
+                    ``lvps_pos``,
+                    ``lvps_neg``
+        
+        """,
         get_process_list=lambda v: {
              "temperature": v[0],
              "reserved": v[1],
@@ -227,7 +251,7 @@ class SpellmanXRV(Instrument):
     def checksum(self, string_to_check):
         """Calculate the checksum.
 
-        :param:
+        :param str string_to_check:
 
         The checksum is computed as follows:
         - Add all the bytes before <CSUM>, except <STX>, into a 16 bit (or larger) word.
@@ -403,16 +427,11 @@ class SpellmanXRV(Instrument):
         """Measure the analog monitor read backs.
         
         :return: dict
+        
+        :dict keys:
+        
+        
         """,
-
-        # <Arg 1> ‐ KV Feedback.
-        # <Arg 2> ‐ mA Cathode Feedback.
-        # <Arg 3> ‐ Filament Feedback.
-        # <Arg 4> ‐ KV program Feedback  Note 1
-        # <Arg 5> ‐ mA Program Feedback  Note1
-        # <Arg 6> ‐ Program Limit Feedback  Note 1
-        # <Arg 7> ‐ Program Preheat Feedback  Note 1
-        # <Arg 8> ‐ mA Anode Feedback  Note 2
         get_process_list=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True
         )
@@ -436,9 +455,16 @@ class SpellmanXRV(Instrument):
         cast=int
         )
 
-    software_version = Instrument.measurement(
+    dsp = Instrument.measurement(
         "23",
-        """Get the DSP software version."""
+        """Get the DSP part number and version.
+        
+        :return: dict
+        
+        :dict keys: ``part_number``, ``version``
+        """,
+        get_process_list=lambda v: {"part_number": v[0],
+                                    "version": int(v[1])},
         )
 
     configuration = Instrument.measurement(
@@ -447,8 +473,17 @@ class SpellmanXRV(Instrument):
         
         :return: dict
         
-        :dict keys:
-        
+        :dict keys: ``reserved1``,
+                    ``over_voltage_percentage``,
+                    ``voltage_ramp_rate``,
+                    ``current_ramp_rate``,
+                    ``pre_warning_time``,
+                    ``arc_count``,
+                    ``reserved2``,
+                    ``quench_time``,
+                    ``max_kV``,
+                    ``max_mA``,
+                    ``watchdog_timer``
         """,
         get_process_list=lambda v: {"reserved1": v[0],
                                     "over_voltage_percentage": (v[1]),
@@ -484,11 +519,16 @@ class SpellmanXRV(Instrument):
     def reset_errors(self):
         self.ask("31")
 
-    fpga_revision = Instrument.measurement(
+    fpga = Instrument.measurement(
         "43",
-        """Get the FPGA  part number and build number.""",
+        """Get the FPGA part number and version.
+        
+        :return: dict
+        
+        :dict keys: ``part_number``, ``version``
+        """,
         get_process_list=lambda v: {"part_number": v[0],
-                                    "build_number": int(v[1])},
+                                    "version": int(v[1])},
         )
 
     errors = Instrument.measurement(
@@ -538,6 +578,6 @@ class SpellmanXRV(Instrument):
 
     temperature = Instrument.measurement(
         "69",
-        """Measure the system temperature (float).""",
+        """Measure the system temperature in °C (float).""",
         get_process_list=lambda v: 0.05911815*int(v[0])
         )
