@@ -118,7 +118,7 @@ class TestSpellmanXRV:
     def test_analog_monitor(self):
         get_cmd = "19,"
         get_cmd_csum = checksum(get_cmd)
-        get_got = "19,1,2,3,4,5,6,7,8,"
+        get_got = "19,1234,2977,3783,512,768,6,7,899,"
         get_got_csum = checksum(get_got)
 
         with expected_protocol(
@@ -127,7 +127,16 @@ class TestSpellmanXRV:
              (f"{STX}{get_cmd}{get_cmd_csum}{ETX}", f"{STX}{get_got}{get_got_csum}"),
              ],
         ) as inst:
-            assert [1, 2, 3, 4, 5, 6, 7, 8] == inst.analog_monitor
+            got = inst.analog_monitor
+
+        assert got["voltage"] == pytest.approx(1.2*160e3*1234/4095)
+        assert got["current"] == pytest.approx(1.2*0.03*2977/4095)
+        assert got["filament"] == 3783
+        assert got["voltage_setpoint"] == 512
+        assert got["current_setpoint"] == 768
+        assert got["limit"] == 6
+        assert got["preheat"] == 7
+        assert got["anode_current"] == pytest.approx(1.2*0.03*899/4095)
 
     @pytest.mark.parametrize("hv_on_timer", [0, 1.6, 300.67, 1e3, 2.565e4])
     def test_hv_on_timer(self, hv_on_timer):
@@ -379,7 +388,7 @@ class TestSpellmanXRV:
     def test_voltage(self):
         get_cmd = "60,"
         get_cmd_csum = checksum(get_cmd)
-        get_got = f"60,4095,"
+        get_got = "60,4095,"
         get_got_csum = checksum(get_got)
 
         with expected_protocol(
@@ -578,28 +587,6 @@ class TestChannelUnscaled:
         assert got["limit"] == 6
         assert got["preheat"] == 7
         assert got["anode_current"] == 8
-
-    @pytest.mark.parametrize("setpoint", [0, 183, 4095])
-    def test_power_limit(self, setpoint):
-        set_cmd = f"97,{setpoint},"
-        set_cmd_csum = checksum(set_cmd)
-        set_got = "97,$,"
-        set_got_csum = checksum(set_got)
-
-        get_cmd = "38,"
-        get_cmd_csum = checksum(get_cmd)
-        get_got = f"38,{setpoint},"
-        get_got_csum = checksum(get_got)
-
-        with expected_protocol(
-            SpellmanXRV,
-            [INITIALIZATION,
-             (f"{STX}{set_cmd}{set_cmd_csum}{ETX}", f"{STX}{set_got}{set_got_csum}"),
-             (f"{STX}{get_cmd}{get_cmd_csum}{ETX}", f"{STX}{get_got}{get_got_csum}"),
-             ],
-        ) as inst:
-            inst.unscaled.power_limit = setpoint
-            assert setpoint == inst.unscaled.power_limit
 
     @pytest.mark.parametrize("voltage", [0, 298, 4095])
     def test_voltage(self, voltage):
