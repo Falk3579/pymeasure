@@ -86,7 +86,7 @@ class Filament(Channel):
     limit = Channel.control(
         "16",
         "12,%d",
-        """Control the filament limit setpoint (int, strict from 0 to 4095).""",
+        """Control the filament limit setpoint (int, strictly from 0 to 4095).""",
         check_set_errors=True,
         validator=strict_range,
         values=[0, 4095],
@@ -96,7 +96,7 @@ class Filament(Channel):
     preheat = Channel.control(
         "17",
         "13,%d",
-        """Control the filament preheat setpoint (int, strict from 0 to 4095).""",
+        """Control the filament preheat setpoint (int, strictly from 0 to 4095).""",
         check_set_errors=True,
         validator=strict_range,
         values=[0, 4095],
@@ -105,7 +105,7 @@ class Filament(Channel):
 
     size = Channel.setting(
         "32,%d",
-        """Set the filament size (str: ``large`` or ``small``)""",
+        """Set the filament size (str, strictly ``large`` or ``small``)""",
         map_values=True,
         validator=strict_discrete_set,
         values={"large": 1, "small": 0},
@@ -282,7 +282,9 @@ class SpellmanXRV(Instrument):
             return ""
 
     def write(self, command):
-        """Add STX in front and checksum + ETX at end of every command and send it."""
+        """
+        Add STX (\\x02) in front and checksum + ETX (\\x03) at end of every command and send it.
+        """
 
         command_with_comma = command + ","
         checksum = self.checksum(command_with_comma)
@@ -298,7 +300,7 @@ class SpellmanXRV(Instrument):
     def read(self):
         """Read from the device and check for errors.
 
-        :raise: ConnectionError
+        :raise: ConnectionError if checksum is in correct
         """
         got = super().read()
 
@@ -319,7 +321,10 @@ class SpellmanXRV(Instrument):
         return response[0].partition(",")[2]  # remove command from response
 
     def check_set_errors(self):
-        """Check for errors after sending a command."""
+        """Check for errors after sending a command.
+
+        :raise: ValueError if response is not '$'
+        """
         got = self.read()
         expected = "$"
         if got == expected:
@@ -568,7 +573,7 @@ class SpellmanXRV(Instrument):
 
     voltage = Instrument.measurement(
         "60",
-        """# Request kV monitor  60 """,
+        """Measure the output voltage in Volts.""",
         get_process=lambda v: v,  # reset during initialization (set_scaling())
         dynamic=True
         )
