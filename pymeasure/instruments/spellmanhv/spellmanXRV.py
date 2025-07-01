@@ -248,7 +248,9 @@ class SpellmanXRV(Instrument):
         self.query_delay = query_delay
 
         # disable checksum for LAN interface
-        interface_type = self.adapter.manager.resource_info(self.adapter.resource_name).interface_type
+        interface_type = (
+            self.adapter.manager.resource_info(self.adapter.resource_name).interface_type
+            )
         if interface_type is InterfaceType.tcpip:
             self.checksum_enabled = False
 
@@ -288,8 +290,8 @@ class SpellmanXRV(Instrument):
         """
         Write to the instrument.
 
-        Adds STX (0x02) in front and checksum + ETX (0x03) at end of every command before sending it.
-        The checksum is omitted for TCPIP connections.
+        Adds STX (0x02) in front and checksum + ETX (0x03) at end of every command before
+        sending it. The checksum is omitted for TCPIP connections.
         """
         if self.checksum_enabled:
             command_with_comma = command + ","
@@ -308,7 +310,7 @@ class SpellmanXRV(Instrument):
     def read(self):
         """Read from the device and check for errors.
 
-        :raise: ConnectionError if response doesn't begin with <STX> or checksum is incorrect
+        :raise: ConnectionError if response doesn't begin with <STX> or checksum is incorrect.
         The checksum is not checked for TCPIP connections.
         """
         got = super().read()
@@ -525,7 +527,7 @@ class SpellmanXRV(Instrument):
         :dict keys: ``voltage``, ``current``, ``polarity``
 
         ``voltage`` is in kV,
-        ``current`` in in mA,
+        ``current`` is in mA,
         ``polarity`` 0: uni-polar,
         ``polarity`` 1: bipolar
 
