@@ -22,8 +22,10 @@
 # THE SOFTWARE.
 #
 
-# Tested using serial port. call signature:
+# Test using serial port. call signature:
 # $ pytest test_spellmanXRV_with_device.py --device-address ASRL4
+#
+# Test using ethernet port. call signature:
 # $ pytest test_spellmanXRV_with_device.py --device-address "TCPIP::172.23.19.1::8123::SOCKET"
 #
 
