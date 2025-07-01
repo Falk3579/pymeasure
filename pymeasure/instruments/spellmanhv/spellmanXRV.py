@@ -293,12 +293,12 @@ class SpellmanXRV(Instrument):
         Adds STX (0x02) in front and checksum + ETX (0x03) at end of every command before
         sending it. The checksum is omitted for TCPIP connections.
         """
+        command_with_comma = command + ","        
         if self.checksum_enabled:
-            command_with_comma = command + ","
             checksum = self.checksum(command_with_comma)
             super().write(f"{self.STX}{command_with_comma}{checksum}{self.ETX}")
         else:
-            super().write(f"{self.STX}{command}{self.ETX}")
+            super().write(f"{self.STX}{command_with_comma}{self.ETX}")
 
     def wait_for(self, query_delay=0):
         """Wait for some time.
