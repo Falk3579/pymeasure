@@ -22,13 +22,17 @@
 # THE SOFTWARE.
 #
 
-import pytest
+# Tested using serial port. call signature:
+# $ pytest test_spellmanXRV_with_device.py --device-address ASRL4
+# $ pytest test_spellmanXRV_with_device.py --device-address "TCPIP::172.23.19.1::8123::SOCKET"
+#
 
+import pytest
 from pymeasure.instruments.spellmanhv.spellmanhv import SpellmanXRV
 
 
 @pytest.fixture(scope="module")
 def spellmann(connected_device_address):
     instr = SpellmanXRV(connected_device_address)
-    instr.reset_to_defaults()
+    # instr.reset_to_defaults()
     return instr
