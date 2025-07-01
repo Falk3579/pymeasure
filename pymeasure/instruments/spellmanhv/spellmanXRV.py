@@ -25,6 +25,7 @@
 from pymeasure.instruments import Instrument, Channel
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 from enum import IntFlag
+from pyvisa.constants import InterfaceType
 
 # https://www.spellmanhv.com/en/high-voltage-power-supplies/XRV
 
@@ -229,8 +230,7 @@ class SpellmanXRV(Instrument):
 
     STX = chr(2)
     ETX = chr(3)
-    checksum_enabled = True  # True for RS232 and USB connections, False for LAN
-    # TODO: automatic detection of the VISA adapter type if possible
+    checksum_enabled = True  # RS232 and USB: True, LAN: False
 
     def __init__(self, adapter,
                  name="Spellman XRV HV Power Supply",
@@ -246,7 +246,13 @@ class SpellmanXRV(Instrument):
             **kwargs)
 
         self.query_delay = query_delay
-        self.set_scaling()
+
+        # disable checksum for LAN interface
+        interface_type = self.adapter.manager.resource_info(self.adapter.resource_name).interface_type
+        if interface_type is InterfaceType.tcpip:
+            self.checksum_enabled = False
+
+        # self.set_scaling()
 
     def checksum(self, string_to_check):
         """Calculate the checksum.
@@ -269,26 +275,28 @@ class SpellmanXRV(Instrument):
 
         """
 
-        if self.checksum_enabled:
-            ascii_sum = 0
-            for char in string_to_check:
-                ascii_sum += ord(char)  # add ascii values together
+        ascii_sum = 0
+        for char in string_to_check:
+            ascii_sum += ord(char)  # add ascii values together
 
-            csb1 = 0x100 - ascii_sum  # two's complement
-            csb2 = 0x7F & csb1  # bitwise AND 0x7F: truncate to the last 7 bits
-            csb3 = 0x40 | csb2  # bitwise OR 0x40: set bit 6
-            return chr(csb3)
-        else:
-            return ""
+        csb1 = 0x100 - ascii_sum  # two's complement
+        csb2 = 0x7F & csb1  # bitwise AND 0x7F: truncate to the last 7 bits
+        csb3 = 0x40 | csb2  # bitwise OR 0x40: set bit 6
+        return chr(csb3)
 
     def write(self, command):
         """
-        Add STX (0x02) in front and checksum + ETX (0x03) at end of every command and send it.
-        """
+        Write to the instrument.
 
-        command_with_comma = command + ","
-        checksum = self.checksum(command_with_comma)
-        super().write(f"{self.STX}{command_with_comma}{checksum}{self.ETX}")
+        Adds STX (0x02) in front and checksum + ETX (0x03) at end of every command before sending it.
+        The checksum is omitted for TCPIP connections.
+        """
+        if self.checksum_enabled:
+            command_with_comma = command + ","
+            checksum = self.checksum(command_with_comma)
+            super().write(f"{self.STX}{command_with_comma}{checksum}{self.ETX}")
+        else:
+            super().write(f"{self.STX}{command}{self.ETX}")
 
     def wait_for(self, query_delay=0):
         """Wait for some time.
@@ -300,7 +308,8 @@ class SpellmanXRV(Instrument):
     def read(self):
         """Read from the device and check for errors.
 
-        :raise: ConnectionError if checksum is incorrect
+        :raise: ConnectionError if response doesn't begin with <STX> or checksum is incorrect
+        The checksum is not checked for TCPIP connections.
         """
         got = super().read()
 
@@ -310,13 +319,14 @@ class SpellmanXRV(Instrument):
 
         response = got.strip(self.STX).rpartition(",")
 
-        string_to_check = response[0] + response[1]
-        calculated_checksum = self.checksum(string_to_check)
-        got_checksum = response[2]
+        if self.checksum_enabled:
+            string_to_check = response[0] + response[1]
+            calculated_checksum = self.checksum(string_to_check)
+            got_checksum = response[2]
 
-        if got_checksum is not calculated_checksum:
-            string = f"Checksum error: expected '{calculated_checksum}', got '{got_checksum}'."
-            raise ConnectionError(string)
+            if got_checksum is not calculated_checksum:
+                string = f"Checksum error: expected '{calculated_checksum}', got '{got_checksum}'."
+                raise ConnectionError(string)
 
         return response[0].partition(",")[2]  # remove command from response
 
