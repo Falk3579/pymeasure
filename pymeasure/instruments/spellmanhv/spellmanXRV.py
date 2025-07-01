@@ -235,11 +235,11 @@ class SpellmanXRV(Instrument):
     def __init__(self, adapter,
                  name="Spellman XRV HV Power Supply",
                  query_delay=0.15,
-                 baud_rate=9600,
+                 # baud_rate=9600,
                  **kwargs):
         super().__init__(
             adapter, name,
-            baud_rate=baud_rate,
+            # baud_rate=baud_rate,
             includeSCPI=False,
             read_termination=self.ETX,
             timeout=2000,
@@ -254,7 +254,7 @@ class SpellmanXRV(Instrument):
         if interface_type is InterfaceType.tcpip:
             self.checksum_enabled = False
 
-        # self.set_scaling()
+        self.set_scaling()
 
     def checksum(self, string_to_check):
         """Calculate the checksum.
@@ -314,6 +314,7 @@ class SpellmanXRV(Instrument):
         The checksum is not checked for TCPIP connections.
         """
         got = super().read()
+        print(got)
 
         begin_ok = got.startswith(self.STX)
         if not begin_ok:
