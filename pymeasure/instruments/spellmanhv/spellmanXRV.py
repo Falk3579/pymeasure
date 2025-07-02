@@ -82,7 +82,7 @@ class ErrorCode(IntFlag):
 
 
 class Filament(Channel):
-    """Represents the functions for the filament of the x-ray tube."""
+    """A class representing the functions for the filament of the x-ray tube."""
 
     limit = Channel.control(
         "16",
@@ -167,14 +167,14 @@ class UnscaledData(Channel):
         ``anode_current`` is only valid for bipolar units.
 
         """,
-        get_process_list=lambda v: {"voltage": int(v[0]),
-                                    "current": int(v[1]),
-                                    "filament": int(v[2]),
-                                    "voltage_setpoint": int(v[3]),
-                                    "current_setpoint": int(v[4]),
-                                    "limit": int(v[5]),
-                                    "preheat": int(v[6]),
-                                    "anode_current": int(v[7]),
+        get_process_list=lambda v: {"voltage": v[0],
+                                    "current": v[1],
+                                    "filament": v[2],
+                                    "voltage_setpoint": v[3],
+                                    "current_setpoint": v[4],
+                                    "limit": v[5],
+                                    "preheat": v[6],
+                                    "anode_current": v[7],
                                     },
         cast=int,
         )
@@ -230,16 +230,17 @@ class SpellmanXRV(Instrument):
 
     STX = chr(2)
     ETX = chr(3)
-    checksum_enabled = True  # RS232 and USB: True, LAN: False
+    
+    checksum_enabled = True  # RS232 and USB
 
     def __init__(self, adapter,
                  name="Spellman XRV HV Power Supply",
                  query_delay=0.15,
-                 # baud_rate=9600,
+                 baud_rate=9600,
                  **kwargs):
         super().__init__(
             adapter, name,
-            # baud_rate=baud_rate,
+            asrl={'baud_rate': baud_rate},
             includeSCPI=False,
             read_termination=self.ETX,
             timeout=2000,
@@ -248,11 +249,13 @@ class SpellmanXRV(Instrument):
         self.query_delay = query_delay
 
         # disable checksum for LAN interface
-        interface_type = (
-            self.adapter.manager.resource_info(self.adapter.resource_name).interface_type
-            )
-        if interface_type is InterfaceType.tcpip:
-            self.checksum_enabled = False
+        # ProtocolAdapter used for tests does not have 'manager'
+        if "manager" in self.adapter.__dict__.keys():
+            interface_type = (
+                self.adapter.manager.resource_info(self.adapter.resource_name).interface_type
+                )
+            if interface_type is InterfaceType.tcpip:
+                self.checksum_enabled = False  # LAN
 
         self.set_scaling()
 
@@ -290,7 +293,7 @@ class SpellmanXRV(Instrument):
         """
         Write to the instrument.
 
-        Adds STX (0x02) in front and checksum + ETX (0x03) at end of every command before
+        Adds <STX> (0x02) in front and checksum + <ETX> (0x03) at end of every command before
         sending it. The checksum is omitted for TCPIP connections.
         """
         command_with_comma = command + ","        
@@ -310,14 +313,12 @@ class SpellmanXRV(Instrument):
     def read(self):
         """Read from the device and check for errors.
 
-        :raise: ConnectionError if response doesn't begin with <STX> or checksum is incorrect.
-        The checksum is not checked for TCPIP connections.
+        :raise: ConnectionError if response doesn't start with <STX> or checksum is incorrect.
+                The checksum check is omitted for TCPIP connections.
         """
         got = super().read()
-        print(got)
 
-        begin_ok = got.startswith(self.STX)
-        if not begin_ok:
+        if not got.startswith(self.STX):
             raise ConnectionError("Expected <STX> at begin of received message.")
 
         response = got.strip(self.STX).rpartition(",")
@@ -359,8 +360,8 @@ class SpellmanXRV(Instrument):
         """
 
         max_values = self.scaling
-        max_voltage = max_values["voltage"] * 1e3
-        max_current = max_values["current"] * 1e-3
+        max_voltage = max_values["voltage"]
+        max_current = max_values["current"]
 
         # scaling for DAC
         bits_per_volt = 4095/max_voltage  # bits/Volt
@@ -372,7 +373,7 @@ class SpellmanXRV(Instrument):
 
         self.current_setpoint_values = [0, max_current]
         self.current_setpoint_set_process = lambda amps: round(amps*bits_per_amp)
-        self.current_setpoint_get_process = lambda bits: round(bits/bits_per_amp, 6)
+        self.current_setpoint_get_process = lambda bits: round(bits/bits_per_amp, 7)
 
         # Scaling for analog monitors, ADC has 20% overrange
         adc_volts_per_bit = 1.2*max_voltage/4095  # Volts/bit
@@ -456,7 +457,7 @@ class SpellmanXRV(Instrument):
             ``current_setpoint``,
             ``limit``,
             ``preheat``,
-            ``anode_current``,
+            ``anode_current``
 
         """,
         dynamic=True
@@ -523,21 +524,20 @@ class SpellmanXRV(Instrument):
         "28",
         """Get scaling factors and polarity.
 
-        :return: dict of int
+        :return: dict
 
         :dict keys: ``voltage``, ``current``, ``polarity``
 
-        ``voltage`` is in kV,
-        ``current`` is in mA,
+        ``voltage`` is in V,
+        ``current`` is in A,
         ``polarity`` 0: uni-polar,
         ``polarity`` 1: bipolar
 
         """,
-        get_process_list=lambda v: {"voltage": v[0],
-                                    "current": v[1],
-                                    "polarity": v[2],
+        get_process_list=lambda v: {"voltage": int(v[0] * 1000),
+                                    "current": float(v[1]) * 1e-3,
+                                    "polarity": int(v[2]),
                                     },
-        cast=int,
         )
 
     def reset_hv_on_timer(self):
@@ -572,13 +572,13 @@ class SpellmanXRV(Instrument):
         validator=strict_discrete_set,
         map_values=True,
         values={True: 1, False: 0},
-        get_process_list=lambda v: int(v[0]),
+        get_process_list=lambda v: bool(v[0]),
         check_set_errors=True,
         )
 
     voltage = Instrument.measurement(
         "60",
-        """Measure the output voltage in Volts.""",
+        """Measure the output voltage in Volts (float).""",
         dynamic=True
         )
 
@@ -589,6 +589,7 @@ class SpellmanXRV(Instrument):
         :return: dict
 
         :dict keys: ``temperature``,
+                    ``reserved``,
                     ``anode``,
                     ``cathode``,
                     ``ac_line_cathode``,
