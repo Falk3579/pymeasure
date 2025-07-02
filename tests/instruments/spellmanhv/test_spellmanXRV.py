@@ -241,8 +241,8 @@ class TestSpellmanXRV:
              ],
         ) as inst:
             got = inst.scaling
-            assert got["voltage"] == 160
-            assert got["current"] == 30
+            assert got["voltage"] == 160000
+            assert got["current"] == 30e-3
             assert got["polarity"] == 0
 
     def test_reset_hv_on_timer(self):
