@@ -230,7 +230,7 @@ class SpellmanXRV(Instrument):
 
     STX = chr(2)
     ETX = chr(3)
-    
+
     checksum_enabled = True  # RS232 and USB
 
     def __init__(self, adapter,
@@ -296,7 +296,8 @@ class SpellmanXRV(Instrument):
         Adds <STX> (0x02) in front and checksum + <ETX> (0x03) at end of every command before
         sending it. The checksum is omitted for TCPIP connections.
         """
-        command_with_comma = command + ","        
+
+        command_with_comma = command + ","
         if self.checksum_enabled:
             checksum = self.checksum(command_with_comma)
             super().write(f"{self.STX}{command_with_comma}{checksum}{self.ETX}")
