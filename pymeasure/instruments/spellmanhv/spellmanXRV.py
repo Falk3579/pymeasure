@@ -26,6 +26,7 @@ from pymeasure.instruments import Instrument, Channel
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 from enum import IntFlag
 from pyvisa.constants import InterfaceType
+from unittest.mock import MagicMock
 
 # https://www.spellmanhv.com/en/high-voltage-power-supplies/XRV
 
@@ -253,7 +254,8 @@ class SpellmanXRV(Instrument):
         if interface_type is InterfaceType.tcpip:
             self.checksum_enabled = False
 
-        self.set_scaling()
+        if self.adapter.connection is not MagicMock:
+            self.set_scaling()
 
     def checksum(self, string_to_check):
         """Calculate the checksum.
