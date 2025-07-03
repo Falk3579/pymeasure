@@ -241,21 +241,17 @@ class SpellmanXRV(Instrument):
         super().__init__(
             adapter, name,
             asrl={'baud_rate': baud_rate},
-            includeSCPI=False,
             read_termination=self.ETX,
+            includeSCPI=False,
             timeout=2000,
             **kwargs)
 
         self.query_delay = query_delay
 
         # disable checksum for LAN interface
-        # ProtocolAdapter used for tests does not have 'manager'
-        if "manager" in self.adapter.__dict__.keys():
-            interface_type = (
-                self.adapter.manager.resource_info(self.adapter.resource_name).interface_type
-                )
-            if interface_type is InterfaceType.tcpip:
-                self.checksum_enabled = False  # LAN
+        interface_type = self.adapter.connection.interface_type
+        if interface_type is InterfaceType.tcpip:
+            self.checksum_enabled = False
 
         self.set_scaling()
 
@@ -319,12 +315,10 @@ class SpellmanXRV(Instrument):
         """
         got = super().read()
 
-        print(got)
-
         if not got.startswith(self.STX):
             raise ConnectionError("Expected <STX> at begin of received message.")
 
-        response = got.strip(self.STX).strip(self.ETX).strip(",").rpartition(",")
+        response = got.strip(self.STX).strip(self.ETX).rpartition(",")
 
         if self.checksum_enabled:
             string_to_check = response[0] + response[1]
