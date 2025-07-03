@@ -253,7 +253,7 @@ class SpellmanXRV(Instrument):
         if interface_type is InterfaceType.tcpip:
             self.checksum_enabled = False
 
-        self.set_scaling()
+        # self.set_scaling()
 
     def checksum(self, string_to_check):
         """Calculate the checksum.
