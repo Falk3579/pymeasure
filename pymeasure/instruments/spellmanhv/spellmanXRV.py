@@ -324,13 +324,13 @@ class SpellmanXRV(Instrument):
 
         response = got.strip(self.STX).rpartition(",")
 
-        # if self.checksum_enabled:
-            # string_to_check = response[0] + response[1]
-            # calculated_checksum = self.checksum(string_to_check)
-            # got_checksum = response[2]
+        if self.checksum_enabled:
+            string_to_check = response[0] + response[1]
+            calculated_checksum = self.checksum(string_to_check)
+            got_checksum = response[2]
 
-            # if got_checksum is not calculated_checksum:
-                # string = f"Checksum error: expected '{calculated_checksum}', got '{got_checksum}'."
+            if got_checksum is not calculated_checksum:
+                string = f"Checksum error: expected '{calculated_checksum}', got '{got_checksum}'."
                 # raise ConnectionError(string)
 
         return response[0].partition(",")[2]  # remove command from response
