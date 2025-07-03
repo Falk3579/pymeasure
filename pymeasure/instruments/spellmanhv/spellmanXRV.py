@@ -322,7 +322,7 @@ class SpellmanXRV(Instrument):
         if not got.startswith(self.STX):
             raise ConnectionError("Expected <STX> at begin of received message.")
 
-        response = got.strip(self.STX).rpartition(",")
+        response = got.strip(self.STX).strip(self.ETX).rpartition(",")
 
         if self.checksum_enabled:
             string_to_check = response[0] + response[1]
@@ -332,7 +332,7 @@ class SpellmanXRV(Instrument):
             if got_checksum is not calculated_checksum:
                 string = f"Checksum error: expected '{calculated_checksum}', got '{got_checksum}'."
                 print(string)
-                # raise ConnectionError(string)
+                raise ConnectionError(string)
 
         return response[0].partition(",")[2]  # remove command from response
 
