@@ -254,7 +254,8 @@ class SpellmanXRV(Instrument):
         if interface_type is InterfaceType.tcpip:
             self.checksum_enabled = False
 
-        if self.adapter.connection is not MagicMock:
+        # don't execute during tests
+        if self.adapter.connection is not MagicMock():
             self.set_scaling()
 
     def checksum(self, string_to_check):
