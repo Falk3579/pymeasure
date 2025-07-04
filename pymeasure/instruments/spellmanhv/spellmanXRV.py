@@ -26,7 +26,6 @@ from pymeasure.instruments import Instrument, Channel
 from pymeasure.instruments.validators import strict_discrete_set, strict_range
 from enum import IntFlag
 from pyvisa.constants import InterfaceType
-from unittest.mock import MagicMock
 
 # https://www.spellmanhv.com/en/high-voltage-power-supplies/XRV
 
