@@ -167,6 +167,7 @@ class TestFilament:
         assert preheat in range(4096)
         spellman.filament.preheat = initial_preheat
 
+
 class TestUnscaledData:
     @pytest.mark.parametrize("voltage_setpoint", [25, 4095, 0])
     def test_voltage_setpoint(self, spellman, voltage_setpoint):

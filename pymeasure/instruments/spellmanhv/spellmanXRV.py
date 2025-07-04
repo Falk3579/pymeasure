@@ -547,10 +547,10 @@ class SpellmanXRV(Instrument):
         "38",
         "97,%d,%d",
         """Control the power limits in Watts (list of int).
-        
+
         index = 0: power limit for large filament
         index = 1: power limit for small filament
-        
+
         :raise: ValueError if limit is out of range
         """,
         get_process_list=lambda v: [v[0], v[1]],
