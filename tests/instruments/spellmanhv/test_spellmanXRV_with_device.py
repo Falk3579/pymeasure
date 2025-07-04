@@ -43,21 +43,23 @@ def spellman(connected_device_address):
 
 
 class TestSpellmanXRV:
-    """Tests for the Spellman XRV HV power supplies"""
-
     @pytest.mark.parametrize("voltage_setpoint", [19.54, 50e3, 160000, 0])
     def test_voltage_setpoint(self, spellman, voltage_setpoint):
         max_voltage = spellman.scaling["voltage"]
+        initial_voltage_setpoint = spellman.unscaled.voltage_setpoint
         spellman.voltage_setpoint = voltage_setpoint
         assert voltage_setpoint == pytest.approx(spellman.voltage_setpoint,
                                                  abs=0.51*max_voltage/4095)
+        spellman.unscaled.voltage_setpoint = initial_voltage_setpoint
 
     @pytest.mark.parametrize("current_setpoint", [10e-6, 1e-3, 0])
     def test_current_setpoint(self, spellman, current_setpoint):
         max_current = spellman.scaling["current"]
+        initial_current_setpoint = spellman.unscaled.current_setpoint
         spellman.current_setpoint = current_setpoint
         assert current_setpoint == pytest.approx(spellman.current_setpoint,
                                                  abs=0.51*max_current/4095)
+        spellman.unscaled.current_setpoint = initial_current_setpoint
 
     def test_analog_monitor(self, spellman):
         analog_monitor = spellman.analog_monitor
@@ -104,6 +106,13 @@ class TestSpellmanXRV:
         assert type(scaling["current"]) is float
         assert scaling["polarity"] in [0, 1]
 
+    @pytest.mark.parametrize("power_limits", [(110, 20), (3000, 1568), (2000, 3000)])
+    def test_power_limits(self, spellman, power_limits):
+        initial_power_limits = tuple(spellman.power_limits)
+        spellman.power_limits = power_limits
+        assert power_limits == tuple(spellman.power_limits)
+        spellman.power_limits = initial_power_limits
+
     def test_fpga(self, spellman):
         fpga = spellman.fpga
         assert type(fpga["part_number"]) is str
@@ -142,36 +151,41 @@ class TestSpellmanXRV:
 
 
 class TestFilament:
-    def test_limit(self, spellman):
+    @pytest.mark.parametrize("limit", [255, 4095, 0])
+    def test_limit(self, spellman, limit):
+        initial_limit = spellman.filament.limit
         limit = spellman.filament.limit
-        assert type(limit) is list
-        for element in limit:
-            assert type(element) is int
-            assert element in range(4096)
+        assert type(limit) is int
+        assert limit in range(4096)
+        spellman.filament.limit = initial_limit
 
-    def test_preheat(self, spellman):
+    @pytest.mark.parametrize("preheat", [1125, 4095, 0])
+    def test_preheat(self, spellman, preheat):
+        initial_preheat = spellman.filament.preheat
         preheat = spellman.filament.preheat
-        assert type(preheat) is list
-        for element in preheat:
-            assert type(element) is int
-            assert element in range(4096)
-
+        assert type(preheat) is int
+        assert preheat in range(4096)
+        spellman.filament.preheat = initial_preheat
 
 class TestUnscaledData:
     @pytest.mark.parametrize("voltage_setpoint", [25, 4095, 0])
     def test_voltage_setpoint(self, spellman, voltage_setpoint):
+        initial_voltage_setpoint = spellman.unscaled.voltage_setpoint
         spellman.unscaled.voltage_setpoint = voltage_setpoint
         assert voltage_setpoint == spellman.unscaled.voltage_setpoint
+        spellman.unscaled.voltage_setpoint = initial_voltage_setpoint
 
     @pytest.mark.parametrize("current_setpoint", [12, 4095, 0])
     def test_current_setpoint(self, spellman, current_setpoint):
+        initial_current_setpoint = spellman.unscaled.current_setpoint
         spellman.unscaled.current_setpoint = current_setpoint
         assert current_setpoint == spellman.unscaled.current_setpoint
+        spellman.unscaled.current_setpoint = initial_current_setpoint
 
     def test_analog_monitor(self, spellman):
         analog_monitor = spellman.unscaled.analog_monitor
         assert type(analog_monitor) is dict
-        for key in analog_monitor:
+        for key in analog_monitor.keys():
             assert type(analog_monitor[key]) is int
             assert analog_monitor[key] in range(4096)
 
@@ -188,5 +202,5 @@ class TestUnscaledData:
     def test_system_voltages(self, spellman):
         system_voltages = spellman.unscaled.system_voltages
         assert type(system_voltages) is dict
-        for key in system_voltages:
+        for key in system_voltages.keys():
             assert system_voltages[key] in range(4096)

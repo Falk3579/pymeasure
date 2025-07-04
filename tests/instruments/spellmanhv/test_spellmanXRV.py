@@ -273,6 +273,28 @@ class TestSpellmanXRV:
         ) as inst:
             inst.reset_errors()
 
+    @pytest.mark.parametrize("power_limits", [(110, 20), (3000, 1568), (4500, 3000)])
+    def test_power_limits(self, power_limits):
+        set_cmd = f"97,{power_limits[0]},{power_limits[1]},"
+        set_cmd_csum = checksum(set_cmd)
+        set_got = "97,$,"
+        set_got_csum = checksum(set_got)
+
+        get_cmd = "38,"
+        get_cmd_csum = checksum(get_cmd)
+        get_got = f"38,{power_limits[0]},{power_limits[1]},3,4,5,6,"
+        get_got_csum = checksum(get_got)
+
+        with expected_protocol(
+            SpellmanXRV,
+            [INITIALIZATION,
+             (f"{STX}{set_cmd}{set_cmd_csum}{ETX}", f"{STX}{set_got}{set_got_csum}"),
+             (f"{STX}{get_cmd}{get_cmd_csum}{ETX}", f"{STX}{get_got}{get_got_csum}"),
+             ],
+        ) as inst:
+            inst.power_limits = power_limits
+            assert power_limits == tuple(inst.power_limits)
+
     def test_fpga(self):
         get_cmd = "43,"
         get_cmd_csum = checksum(get_cmd)

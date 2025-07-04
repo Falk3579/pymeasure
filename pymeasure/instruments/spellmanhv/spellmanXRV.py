@@ -91,7 +91,7 @@ class Filament(Channel):
         check_set_errors=True,
         validator=strict_range,
         values=[0, 4095],
-        cast=int,
+        get_process_list=lambda v: int(v[0]),
         )
 
     preheat = Channel.control(
@@ -101,7 +101,7 @@ class Filament(Channel):
         check_set_errors=True,
         validator=strict_range,
         values=[0, 4095],
-        cast=int,
+        get_process_list=lambda v: int(v[0]),
         )
 
     size = Channel.setting(
@@ -286,8 +286,7 @@ class SpellmanXRV(Instrument):
         return chr(csb3)
 
     def write(self, command):
-        """
-        Write to the instrument.
+        """Write to the instrument.
 
         Adds <STX> (0x02) in front and checksum + <ETX> (0x03) at end of every command before
         sending it. The checksum is omitted for TCPIP connections.
@@ -543,6 +542,21 @@ class SpellmanXRV(Instrument):
 
     def reset_errors(self):
         self.ask("31")
+
+    power_limits = Instrument.control(
+        "38",
+        "97,%d,%d",
+        """Control the power limits in Watts (list of int).
+        
+        index = 0: power limit for large filament
+        index = 1: power limit for small filament
+        
+        :raise: ValueError if limit is out of range
+        """,
+        get_process_list=lambda v: [v[0], v[1]],
+        check_set_errors=True,
+        cast=int,
+        )
 
     fpga = Instrument.measurement(
         "43",
