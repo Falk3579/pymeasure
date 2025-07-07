@@ -22,12 +22,26 @@
 # THE SOFTWARE.
 #
 
-from pymeasure.instruments import Instrument, SCPIMixin
+from pymeasure.instruments import Instrument, Channel, SCPIMixin
+
+
+class Keithley4200SMU(Channel):
+    """A class representing the SMU channel."""
+    
+    voltage = Channel.control(
+        "",
+        "DV {ch} %g",
+        """Control the voltage in Volts (float)""",
+        )
+
+
+class Keithley4200CVU(Channel):
+    """A class representing the CVU channel."""
+    pass
 
 
 class Keithley4200(SCPIMixin, Instrument):
-    """A class representing the Keithley 4200A-SCS Parameter Analyzer.
-    """
+    """A class representing the Keithley 4200A-SCS Parameter Analyzer."""
 
     def __init__(self, adapter,
                  name="Keithley 4200A-SCS",
@@ -35,5 +49,10 @@ class Keithley4200(SCPIMixin, Instrument):
         super().__init__(
             adapter, 
             name,
+            # read_termination="\n",
             **kwargs
         )
+
+    smu1 = Instrument.ChannelCreator(Keithley4200SMU, "1")
+
+    cvu = Instrument.ChannelCreator(Keithley4200CVU, "1")
