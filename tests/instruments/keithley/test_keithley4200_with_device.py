@@ -21,15 +21,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+# Test using LAN port:
+# $ pytest test_keithley4200_with_device.py --device-address "TCPIP::192.168.1.20::1225::SOCKET"
+
 import time
 
 import pytest
 from pymeasure.instruments.keithley.keithley4200 import Keithley4200
 
 
-class TestKeithley4200:
-    """
-    Unit tests for Keithley4200 class.
+###########
+# FIXTURE #
+###########
 
-    """
-    pass
+
+@pytest.fixture(scope="module")
+def keithley4200(connected_device_address):
+    instr = Keithley4200(connected_device_address)
+    instr.write_enabled = 1
+    return instr
+
+
+class TestKeithley4200:
+    """Tests for Keithley4200 class."""
+    
+    def test_id(self, keithley4200):
+        id = keithley4200.id
