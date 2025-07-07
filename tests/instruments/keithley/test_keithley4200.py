@@ -23,13 +23,21 @@
 #
 
 from pymeasure.test import expected_protocol
-
 from pymeasure.instruments.keithley import Keithley4200
 
 
-def test_id():
-    with expected_protocol(
-        Keithley4200,
-        [("*IDN?", "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d")],
-    ) as inst:
-        assert inst.id == "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d"
+class TestKeithley4200SMU:
+    pass
+
+
+class TestKeithley4200CVU:
+    pass
+
+
+class TestKeithley4200:
+    def test_id():
+        with expected_protocol(
+            Keithley4200,
+            [("*IDN?", "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d")],
+        ) as inst:
+            assert inst.id == "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d"
