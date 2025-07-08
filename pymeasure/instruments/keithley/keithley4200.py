@@ -28,31 +28,53 @@ from pymeasure.instruments import Instrument, Channel, SCPIMixin
 class Keithley4200SMU(Channel):
     """A class representing the SMU channel."""
     
+    def disable(self):
+        self.write(f"DV{ch}")
+        got = self.read()
+        
+        
     voltage = Channel.control(
-        "",
-        "DV {ch} %g",
+        "TV{ch}",
+        "DV{ch},%d,%g,%g",
         """Control the voltage in Volts (float)""",
         )
 
+    current = Channel.control(
+        "TI{ch}",
+        "DI{ch},%d,%g,%g",
+        """Control the current in Amps (float)""",
+        )
 
-class Keithley4200CVU(Channel):
-    """A class representing the CVU channel."""
-    pass
 
-
-class Keithley4200(SCPIMixin, Instrument):
+class Keithley4200(Instrument):
     """A class representing the Keithley 4200A-SCS Parameter Analyzer."""
 
     def __init__(self, adapter,
                  name="Keithley 4200A-SCS",
+                 write_termination="\0",
+                 read_termination="\0",
                  **kwargs):
         super().__init__(
             adapter, 
             name,
-            # read_termination="\n",
+            includeSCPI=False,
+            write_termination=write_termination,
+            read_termination=read_termination,
             **kwargs
         )
 
-    smu1 = Instrument.ChannelCreator(Keithley4200SMU, "1")
+    id = Instrument.measurement(
+        "ID",
+        """Get the identification of the instrument.""",
+        cast=str,
+        maxsplit=0,
+    )
 
-    cvu = Instrument.ChannelCreator(Keithley4200CVU, "1")
+    status = Instrument.measurement(
+        "SP",
+        """Get the status byte.""",
+        cast=str,
+        maxsplit=0,
+    )
+
+    smu1 = Instrument.ChannelCreator(Keithley4200SMU, "1")
