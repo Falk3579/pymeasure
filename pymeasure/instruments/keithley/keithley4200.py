@@ -23,26 +23,50 @@
 #
 
 from pymeasure.instruments import Instrument, Channel, SCPIMixin
+from enum import IntFlag
+
+class StatusCode(IntFlag):
+    DATA_READY = 2**0
+    SYNTAX_ERROR = 2**1
+    BUSY = 2**4
+    SERVICE_REQUEST = 2**6
 
 
 class Keithley4200SMU(Channel):
     """A class representing the SMU channel."""
     
     def disable(self):
-        self.write(f"DV{ch}")
-        got = self.read()
-        
-        
+        """Disable the SMU channel."""
+        ch = self.id
+        self.write(f"US;DV{ch}")
+        self.check_set_errors()
+
     voltage = Channel.control(
-        "TV{ch}",
-        "DV{ch},%d,%g,%g",
-        """Control the voltage in Volts (float)""",
+        "US;TV{ch}",
+        "US;DV{ch},0,%g,%g",  # range, value, compliance
+        """Control the output voltage and current compliance (float, float).
+        
+        Output voltage is in Volts and current compliance in Amps.
+        The SMU uses autoranging.
+        """,
+        check_set_errors=True,
+        get_process=lambda v: dict(value=float(v[3:]), 
+                                   status=str(v[:3]),
+                                   ),
         )
 
     current = Channel.control(
-        "TI{ch}",
-        "DI{ch},%d,%g,%g",
-        """Control the current in Amps (float)""",
+        "US;TI{ch}",
+        "US;DI{ch},0,%g,%g",  # range, value, compliance
+        """Control the output current and voltage compliance (float, float).
+
+        Output current is in Amps and voltage compliance in Volts.
+        The SMU uses autoranging.
+        """,
+        check_set_errors=True,
+        get_process=lambda v: dict(value=float(v[3:]), 
+                                   status=str(v[:3]),
+                                   ),
         )
 
 
@@ -63,18 +87,56 @@ class Keithley4200(Instrument):
             **kwargs
         )
 
+        self.add_smus()
+
+    def add_smus(self):
+        options = self.options
+        
+        for element in options:
+            if "SMU" in element.upper():
+                id = element[-1]
+                self.add_child(Keithley4200SMU,
+                               id=id,
+                               prefix="smu"
+                               )
+
+    def check_set_errors(self):
+        """Check for errors after sending a command.
+        
+        :raise: ValueError if response is not 'ACK'
+        """
+        got = self.read().strip()
+        expected = "ACK"
+        
+        if expected != got:
+            raise ValueError(f"Expected '{expected}', got '{got}'")
+        
+        return []
+        
+
+    def clear(self):
+        """Clear all data from the buffer.
+        
+        It also clears bit B0 (Data Ready) of the status byte.
+        """
+        self.write("BC")
+        self.check_set_errors()
+
     id = Instrument.measurement(
         "ID",
-        """Get the identification of the instrument.""",
+        """Get the identification of the instrument (str).""",
         cast=str,
         maxsplit=0,
-    )
+        )
 
     status = Instrument.measurement(
         "SP",
-        """Get the status byte.""",
-        cast=str,
-        maxsplit=0,
-    )
+        """Get the status byte (IntFlag).""",
+        get_process=lambda v: StatusCode(v)
+        )
 
-    smu1 = Instrument.ChannelCreator(Keithley4200SMU, "1")
+    options = Instrument.measurement(
+        "*OPT?",
+        """Get the installed options (list of str).""",
+        cast=str,
+        )
