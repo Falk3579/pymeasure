@@ -25,7 +25,7 @@
 from pymeasure.test import expected_protocol
 from pymeasure.instruments.keithley import Keithley4200
 
-
+INITIALIZATION = 
 class TestKeithley4200SMU:
     pass
 
@@ -38,6 +38,23 @@ class TestKeithley4200:
     def test_id():
         with expected_protocol(
             Keithley4200,
-            [("*IDN?", "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d")],
+            [("ID\0", "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d\0")],
         ) as inst:
             assert inst.id == "KEITHLEY INSTRUMENTS INC., MODEL nnnn, xxxxxxx, yyyyy/zzzzz /a/d"
+
+    def test_status():
+        with expected_protocol(
+            Keithley4200,
+            [("SP", "66")],
+        ) as inst:
+            assert inst.status == "ss"
+
+    def test_options():
+        with expected_protocol(
+            Keithley4200,
+            [("*OPT?", "SMU1,SMUPA2,VM1,VS2,CVU1")],
+        ) as inst:
+            assert inst.options == "ss"
+
+
+

@@ -45,7 +45,11 @@ class Keithley4200SMU(Channel):
         "US;TV{ch}",
         "US;DV{ch},0,%g,%g",  # range, value, compliance
         """Control the output voltage and current compliance (float, float).
-        
+
+        :return: dict
+
+        :dict keys: ``value``, ``status``
+
         Output voltage is in Volts and current compliance in Amps.
         The SMU uses autoranging.
         """,
@@ -59,6 +63,10 @@ class Keithley4200SMU(Channel):
         "US;TI{ch}",
         "US;DI{ch},0,%g,%g",  # range, value, compliance
         """Control the output current and voltage compliance (float, float).
+
+        :return: dict
+
+        :dict keys: ``value``, ``status``
 
         Output current is in Amps and voltage compliance in Volts.
         The SMU uses autoranging.
@@ -90,8 +98,9 @@ class Keithley4200(Instrument):
         self.add_smus()
 
     def add_smus(self):
+        """Get the installed modules and add corresponding channels."""
         options = self.options
-        
+
         for element in options:
             if "SMU" in element.upper():
                 id = element[-1]
