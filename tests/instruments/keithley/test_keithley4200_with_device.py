@@ -21,13 +21,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+#
+# DISCONNECT ALL DUTS FROM THE 4200 BEFORE STARTING THIS TEST
+#
 # Test using LAN port:
 # $ pytest test_keithley4200_with_device.py --device-address "TCPIP::192.168.1.20::1225::SOCKET"
 
-import time
-
 import pytest
-from pymeasure.instruments.keithley.keithley4200 import Keithley4200
+from pymeasure.instruments.keithley import Keithley4200
+from pymeasure.instruments.keithley.keithley4200 import StatusCode
 
 
 ###########
@@ -38,12 +40,71 @@ from pymeasure.instruments.keithley.keithley4200 import Keithley4200
 @pytest.fixture(scope="module")
 def keithley4200(connected_device_address):
     instr = Keithley4200(connected_device_address)
-    instr.write_enabled = 1
+    instr.clear()
     return instr
 
 
 class TestKeithley4200:
     """Tests for Keithley4200 class."""
-    
+
     def test_id(self, keithley4200):
-        id = keithley4200.id
+        assert "KI4200" in keithley4200.id
+
+    def test_status(self, keithley4200):
+        assert type(keithley4200.status) is StatusCode
+
+    def test_options(self, keithley4200):
+        options = keithley4200.options
+        assert type(options) is list
+        for element in options:
+            assert type(element) is str
+
+
+class TestKeithley4200SMU:
+    """Tests for Keithley4200 SMU class."""
+
+    @pytest.mark.parametrize("voltage", [1, 20.65, -3.27, 43.1, 1.2e1, -99.7, 0])
+    def test_voltage(self, keithley4200, voltage):
+        keithley4200.clear()
+        assert keithley4200.status == StatusCode.NONE
+        keithley4200.smu1.voltage = (0, voltage, 1e-3)  # range, value, compliance
+        assert keithley4200.status == StatusCode.NONE
+        got = keithley4200.smu1.voltage
+        assert keithley4200.status == StatusCode.DATA_READY
+        assert got["value"] == pytest.approx(voltage, rel=1e-3, abs=1e-4)
+        assert got["status"] == "NAV"
+
+        # The voltage setting has to be applied again after a measurement if we change the
+        # measured quantity.
+        keithley4200.smu1.voltage = (0, voltage, 1e-3)  # range, value, compliance
+        got = keithley4200.smu1.current
+        assert keithley4200.status == StatusCode.DATA_READY
+
+        # With open terminals we should always get ~0A as current measurement result.
+        assert abs(got["value"]) == pytest.approx(0, rel=1e-3, abs=1e-4)
+        assert got["status"] == "NAI"
+        keithley4200.clear()
+
+    @pytest.mark.parametrize("current", [1e-3, -0.0256, 1.467e-2, 1.243e-6])
+    def test_current(self, keithley4200, current):
+        compliance = 1
+        keithley4200.clear()
+        assert keithley4200.status == StatusCode.NONE
+        keithley4200.smu1.current = (0, current, compliance)  # range, value, compliance
+        assert keithley4200.status == StatusCode.NONE
+        got = keithley4200.smu1.current
+        assert keithley4200.status == StatusCode.DATA_READY
+        # With open terminals we should always get ~0A and a compliance error.
+        assert got["value"] == pytest.approx(0, abs=1e-6)
+        assert got["status"] == "CAI"
+
+        # The current setting has to be applied again after a measurement if we change the
+        # measured quantity.
+        keithley4200.smu1.current = (0, current, compliance)  # range, value, compliance
+        got = keithley4200.smu1.voltage
+        assert keithley4200.status == StatusCode.DATA_READY
+
+        # With open terminals we should always get the compliance as voltage measurement result
+        assert abs(got["value"]) == pytest.approx(compliance, rel=1e-3, abs=1e-4)
+        assert got["status"] == "CAV"
+        keithley4200.clear()

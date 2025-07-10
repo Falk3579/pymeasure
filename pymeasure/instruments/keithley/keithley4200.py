@@ -26,26 +26,34 @@ from pymeasure.instruments import Instrument, Channel, SCPIMixin
 from enum import IntFlag
 
 class StatusCode(IntFlag):
+    """A class representing the status codes ofd the Keithley 4200."""
+    NONE = 0
     DATA_READY = 2**0
     SYNTAX_ERROR = 2**1
+    B2 = 2**2
+    B3 = 2**3
     BUSY = 2**4
+    B5 = 2**5
     SERVICE_REQUEST = 2**6
+    B7 = 2**7
 
 
 class Keithley4200SMU(Channel):
     """A class representing the SMU channel."""
-    
+
     def disable(self):
         """Disable the SMU channel."""
         ch = self.id
         self.write(f"US;DV{ch}")
         self.check_set_errors()
 
+
     voltage = Channel.control(
         "US;TV{ch}",
-        "US;DV{ch},0,%g,%g",  # range, value, compliance
-        """Control the output voltage and current compliance (float, float).
-
+        "US;DV{ch},%d,%g,%g",  # range, value, compliance
+        """Control the output voltage and current compliance (int, float, float).
+        (range, value, compliance)
+         
         :return: dict
 
         :dict keys: ``value``, ``status``
@@ -61,8 +69,9 @@ class Keithley4200SMU(Channel):
 
     current = Channel.control(
         "US;TI{ch}",
-        "US;DI{ch},0,%g,%g",  # range, value, compliance
-        """Control the output current and voltage compliance (float, float).
+        "US;DI{ch},%d,%g,%g",  # range, value, compliance
+        """Control the output current and voltage compliance (int, float, float).
+        (range, value, compliance)
 
         :return: dict
 
@@ -79,7 +88,10 @@ class Keithley4200SMU(Channel):
 
 
 class Keithley4200(Instrument):
-    """A class representing the Keithley 4200A-SCS Parameter Analyzer."""
+    """A class representing the Keithley 4200A-SCS Parameter Analyzer.
+    
+    The driver is only working over LAN interface.
+    """
 
     def __init__(self, adapter,
                  name="Keithley 4200A-SCS",
@@ -103,10 +115,11 @@ class Keithley4200(Instrument):
 
         for element in options:
             if "SMU" in element.upper():
-                id = element[-1]
+                id = int(element[-1])
                 self.add_child(Keithley4200SMU,
                                id=id,
-                               prefix="smu"
+                               prefix="smu",
+                               collection="smu",
                                )
 
     def check_set_errors(self):
@@ -141,7 +154,7 @@ class Keithley4200(Instrument):
     status = Instrument.measurement(
         "SP",
         """Get the status byte (IntFlag).""",
-        get_process=lambda v: StatusCode(v)
+        get_process=lambda v: StatusCode(int(v)),
         )
 
     options = Instrument.measurement(
