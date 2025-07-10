@@ -22,8 +22,9 @@
 # THE SOFTWARE.
 #
 
-from pymeasure.instruments import Instrument, Channel, SCPIMixin
+from pymeasure.instruments import Instrument, Channel
 from enum import IntFlag
+
 
 class StatusCode(IntFlag):
     """A class representing the status codes ofd the Keithley 4200."""
@@ -47,13 +48,12 @@ class Keithley4200SMU(Channel):
         self.write(f"US;DV{ch}")
         self.check_set_errors()
 
-
     voltage = Channel.control(
         "US;TV{ch}",
         "US;DV{ch},%d,%g,%g",  # range, value, compliance
         """Control the output voltage and current compliance (int, float, float).
         (range, value, compliance)
-         
+
         :return: dict
 
         :dict keys: ``value``, ``status``
@@ -62,7 +62,7 @@ class Keithley4200SMU(Channel):
         The SMU uses autoranging.
         """,
         check_set_errors=True,
-        get_process=lambda v: dict(value=float(v[3:]), 
+        get_process=lambda v: dict(value=float(v[3:]),
                                    status=str(v[:3]),
                                    ),
         )
@@ -81,7 +81,7 @@ class Keithley4200SMU(Channel):
         The SMU uses autoranging.
         """,
         check_set_errors=True,
-        get_process=lambda v: dict(value=float(v[3:]), 
+        get_process=lambda v: dict(value=float(v[3:]),
                                    status=str(v[:3]),
                                    ),
         )
@@ -89,7 +89,7 @@ class Keithley4200SMU(Channel):
 
 class Keithley4200(Instrument):
     """A class representing the Keithley 4200A-SCS Parameter Analyzer.
-    
+
     The driver is only working over LAN interface.
     """
 
@@ -99,7 +99,7 @@ class Keithley4200(Instrument):
                  read_termination="\0",
                  **kwargs):
         super().__init__(
-            adapter, 
+            adapter,
             name,
             includeSCPI=False,
             write_termination=write_termination,
@@ -124,21 +124,20 @@ class Keithley4200(Instrument):
 
     def check_set_errors(self):
         """Check for errors after sending a command.
-        
+
         :raise: ValueError if response is not 'ACK'
         """
         got = self.read().strip()
         expected = "ACK"
-        
+
         if expected != got:
             raise ValueError(f"Expected '{expected}', got '{got}'")
-        
+
         return []
-        
 
     def clear(self):
         """Clear all data from the buffer.
-        
+
         It also clears bit B0 (Data Ready) of the status byte.
         """
         self.write("BC")
