@@ -59,7 +59,14 @@ class Keithley4200SMU(Channel):
         :dict keys: ``value``, ``status``
 
         Output voltage is in Volts and current compliance in Amps.
-        The SMU uses autoranging.
+        
+        Voltage source range:
+            ▪ 0: autorange
+            ▪ 1: 20 V range
+            ▪ 2: 200 V range
+            ▪ 3: 200 V range
+            ▪ 4: 200 mV range, only with a preamplifier
+            ▪ 5: 2 V range, only with a preamplifier
         """,
         check_set_errors=True,
         get_process=lambda v: dict(value=float(v[3:]),
@@ -78,7 +85,23 @@ class Keithley4200SMU(Channel):
         :dict keys: ``value``, ``status``
 
         Output current is in Amps and voltage compliance in Volts.
-        The SMU uses autoranging.
+        
+        Current source range:
+            ▪ 0: autorange
+            ▪ 1: 1 nA range, only with a preamplifier
+            ▪ 2: 10 nA range, only with a preamplifier
+            ▪ 3: 100 nA range
+            ▪ 4: 1 µA range
+            ▪ 5: 10 µA range
+            ▪ 6: 100 µA range
+            ▪ 7: 1 mA range
+            ▪ 8: 10 mA range
+            ▪ 9: 100 mA range
+            ▪ 10: 1 A range, only with a 4210-SMU or 4211-SMU
+            ▪ 11: 1 pA range, only with a preamplifier
+            ▪ 12: 10 pA range, only with a preamplifier
+            ▪ 13: 100 pA range, only with a preamplifier
+
         """,
         check_set_errors=True,
         get_process=lambda v: dict(value=float(v[3:]),
