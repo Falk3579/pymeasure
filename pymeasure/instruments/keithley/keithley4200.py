@@ -86,41 +86,42 @@ class Keithley4200SMU(Channel):
                                    ),
         )
 
-
+    
 class Keithley4200(Instrument):
     """A class representing the Keithley 4200A-SCS Parameter Analyzer.
 
-    The driver is only working over LAN interface.
+    Currently, the driver is only working with LAN interface.
     """
 
     def __init__(self, adapter,
                  name="Keithley 4200A-SCS",
-                 write_termination="\0",
-                 read_termination="\0",
+                 write_termination="\n",
+                 read_termination="\n",
                  **kwargs):
         super().__init__(
             adapter,
             name,
             includeSCPI=False,
-            write_termination=write_termination,
-            read_termination=read_termination,
+            tcpip={"write_termination": "\0",
+                   "read_termination": "\0"},
+            gpib={"write_termination": write_termination,
+                   "read_termination": read_termination},
             **kwargs
         )
 
-        self.add_smus()
-
-    def add_smus(self):
-        """Get the installed modules and add corresponding channels."""
         options = self.options
-
         for element in options:
+            id = int(element[-1])
             if "SMU" in element.upper():
-                id = int(element[-1])
-                self.add_child(Keithley4200SMU,
-                               id=id,
-                               prefix="smu",
-                               collection="smu",
-                               )
+                self.add_smu(id)
+
+    def add_smu(self, id):
+        """Add a SMU channel to the device channels."""
+        self.add_child(Keithley4200SMU,
+            id=id,
+            prefix="smu",
+            collection="smu",
+            )
 
     def check_set_errors(self):
         """Check for errors after sending a command.
