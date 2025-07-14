@@ -27,7 +27,16 @@ from enum import IntFlag
 
 
 class StatusCode(IntFlag):
-    """A class representing the status codes ofd the Keithley 4200."""
+    """A class representing the status codes ofd the Keithley 4200.
+
+    Status codes:
+        - 0: NONE
+        - 1: DATA_READY
+        - 2: SYNTAX_ERROR
+        - 16: BUSY
+        - 64: SERVICE_REQUEST
+
+    """
     NONE = 0
     DATA_READY = 2**0
     SYNTAX_ERROR = 2**1
@@ -39,11 +48,11 @@ class StatusCode(IntFlag):
     B7 = 2**7
 
 
-class Keithley4200SMU(Channel):
-    """A class representing the SMU channel."""
+class SMU(Channel):
+    """A class representing the SMU (source/measure unit) channel."""
 
     def disable(self):
-        """Disable the SMU channel."""
+        """Disable the SMU."""
         ch = self.id
         self.write(f"US;DV{ch}")
         self.check_set_errors()
@@ -52,21 +61,26 @@ class Keithley4200SMU(Channel):
         "US;TV{ch}",
         "US;DV{ch},%d,%g,%g",  # range, value, compliance
         """Control the output voltage and current compliance (int, float, float).
-        (range, value, compliance)
+
+        Voltage is in Volts and current in Amps.
+
+        .. code::
+
+            inst = Keithley4200("TCPIP::192.168.1.1::1225::SOCKET")
+            inst.smu1.voltage = (0, 3.3, 1e-2)  # (range, value, compliance)
+            # Set SMU1 to output 3.3 V in autorange with 10 mA current compliance
+
+        Voltage source range:
+            - 0: autorange
+            - 1: 20 V range
+            - 2: 200 V range
+            - 3: 200 V range
+            - 4: 200 mV range, only with a preamplifier
+            - 5: 2 V range, only with a preamplifier
 
         :return: dict
-
         :dict keys: ``value``, ``status``
 
-        Output voltage is in Volts and current compliance in Amps.
-        
-        Voltage source range:
-            ▪ 0: autorange
-            ▪ 1: 20 V range
-            ▪ 2: 200 V range
-            ▪ 3: 200 V range
-            ▪ 4: 200 mV range, only with a preamplifier
-            ▪ 5: 2 V range, only with a preamplifier
         """,
         check_set_errors=True,
         get_process=lambda v: dict(value=float(v[3:]),
@@ -78,29 +92,33 @@ class Keithley4200SMU(Channel):
         "US;TI{ch}",
         "US;DI{ch},%d,%g,%g",  # range, value, compliance
         """Control the output current and voltage compliance (int, float, float).
-        (range, value, compliance)
+
+        Current is in Amps and voltage in Volts.
+
+        .. code::
+
+            inst = Keithley4200("TCPIP::192.168.1.1::1225::SOCKET")
+            inst.smu1.voltage = (9, 55e-3, 10)  # (range, value, compliance)
+            # Set SMU1 to output 55 mA in 100 mA range with 10 V voltage compliance
+
+        Current source range:
+            - 0: autorange
+            - 1: 1 nA range, only with a preamplifier
+            - 2: 10 nA range, only with a preamplifier
+            - 3: 100 nA range
+            - 4: 1 µA range
+            - 5: 10 µA range
+            - 6: 100 µA range
+            - 7: 1 mA range
+            - 8: 10 mA range
+            - 9: 100 mA range
+            - 10: 1 A range, only with a 4210-SMU or 4211-SMU
+            - 11: 1 pA range, only with a preamplifier
+            - 12: 10 pA range, only with a preamplifier
+            - 13: 100 pA range, only with a preamplifier
 
         :return: dict
-
         :dict keys: ``value``, ``status``
-
-        Output current is in Amps and voltage compliance in Volts.
-        
-        Current source range:
-            ▪ 0: autorange
-            ▪ 1: 1 nA range, only with a preamplifier
-            ▪ 2: 10 nA range, only with a preamplifier
-            ▪ 3: 100 nA range
-            ▪ 4: 1 µA range
-            ▪ 5: 10 µA range
-            ▪ 6: 100 µA range
-            ▪ 7: 1 mA range
-            ▪ 8: 10 mA range
-            ▪ 9: 100 mA range
-            ▪ 10: 1 A range, only with a 4210-SMU or 4211-SMU
-            ▪ 11: 1 pA range, only with a preamplifier
-            ▪ 12: 10 pA range, only with a preamplifier
-            ▪ 13: 100 pA range, only with a preamplifier
 
         """,
         check_set_errors=True,
@@ -109,17 +127,16 @@ class Keithley4200SMU(Channel):
                                    ),
         )
 
-    
+
 class Keithley4200(Instrument):
     """A class representing the Keithley 4200A-SCS Parameter Analyzer.
 
+    This driver only uses the user mode commands for controlling the SMUs.
     Currently, the driver is only working with LAN interface.
     """
 
     def __init__(self, adapter,
                  name="Keithley 4200A-SCS",
-                 write_termination="\n",
-                 read_termination="\n",
                  **kwargs):
         super().__init__(
             adapter,
@@ -127,8 +144,6 @@ class Keithley4200(Instrument):
             includeSCPI=False,
             tcpip={"write_termination": "\0",
                    "read_termination": "\0"},
-            gpib={"write_termination": write_termination,
-                   "read_termination": read_termination},
             **kwargs
         )
 
@@ -139,12 +154,12 @@ class Keithley4200(Instrument):
                 self.add_smu(id)
 
     def add_smu(self, id):
-        """Add a SMU channel to the device channels."""
-        self.add_child(Keithley4200SMU,
-            id=id,
-            prefix="smu",
-            collection="smu",
-            )
+        """Add a SMU channel to the device."""
+        self.add_child(SMU,
+                       id=id,
+                       prefix="smu",
+                       collection="smu",
+                       )
 
     def check_set_errors(self):
         """Check for errors after sending a command.
@@ -162,7 +177,7 @@ class Keithley4200(Instrument):
     def clear(self):
         """Clear all data from the buffer.
 
-        It also clears bit B0 (Data Ready) of the status byte.
+        It also clears bit B0 (DATA_READY) of the status byte.
         """
         self.write("BC")
         self.check_set_errors()
