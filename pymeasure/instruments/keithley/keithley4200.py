@@ -132,7 +132,11 @@ class Keithley4200(Instrument):
     """A class representing the Keithley 4200A-SCS Parameter Analyzer.
 
     This driver only uses the user mode commands for controlling the SMUs.
-    Currently, the driver is only working with LAN interface.
+
+    Start the 'KXCI' program on the 4200A-SCS to activate remote control. The remote interface
+    is configured with the Keithley Configuration Utility 'KCon'.
+
+    Currently, the driver is only working with the ethernet interface.
     """
 
     def __init__(self, adapter,
