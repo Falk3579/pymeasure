@@ -37,9 +37,9 @@ class AgilentN8975AFrequency(Channel):
         :attr:`mode` 
             :type: float
             :range: ``10e6`` Hz (10 MHz) to ``26.4999e9`` Hz (26.5 GHz) 
-        validator=strict_range,
-        values=[10e6, 26.4999e9]
         """,
+        validator=strict_range,
+        values=[10e6, 26.4999e9],
         )
 
     stop = Channel.control(
@@ -50,9 +50,9 @@ class AgilentN8975AFrequency(Channel):
         :attr:`mode`
             :type: float
             :range: ``10.1e6`` Hz (10.1 MHz) to ``26.5e9`` Hz (26.5 GHz)
-        validator=strict_range,
-        values=[10.1e6, 26.5e9]
         """,
+        validator=strict_range,
+        values=[10.1e6, 26.5e9],
         )
 
     mode = Channel.control(
