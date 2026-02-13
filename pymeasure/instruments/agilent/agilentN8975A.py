@@ -186,7 +186,10 @@ class AgilentN8975A(SCPIMixin, Instrument):
 
     @property
     def gain(self):
-        """Get the corrected gain data in dB (list of float)."""
+        """Get the corrected gain data in dB.
+
+        :type: list[float]
+        """
         _type = "ARRAY"
         if self.frequency.mode == "fixed":
             _type = "SCALAR"
