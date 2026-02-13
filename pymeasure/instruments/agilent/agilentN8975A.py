@@ -199,7 +199,10 @@ class AgilentN8975A(SCPIMixin, Instrument):
 
     @property
     def noise_figure(self):
-        """Get the corrected noise figure data in dB (list of float)."""
+        """Get the corrected noise figure data in dB.
+
+        :type: list[float]
+        """
         _type = "ARRAY"
         if self.frequency.mode == "fixed":
             _type = "SCALAR"
