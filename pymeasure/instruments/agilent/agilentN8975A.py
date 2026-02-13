@@ -169,7 +169,11 @@ class AgilentN8975A(SCPIMixin, Instrument):
     average = Instrument.control(
         "AVER:COUN?",
         "AVER:COUN %d",
-        """Control the number of averaging samples (int, strictly from ``1`` to ``999``)""",
+        """Control the number of averaging samples. 
+        
+        :type: int
+        :range: ``1`` to ``999``
+        """,
         validator=strict_range,
         values=[1, 999],
         get_process=lambda v: int(float(v)),  # NFA returns e.g. '+1.00000000E+000'.
