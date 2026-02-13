@@ -109,7 +109,11 @@ class AgilentN8975AFrequency(Channel):
         "SWE:POIN?",
         "SWE:POIN %d",
         """Control the number of points for the sweep frequency :attr:`mode`
-        (int, strictly from ``2`` to ``401``).""",
+        """Control the number of points for the sweep frequency :attr:`mode`.
+
+        :type: int
+        :range: ``2`` to ``401``
+        """,
         validator=strict_range,
         values=[2, 401],
         cast=int,
