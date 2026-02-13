@@ -38,20 +38,21 @@ class AgilentN8975AFrequency(Channel):
             :type: float
             :range: ``10e6`` Hz (10 MHz) to ``26.4999e9`` Hz (26.5 GHz) 
         validator=strict_range,
-        values=[10e6, 26.4999e9],
+        values=[10e6, 26.4999e9]
+        """,
         )
 
     stop = Channel.control(
         "FREQ:STOP?",
         "FREQ:STOP %f",
-        """Control the stop frequency in Hz for the sweep frequency :attr:`mode`
         """Control the stop frequency in Hz for the sweep frequency.
 
         :attr:`mode`
             :type: float
             :range: ``10.1e6`` Hz (10.1 MHz) to ``26.5e9`` Hz (26.5 GHz)
         validator=strict_range,
-        values=[10.1e6, 26.5e9],
+        values=[10.1e6, 26.5e9]
+        """,
         )
 
     mode = Channel.control(
@@ -76,7 +77,6 @@ class AgilentN8975AFrequency(Channel):
     fixed_value = Channel.control(
         "FREQ:FIX?",
         "FREQ:FIX %f",
-        """Control the frequency in Hz in the fixed frequency :attr:`mode`
         """Control the frequency in Hz in the fixed frequency :attr:`mode`.
 
         :type: `float`
@@ -89,10 +89,11 @@ class AgilentN8975AFrequency(Channel):
     list_data = Channel.control(
         "FREQ:LIST:DATA?",
         "FREQ:LIST:DATA %s",
-        """Control the frequencies in Hz for the list frequency :attr:`mode` (list of float).""",
         """Control the frequencies in Hz for the list frequency :attr:`mode`.
          
-        :type: ``list[float]``.""",
+        :type: ``list[float]``.
+        """,
+        set_process=lambda v: ','.join(map(str, v)),
         preprocess_reply=lambda v: v.strip("\x00"),
         )
 
@@ -108,7 +109,6 @@ class AgilentN8975AFrequency(Channel):
     number_of_points = Instrument.control(
         "SWE:POIN?",
         "SWE:POIN %d",
-        """Control the number of points for the sweep frequency :attr:`mode`
         """Control the number of points for the sweep frequency :attr:`mode`.
 
         :type: int
@@ -194,7 +194,6 @@ class AgilentN8975A(SCPIMixin, Instrument):
     bandwidth = Instrument.control(
         "BAND?",
         "BAND %f",
-        """Control the measurement bandwidth in Hz (float, strictly ``100e3``, ``200e3``,
         """Control the measurement bandwidth in Hz. 
         
         :type: float
