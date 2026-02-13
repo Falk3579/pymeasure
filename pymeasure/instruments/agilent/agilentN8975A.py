@@ -208,7 +208,10 @@ class AgilentN8975A(SCPIMixin, Instrument):
     continuous_mode_enabled = Instrument.control(
         "INIT:CONT?",
         "INIT:CONT %d",
-        """Control whether the continuous sweep mode is enabled or not (bool).""",
+        """Control whether the continuous sweep mode is enabled or not.
+        
+        :type: bool
+        """,
         map_values=True,
         values={False: 0, True: 1}
         )
