@@ -45,7 +45,11 @@ class AgilentN8975AFrequency(Channel):
         "FREQ:STOP?",
         "FREQ:STOP %f",
         """Control the stop frequency in Hz for the sweep frequency :attr:`mode`
-        (float, strictly from ``10.1e6`` to ``26.5e9``).""",
+        """Control the stop frequency in Hz for the sweep frequency.
+
+        :attr:`mode`
+            :type: float
+            :range: ``10.1e6`` Hz (10.1 MHz) to ``26.5e9`` Hz (26.5 GHz)
         validator=strict_range,
         values=[10.1e6, 26.5e9],
         )
