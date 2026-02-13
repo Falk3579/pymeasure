@@ -195,7 +195,12 @@ class AgilentN8975A(SCPIMixin, Instrument):
         "BAND?",
         "BAND %f",
         """Control the measurement bandwidth in Hz (float, strictly ``100e3``, ``200e3``,
-        ``400e3``, ``1e6``, ``2e6`` or ``4e6``).""",
+        """Control the measurement bandwidth in Hz. 
+        
+        :type: float
+        :values: ``100e3`` (100 kHz), ``200e3`` (200 kHz), ``400e3`` (400 kHz), ``1e6`` (1 MHz), 
+            ``2e6`` (2 MHz) or ``4e6`` (4 MHz)
+        """,
         validator=strict_discrete_set,
         values=[100e3, 200e3, 400e3, 1e6, 2e6, 4e6]
         )
