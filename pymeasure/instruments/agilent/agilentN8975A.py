@@ -98,7 +98,10 @@ class AgilentN8975AFrequency(Channel):
 
     number_of_entries = Channel.measurement(
         "FREQ:LIST:COUN?",
-        """Get the number of entries in the list frequency :attr:`mode` (int).""",
+        """Get the number of entries in the list frequency :attr:`mode`. 
+        
+        :type: int
+        """,
         cast=int,
         )
 
