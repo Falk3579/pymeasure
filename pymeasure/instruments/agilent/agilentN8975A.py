@@ -90,7 +90,9 @@ class AgilentN8975AFrequency(Channel):
         "FREQ:LIST:DATA?",
         "FREQ:LIST:DATA %s",
         """Control the frequencies in Hz for the list frequency :attr:`mode` (list of float).""",
-        set_process=lambda v: ','.join(map(str, v)),
+        """Control the frequencies in Hz for the list frequency :attr:`mode`.
+         
+        :type: ``list[float]``.""",
         preprocess_reply=lambda v: v.strip("\x00"),
         )
 
