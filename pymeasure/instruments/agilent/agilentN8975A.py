@@ -32,11 +32,11 @@ class AgilentN8975AFrequency(Channel):
     start = Channel.control(
         "FREQ:STAR?",
         "FREQ:STAR %f",
-        """Control the start frequency in Hz for the sweep frequency 
-        
-        :attr:`mode` 
+        """Control the start frequency in Hz for the sweep frequency
+
+        :attr:`mode`
             :type: float
-            :range: ``10e6`` Hz (10 MHz) to ``26.4999e9`` Hz (26.5 GHz) 
+            :range: ``10e6`` Hz (10 MHz) to ``26.4999e9`` Hz (26.5 GHz)
         """,
         validator=strict_range,
         values=[10e6, 26.4999e9],
@@ -90,7 +90,7 @@ class AgilentN8975AFrequency(Channel):
         "FREQ:LIST:DATA?",
         "FREQ:LIST:DATA %s",
         """Control the frequencies in Hz for the list frequency :attr:`mode`.
-         
+
         :type: ``list[float]``.
         """,
         set_process=lambda v: ','.join(map(str, v)),
@@ -99,8 +99,8 @@ class AgilentN8975AFrequency(Channel):
 
     number_of_entries = Channel.measurement(
         "FREQ:LIST:COUN?",
-        """Get the number of entries in the list frequency :attr:`mode`. 
-        
+        """Get the number of entries in the list frequency :attr:`mode`.
+
         :type: int
         """,
         cast=int,
@@ -169,8 +169,8 @@ class AgilentN8975A(SCPIMixin, Instrument):
     average = Instrument.control(
         "AVER:COUN?",
         "AVER:COUN %d",
-        """Control the number of averaging samples. 
-        
+        """Control the number of averaging samples.
+
         :type: int
         :range: ``1`` to ``999``
         """,
@@ -184,7 +184,7 @@ class AgilentN8975A(SCPIMixin, Instrument):
         "AVER?",
         "AVER %d",
         """Control whether averaging is enabled or not.
-        
+
         :type: bool
         """,
         validator=strict_range,
@@ -194,10 +194,10 @@ class AgilentN8975A(SCPIMixin, Instrument):
     bandwidth = Instrument.control(
         "BAND?",
         "BAND %f",
-        """Control the measurement bandwidth in Hz. 
-        
+        """Control the measurement bandwidth in Hz.
+
         :type: float
-        :values: ``100e3`` (100 kHz), ``200e3`` (200 kHz), ``400e3`` (400 kHz), ``1e6`` (1 MHz), 
+        :values: ``100e3`` (100 kHz), ``200e3`` (200 kHz), ``400e3`` (400 kHz), ``1e6`` (1 MHz),
             ``2e6`` (2 MHz) or ``4e6`` (4 MHz)
         """,
         validator=strict_discrete_set,
@@ -208,7 +208,7 @@ class AgilentN8975A(SCPIMixin, Instrument):
         "INIT:CONT?",
         "INIT:CONT %d",
         """Control whether the continuous sweep mode is enabled or not.
-        
+
         :type: bool
         """,
         map_values=True,
