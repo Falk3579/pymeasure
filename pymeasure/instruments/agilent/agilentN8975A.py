@@ -183,7 +183,10 @@ class AgilentN8975A(SCPIMixin, Instrument):
     average_enabled = Instrument.control(
         "AVER?",
         "AVER %d",
-        """Control whether averaging is enabled or not (bool).""",
+        """Control whether averaging is enabled or not.
+        
+        :type: bool
+        """,
         validator=strict_range,
         values={False: 0, True: 1}
         )
