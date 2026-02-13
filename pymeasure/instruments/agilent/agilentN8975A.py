@@ -32,8 +32,11 @@ class AgilentN8975AFrequency(Channel):
     start = Channel.control(
         "FREQ:STAR?",
         "FREQ:STAR %f",
-        """Control the start frequency in Hz for the sweep frequency :attr:`mode`
-        (float, strictly from ``10e6`` to ``26.4999e9``).""",
+        """Control the start frequency in Hz for the sweep frequency 
+        
+        :attr:`mode` 
+            :type: float
+            :range: ``10e6`` Hz (10 MHz) to ``26.4999e9`` Hz (26.5 GHz) 
         validator=strict_range,
         values=[10e6, 26.4999e9],
         )
