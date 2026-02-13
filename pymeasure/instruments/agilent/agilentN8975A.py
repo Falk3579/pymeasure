@@ -77,7 +77,11 @@ class AgilentN8975AFrequency(Channel):
         "FREQ:FIX?",
         "FREQ:FIX %f",
         """Control the frequency in Hz in the fixed frequency :attr:`mode`
-        (float, strictly from ``10e6`` to ``26.5e9``).""",
+        """Control the frequency in Hz in the fixed frequency :attr:`mode`.
+
+        :type: `float`
+        :range: ``10e6`` Hz (10 MHz) to ``26.5e9`` Hz (26.5 GHz)
+        """,
         validator=strict_range,
         values=[10e6, 26.5e9],
         )
